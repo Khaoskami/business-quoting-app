@@ -4,41 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#0e0e11" />
-    <meta name="description" content="Free encrypted quoting app for any business. Create professional quotes, manage clients, track revenue. AES-256 encrypted. No server. No paywall." />
-    <meta name="author" content="Khaoskami" />
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="Business Quotes — Free Encrypted Quoting App" />
-    <meta property="og:description" content="Create professional quotes for any business. Encrypted, offline-capable, free to use." />
-    <meta property="og:type" content="website" />
-
-    <!-- PWA -->
+    <meta name="description" content="Free encrypted quoting app for any business. AES-256 encrypted. No server. No paywall." />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-
     <title>Business Quotes</title>
-
     <style>
-      /* Prevent flash of white on load */
-      html, body, #root {
-        margin: 0;
-        padding: 0;
-        background: #0e0e11;
-        min-height: 100vh;
-      }
+      html, body, #root { margin: 0; padding: 0; background: #0e0e11; min-height: 100vh; }
     </style>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/main.jsx"></script>
     <script>
-      // Register service worker for PWA / offline support
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {
-          navigator.serviceWorker.register("/sw.js").catch(function () {
-            // Service worker registration failed — app still works without it
-          });
+          navigator.serviceWorker.register("/sw.js").catch(function () {});
         });
       }
     </script>
