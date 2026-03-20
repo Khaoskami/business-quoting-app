@@ -1,294 +1,1988 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<meta name="theme-color" content="#0e0e11"/>
-<meta name="description" content="Free encrypted quoting app for any business."/>
-<title>Business Quotes</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Business Quotes — Dev</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#2d3748" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="description" content="Create professional business quotes. Free, private, works offline." />
+<!--
+  Business Quoting App — Dev Build (Password Protected)
+  Copyright (c) 2024-2026 Khaoskami. All rights reserved.
+  github.com/Khaoskami/business-quoting-app
+  Proprietary software. See LICENSE for terms.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body,#root{background:#0e0e11;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-input:focus,select:focus,textarea:focus{border-color:#3b82f6!important;outline:none}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#25252b;border-radius:3px}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-main: "Lexend", -apple-system, sans-serif;
+  --font-dyslexic: "Atkinson Hyperlegible", sans-serif;
+
+  --bg: #faf8f5;
+  --bg-warm: #f5f0eb;
+  --surface: #ffffff;
+  --surface-hover: #fdfcfb;
+  --border: #e8e2da;
+  --border-focus: #b8a99a;
+
+  --text: #2d3748;
+  --text-secondary: #6b7280;
+  --text-light: #9ca3af;
+
+  --btn-dark: #2d3748;
+  --btn-dark-hover: #1a202c;
+  --btn-primary: #3b6b8a;
+  --btn-primary-hover: #2d5570;
+  --btn-success: #4a8c6f;
+  --btn-success-hover: #3d7a5f;
+  --btn-danger: #c0564f;
+  --btn-danger-hover: #a8453f;
+  --btn-accent: #7c6db0;
+  --btn-accent-hover: #6a5b9e;
+
+  --tag-free: #e8e2da;
+  --tag-free-text: #6b7280;
+  --tag-starter: #d0e2f0;
+  --tag-starter-text: #2d5570;
+  --tag-pro: #e0d4f0;
+  --tag-pro-text: #5b4a8a;
+  --tag-unlimited: #f0e0c8;
+  --tag-unlimited-text: #8a6a3a;
+
+  --success-bg: #eef7f0;
+  --warning-bg: #fdf6e3;
+  --danger-bg: #fdf0ef;
+  --accent-bg: #f3f0f8;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --letter-spacing: 0.01em;
+  --line-height: 1.7;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg);
+  color: var(--text);
+  line-height: var(--line-height);
+  letter-spacing: var(--letter-spacing);
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+}
+
+body.dyslexic-mode {
+  font-family: var(--font-dyslexic);
+  letter-spacing: 0.05em;
+  word-spacing: 0.12em;
+  --line-height: 1.9;
+  line-height: 1.9;
+}
+
+body.dyslexic-mode * { font-style: normal !important; }
+
+input, select, textarea, button {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+button { cursor: pointer; }
+
+/* ── LOCK SCREEN ── */
+.lock-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-warm);
+  padding: 24px;
+}
+
+.lock-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 32px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.lock-card h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.lock-card .subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.lock-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+  text-align: center;
+  letter-spacing: 0.15em;
+}
+
+.lock-input:focus {
+  outline: none;
+  border-color: var(--btn-primary);
+  background: var(--surface);
+}
+
+.lock-error {
+  color: var(--btn-danger);
+  font-size: 13px;
+  margin-bottom: 12px;
+  min-height: 20px;
+}
+
+.lock-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  background: var(--btn-dark);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.lock-btn:hover { background: var(--btn-dark-hover); }
+.lock-btn:active { transform: scale(0.98); }
+.lock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.lock-footer {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.lock-footer a {
+  color: var(--btn-danger);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* ── APP HEADER ── */
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.app-header h1 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.header-tier {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+.header-actions { display: flex; align-items: center; gap: 8px; }
+
+.lock-icon-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.lock-icon-btn:hover { background: var(--bg); border-color: var(--border-focus); }
+
+/* ── NAVIGATION ── */
+.nav-bar {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 12px;
+}
+
+.nav-bar button {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 12px 12px;
+  border: none;
+  background: none;
+  color: var(--text-light);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-bar button .nav-icon { font-size: 18px; }
+
+.nav-bar button.active {
+  color: var(--btn-primary);
+  border-bottom-color: var(--btn-primary);
+  font-weight: 600;
+}
+
+/* ── PAGE ── */
+.page-container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title .icon { font-size: 18px; }
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+  transition: all 0.2s;
+  line-height: var(--line-height);
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--btn-primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(59,107,138,0.12);
+}
+
+.form-textarea { resize: vertical; min-height: 70px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-dark { background: var(--btn-dark); color: white; }
+.btn-dark:hover { background: var(--btn-dark-hover); }
+.btn-primary { background: var(--btn-primary); color: white; }
+.btn-primary:hover { background: var(--btn-primary-hover); }
+.btn-success { background: var(--btn-success); color: white; }
+.btn-success:hover { background: var(--btn-success-hover); }
+.btn-danger { background: var(--btn-danger); color: white; }
+.btn-danger:hover { background: var(--btn-danger-hover); }
+.btn-accent { background: var(--btn-accent); color: white; }
+.btn-accent:hover { background: var(--btn-accent-hover); }
+
+.btn-outline {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { background: var(--bg); border-color: var(--border-focus); }
+
+.btn-ghost {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.btn-ghost:hover { color: var(--text); background: var(--bg); border-radius: var(--radius-sm); }
+
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── STATS ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+.usage-meter {
+  background: var(--bg-warm);
+  border-radius: 6px;
+  height: 8px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.usage-meter-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+/* ── QUOTE LIST ── */
+.quote-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow);
+}
+
+.quote-list-item:hover {
+  border-color: var(--btn-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.quote-item-left { flex: 1; min-width: 0; }
+.quote-item-title {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.quote-item-sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+.quote-item-right { text-align: right; flex-shrink: 0; margin-left: 16px; }
+.quote-item-amount { font-size: 15px; font-weight: 700; }
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-draft { background: var(--bg-warm); color: var(--text-secondary); }
+.status-sent { background: var(--tag-starter); color: var(--tag-starter-text); }
+.status-accepted { background: var(--success-bg); color: var(--btn-success); }
+.status-declined { background: var(--danger-bg); color: var(--btn-danger); }
+.status-expired { background: var(--warning-bg); color: #8a6a3a; }
+
+.signed-badge {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--btn-success);
+  margin-left: 6px;
+}
+
+/* ── LINE ITEMS ── */
+.line-item-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 110px 90px 40px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.line-item-row input { font-size: 14px; padding: 8px 10px; }
+
+.totals-section {
+  border-top: 2px solid var(--border);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 15px;
+}
+
+.totals-row.grand {
+  font-size: 20px;
+  font-weight: 700;
+  border-top: 2px solid var(--text);
+  padding-top: 10px;
+  margin-top: 6px;
+}
+
+/* ── SEARCH ── */
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  margin-bottom: 16px;
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--btn-primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(59,107,138,0.12);
+}
+
+/* ── UPGRADE BANNER ── */
+.upgrade-banner {
+  background: var(--accent-bg);
+  border: 1.5px solid var(--btn-accent);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.upgrade-banner p {
+  font-size: 14px;
+  color: var(--btn-accent);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+/* ── PLAN CARDS ── */
+.plan-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.plan-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  transition: all 0.2s;
+  position: relative;
+  background: var(--surface);
+}
+
+.plan-card.current { border-color: var(--btn-primary); }
+.plan-card.recommended { border-color: var(--btn-accent); box-shadow: var(--shadow-md); }
+
+.plan-badge {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--btn-accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 20px;
+}
+
+.plan-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.plan-price { font-size: 28px; font-weight: 800; margin-bottom: 2px; }
+.plan-period { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
+
+.plan-features { list-style: none; text-align: left; font-size: 13px; }
+.plan-features li { padding: 5px 0; display: flex; align-items: flex-start; gap: 8px; }
+.plan-features li::before { content: "✓"; color: var(--btn-success); font-weight: 700; flex-shrink: 0; }
+
+/* ── EMPTY / LOCKED ── */
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text-secondary); }
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 15px; margin-top: 8px; }
+
+.locked-feature { color: var(--text-light); font-size: 13px; }
+.locked-feature a { color: var(--btn-accent); text-decoration: none; font-weight: 600; }
+
+/* ── TABS ── */
+.tab-group {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  background: var(--bg-warm);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+}
+
+.tab-group button {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.tab-group button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+/* ── MISC ── */
+.signature-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  word-break: break-all;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+.danger-zone {
+  border: 2px solid var(--btn-danger);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.danger-zone h3 { color: var(--btn-danger); font-size: 15px; margin-bottom: 10px; }
+
+.security-list { font-size: 14px; color: var(--text-secondary); list-style: none; }
+.security-list li { padding: 5px 0; padding-left: 20px; position: relative; }
+.security-list li::before { content: "🔒"; position: absolute; left: 0; font-size: 12px; }
+
+.catalog-item, .client-item {
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: all 0.15s;
+}
+.catalog-item:hover, .client-item:hover { border-color: var(--btn-primary); transform: translateY(-1px); }
+
+.catalog-item { display: flex; justify-content: space-between; align-items: center; }
+.catalog-item-info { flex: 1; }
+.catalog-item-name, .client-item-name { font-size: 15px; font-weight: 600; }
+.catalog-item-detail, .client-item-detail { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── TOGGLE SWITCH ── */
+.toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+.toggle-row label { font-size: 14px; color: var(--text); }
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none;
+}
+.toggle-switch.on { background: var(--btn-primary); }
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch.on::after { transform: translateX(20px); }
+
+/* ── INVOICE PREVIEW MINI ── */
+.preview-mini {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  background: var(--bg);
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 12px;
+}
+
+.color-picker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.selected { border-color: var(--text); box-shadow: 0 0 0 2px white, 0 0 0 4px var(--text); }
+
+/* ── WALKTHROUGH ── */
+.wt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.wt-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
+}
+
+.wt-card {
+  position: relative;
+  z-index: 1;
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 36px 32px 28px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: wt-in 0.35s ease;
+}
+
+@keyframes wt-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.wt-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+
+.wt-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.wt-card p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 6px;
+}
+
+.wt-card .wt-highlight {
+  display: inline-block;
+  background: var(--bg-warm);
+  border: 1px solid var(--border);
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.wt-steps {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0 18px;
+}
+
+.wt-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s;
+}
+
+.wt-dot.active { background: var(--btn-primary); transform: scale(1.3); }
+.wt-dot.done { background: var(--btn-success); }
+
+.wt-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.wt-actions button { flex: 1; }
+
+.wt-skip {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-light);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+}
+.wt-skip:hover { color: var(--text-secondary); }
+
+.wt-tip-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 14px 0 4px;
+  text-align: left;
+}
+
+.wt-tip-box .wt-tip-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--btn-primary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.wt-tip-box p { font-size: 13px; margin-bottom: 0; }
+
+.wt-feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 14px 0;
+  text-align: left;
+}
+
+.wt-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+
+.wt-feature-item .wt-feat-icon { font-size: 16px; flex-shrink: 0; }
+.wt-feature-item span { line-height: 1.4; }
+
+@media (max-width: 600px) {
+  .form-row, .form-row-3 { grid-template-columns: 1fr; }
+  .line-item-row { grid-template-columns: 1fr; gap: 6px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .plan-cards { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.9/babel.min.js"></script>
-<script type="text/babel" data-type="module">
-const {useState,useEffect,useCallback,useMemo,useRef}=React;
+<script type="text/babel">
+/* ═══════════════════════════════════════════════════════════════
+   Business Quoting App — Dev Build (Password Protected)
+   Copyright (c) 2024-2026 Khaoskami. All rights reserved.
+   github.com/Khaoskami/business-quoting-app
+   Storage namespace: bqd_ (separate from production bq_)
+   ═══════════════════════════════════════════════════════════════ */
 
-/* ================================================================
-   BUSINESS QUOTES — DEV BUILD (PASSWORD PROTECTED)
-   PBKDF2 (600K) + AES-256-GCM. All features unlocked.
-   Copyright (c) 2026 Khaoskami. All rights reserved.
-   ================================================================ */
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
-// --- AUTH + ENCRYPTION ---
-const AUTH={
-  PFX:"bqd_",SK:"bqd_auth_salt",HK:"bqd_auth_hash",IT:600000,KL:256,IV:12,LK:15*60*1000,
-  gs(){return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))},
-  async dk(pw,s){const sa=Uint8Array.from(atob(s),c=>c.charCodeAt(0));const b=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt:sa,iterations:this.IT,hash:"SHA-256"},b,{name:"AES-GCM",length:this.KL},false,["encrypt","decrypt"])},
-  async vh(pw,s){const sa=Uint8Array.from(atob(s),c=>c.charCodeAt(0));const ps=new Uint8Array([...sa,...new TextEncoder().encode("v")]);const b=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);const bi=await crypto.subtle.deriveBits({name:"PBKDF2",salt:ps,iterations:this.IT,hash:"SHA-256"},b,256);return btoa(String.fromCharCode(...new Uint8Array(bi)))},
-  async enc(k,d){const iv=crypto.getRandomValues(new Uint8Array(this.IV));const c=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,new TextEncoder().encode(JSON.stringify(d)));return JSON.stringify({iv:btoa(String.fromCharCode(...iv)),d:btoa(String.fromCharCode(...new Uint8Array(c)))})},
-  async dec(k,s){try{const{iv,d}=JSON.parse(s);return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:Uint8Array.from(atob(iv),c=>c.charCodeAt(0))},k,Uint8Array.from(atob(d),c=>c.charCodeAt(0)))));}catch{return null}},
-  ok(){return localStorage.getItem(this.SK)!==null&&localStorage.getItem(this.HK)!==null},
-  async setup(pw){const s=this.gs();localStorage.setItem(this.SK,s);localStorage.setItem(this.HK,await this.vh(pw,s));return this.dk(pw,s)},
-  async login(pw){const s=localStorage.getItem(this.SK),h=localStorage.getItem(this.HK);if(!s||!h)return null;if(await this.vh(pw,s)!==h)return null;return this.dk(pw,s)},
-  async chpw(ok,np){const s=this.gs(),nk=await this.dk(np,s);const ks=Object.keys(localStorage).filter(k=>k.startsWith(this.PFX)&&k!==this.SK&&k!==this.HK);for(const k of ks){const r=localStorage.getItem(k);if(!r)continue;const d=await this.dec(ok,r);if(d===null)continue;localStorage.setItem(k,await this.enc(nk,d));}localStorage.setItem(this.SK,s);localStorage.setItem(this.HK,await this.vh(np,s));return nk},
-  nuke(){Object.keys(localStorage).filter(k=>k.startsWith(this.PFX)||k===this.SK||k===this.HK).forEach(k=>localStorage.removeItem(k))},
+/* ──────── CONSTANTS ──────── */
+
+const APP_VERSION = "2.0.0-dev";
+const STORAGE_PREFIX = "bqd_";
+const LOCK_TIMEOUT = 15 * 60 * 1000; /* 15 minutes */
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 30 * 1000; /* 30 seconds */
+const PBKDF2_ITERATIONS = 600000;
+
+const PAY_URLS = {
+  starter: "https://your-starter-payment-link.com",
+  pro: "https://your-pro-payment-link.com",
+  unlimited: "https://your-unlimited-payment-link.com"
 };
 
-// --- SANITISE ---
-function san(v){if(typeof v==="string"){const m={"<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","&":"&amp;"};return v.replace(/[<>"'&]/g,c=>m[c])}if(Array.isArray(v))return v.map(san);if(v&&typeof v==="object")return Object.fromEntries(Object.entries(v).map(([k,val])=>[k,san(val)]));return v}
-function vUrl(u){if(!u||typeof u!=="string")return"";const t=u.trim();if(!t)return"";try{const p=new URL(t.startsWith("http")?t:"https://"+t);if(!["http:","https:"].includes(p.protocol)||p.hostname.includes("javascript")||/[<>"'`]/.test(p.href))return"";return p.href}catch{return""}}
-async function signQ(q,o){const p=JSON.stringify({id:q.id,title:q.title,items:q.items,total:calc(q.items,q.taxPercent,q.discountPercent).total,created:q.createdAt,owner:o.name||"Khaoskami",ts:new Date().toISOString()});const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(p));return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("")}
-
-// --- STORAGE ---
-function useS(key,fb,ck){
-  const[data,setData]=useState(fb);const[ok,setOk]=useState(false);const fk=AUTH.PFX+key;
-  useEffect(()=>{if(!ck)return;let s=false;(async()=>{try{const r=localStorage.getItem(fk);if(r){const d=await AUTH.dec(ck,r);if(!s&&d!==null)setData(d)}}catch{}if(!s)setOk(true)})();return()=>{s=true}},[fk,ck]);
-  const save=useCallback(async(n)=>{if(!ck)return;const c=san(n);setData(c);try{localStorage.setItem(fk,await AUTH.enc(ck,c))}catch{}},[fk,ck]);
-  return[data,save,ok];
-}
-
-// --- HELPERS ---
-const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
-const CUR=[{c:"ZAR",s:"R"},{c:"USD",s:"$"},{c:"EUR",s:"€"},{c:"GBP",s:"£"},{c:"AUD",s:"A$"},{c:"CAD",s:"C$"},{c:"JPY",s:"¥"},{c:"INR",s:"₹"},{c:"BRL",s:"R$"},{c:"NGN",s:"₦"},{c:"KES",s:"KSh"},{c:"AED",s:"د.إ"},{c:"CNY",s:"¥"},{c:"CHF",s:"CHF"},{c:"NZD",s:"NZ$"},{c:"MXN",s:"MX$"},{c:"SEK",s:"kr"},{c:"SGD",s:"S$"}];
-function $(a,c="ZAR"){try{return new Intl.NumberFormat("en",{style:"currency",currency:c}).format(a||0)}catch{return(CUR.find(x=>x.c===c)?.s||"")+(a||0).toFixed(2)}}
-function fd(i){return new Date(i).toLocaleDateString("en",{day:"numeric",month:"short",year:"numeric"})}
-function calc(it,tx,dc=0){const l=it.reduce((s,i)=>s+i.quantity*i.unitPrice,0),da=l*(dc/100),su=l-da,t=su*(tx/100);return{l,da,su,tx:t,tot:su+t}}
-const ST={draft:{lb:"Draft",c:"#71717a"},sent:{lb:"Sent",c:"#3b82f6"},accepted:{lb:"Accepted",c:"#22c55e"},declined:{lb:"Declined",c:"#ef4444"},expired:{lb:"Expired",c:"#f59e0b"}};
-function nq(c){return{id:uid(),quoteNumber:"",title:"",clientId:"",clientName:"",clientUrl:"",status:"draft",currency:c||"ZAR",taxPercent:15,discountPercent:0,validityDays:30,notes:"",createdAt:new Date().toISOString(),items:[{id:uid(),description:"",quantity:1,unitPrice:0}],signature:"",signedAt:""}}
-function nc(){return{id:"",name:"",company:"",email:"",phone:"",address:"",website:"",notes:""}}
-function np(){return{id:"",name:"",category:"",description:"",unitPrice:0,unit:"each"}}
-
-// --- COLOURS/STYLES ---
-const C={bg:"#0e0e11",sf:"#16161a",bd:"#25252b",hv:"#1c1c22",tx:"#d4d4d8",mt:"#6b6b76",pr:"#3b82f6",ok:"#22c55e",no:"#ef4444",wn:"#f59e0b",ac:"#8b5cf6",dv:"#14b8a6"};
-const S={
-  root:{fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",background:C.bg,color:C.tx,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:14,lineHeight:1.5},
-  hdr:{padding:"12px 20px",borderBottom:`1px solid ${C.bd}`,display:"flex",alignItems:"center",justifyContent:"space-between"},
-  nav:{display:"flex",borderBottom:`1px solid ${C.bd}`,padding:"0 8px",overflowX:"auto",gap:2},
-  main:{padding:20,flex:1,overflowY:"auto"},
-  h2:{fontSize:20,fontWeight:700,margin:"0 0 20px",color:C.tx},
-  card:{background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8,padding:16,marginBottom:12},
-  lbl:{display:"block",fontSize:11,fontWeight:600,color:C.mt,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.04em"},
-  inp:{background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"8px 10px",color:C.tx,fontSize:13,width:"100%",boxSizing:"border-box",fontFamily:"inherit",outline:"none"},
-  ta:{background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"8px 10px",color:C.tx,fontSize:13,width:"100%",boxSizing:"border-box",fontFamily:"inherit",outline:"none",resize:"vertical"},
-  btn:{background:C.pr,color:"#fff",border:"none",borderRadius:6,padding:"8px 14px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
-  btn2:{background:C.sf,color:C.tx,border:`1px solid ${C.bd}`,borderRadius:6,padding:"8px 14px",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  btnD:{background:"transparent",color:C.no,border:`1px solid ${C.no}33`,borderRadius:6,padding:"8px 14px",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
-  btnG:{background:"none",color:C.mt,border:"none",padding:"8px 10px",fontSize:13,cursor:"pointer",fontFamily:"inherit"},
-  badge:c=>({display:"inline-block",fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,background:c+"18",color:c}),
-  grid:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12},
-  row:{display:"flex",alignItems:"center",gap:8},
-  btwn:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12},
-  stat:c=>({background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8,padding:"14px 16px",borderLeft:`3px solid ${c}`}),
-  li:{background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8,padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",gap:12,marginBottom:6},
-  empty:{textAlign:"center",padding:48,color:C.mt,fontSize:14},
-  toast:t=>({position:"fixed",bottom:20,left:"50%",transform:"translateX(-50%)",background:t==="error"?"#3b1111":"#113b1a",color:t==="error"?C.no:C.ok,padding:"10px 20px",borderRadius:8,fontSize:13,fontWeight:600,boxShadow:"0 4px 20px rgba(0,0,0,0.5)",zIndex:1000}),
-  dv:{borderTop:`1px solid ${C.bd}`,margin:"8px 0"},
+const TIERS = {
+  free: { id: "free", name: "Free", price: 0, priceLabel: "$0", period: "forever", quotesPerMonth: 30, maxClients: 20, maxCatalog: 25, csvExport: true, printPdf: false, discounts: false, signatures: false, clientWebsite: false, duplicateQuote: false, logoLetterhead: false, invoiceCustom: false, color: "tag-free", payUrl: null },
+  starter: { id: "starter", name: "Starter", price: 20, priceLabel: "$20", period: "/month", quotesPerMonth: 50, maxClients: 100, maxCatalog: 100, csvExport: true, printPdf: true, discounts: true, signatures: false, clientWebsite: true, duplicateQuote: true, logoLetterhead: true, invoiceCustom: true, color: "tag-starter", payUrl: PAY_URLS.starter },
+  pro: { id: "pro", name: "Pro", price: 50, priceLabel: "$50", period: "/month", quotesPerMonth: 80, maxClients: 500, maxCatalog: 500, csvExport: true, printPdf: true, discounts: true, signatures: true, clientWebsite: true, duplicateQuote: true, logoLetterhead: true, invoiceCustom: true, color: "tag-pro", payUrl: PAY_URLS.pro },
+  unlimited: { id: "unlimited", name: "Unlimited", price: 150, priceLabel: "$150", period: "/month", quotesPerMonth: Infinity, maxClients: Infinity, maxCatalog: Infinity, csvExport: true, printPdf: true, discounts: true, signatures: true, clientWebsite: true, duplicateQuote: true, logoLetterhead: true, invoiceCustom: true, color: "tag-unlimited", payUrl: PAY_URLS.unlimited }
 };
 
-// --- AUTH SCREENS ---
-function Setup({onDone}){
-  const[pw,sP]=useState("");const[p2,sP2]=useState("");const[err,sE]=useState("");const[ld,sL]=useState(false);
-  async function go(){sE("");if(pw.length<8){sE("Min 8 characters.");return}if(pw!==p2){sE("No match.");return}if(!/[A-Z]/.test(pw)||!/[0-9]/.test(pw)){sE("Need uppercase + number.");return}sL(true);try{onDone(await AUTH.setup(pw))}catch{sE("Failed.");sL(false)}}
-  return(<div style={{...S.root,alignItems:"center",justifyContent:"center",padding:20}}><div style={{width:"100%",maxWidth:360}}>
-    <div style={{textAlign:"center",marginBottom:32}}><div style={{fontSize:20,fontWeight:700,marginBottom:6}}>Create Master Password</div><div style={{fontSize:13,color:C.mt,lineHeight:1.6}}>This encrypts all data. Never stored. If forgotten, data is unrecoverable.</div></div>
-    <div style={{marginBottom:12}}><label style={S.lbl}>Password</label><input type="password" value={pw} onChange={e=>sP(e.target.value)} placeholder="Min 8 chars" style={S.inp} onKeyDown={e=>e.key==="Enter"&&go()} autoFocus/></div>
-    <div style={{marginBottom:12}}><label style={S.lbl}>Confirm</label><input type="password" value={p2} onChange={e=>sP2(e.target.value)} style={S.inp} onKeyDown={e=>e.key==="Enter"&&go()}/></div>
-    <div style={{fontSize:11,color:C.mt,marginBottom:16}}>8+ chars, one uppercase, one number.</div>
-    {err&&<div style={{fontSize:13,color:C.no,marginBottom:12}}>{err}</div>}
-    <button onClick={go} disabled={ld} style={{...S.btn,width:"100%",padding:"10px 0",opacity:ld?0.6:1}}>{ld?"Deriving key...":"Create & Enter"}</button>
-  </div></div>);
+const CURRENCIES = [
+  { code: "ZAR", symbol: "R", name: "South African Rand" },
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "BRL", symbol: "R$", name: "Brazilian Real" },
+  { code: "NGN", symbol: "₦", name: "Nigerian Naira" },
+  { code: "KES", symbol: "KSh", name: "Kenyan Shilling" },
+  { code: "AED", symbol: "د.إ", name: "UAE Dirham" },
+  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+  { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
+  { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
+  { code: "MXN", symbol: "MX$", name: "Mexican Peso" },
+  { code: "SEK", symbol: "kr", name: "Swedish Krona" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar" }
+];
+
+const PRICING_UNITS = ["each","hour","day","m²","ft²","kg","km","unit","lot","month","project","session","page","word","metre","litre"];
+const STATUSES = ["Draft","Sent","Accepted","Declined","Expired"];
+
+const INVOICE_FONTS = [
+  { id: "lexend", name: "Lexend", css: '"Lexend", sans-serif' },
+  { id: "atkinson", name: "Atkinson Hyperlegible", css: '"Atkinson Hyperlegible", sans-serif' },
+  { id: "system", name: "System Default", css: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
+  { id: "georgia", name: "Georgia (Serif)", css: 'Georgia, "Times New Roman", serif' },
+  { id: "courier", name: "Courier (Mono)", css: '"Courier New", Courier, monospace' }
+];
+
+const INVOICE_ACCENTS = ["#3b6b8a","#4a8c6f","#7c6db0","#c0564f","#b8860b","#2d3748","#6b4423","#1a6b5a"];
+
+const LOGO_POSITIONS = [
+  { id: "left", name: "Left" },
+  { id: "center", name: "Center" },
+  { id: "right", name: "Right" }
+];
+
+/* ──────── SECURITY HELPERS ──────── */
+
+function sanitize(str) {
+  if (typeof str !== "string") return str;
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
 }
 
-function Login({onDone}){
-  const[pw,sP]=useState("");const[err,sE]=useState("");const[ld,sL]=useState(false);const[at,sA]=useState(0);
-  async function go(){sE("");if(at>=5){sE("Locked 30s.");setTimeout(()=>sA(0),30000);return}sL(true);try{const k=await AUTH.login(pw);if(!k){sA(a=>a+1);sE(`Wrong. ${4-at} left.`);sP("");sL(false);return}onDone(k)}catch{sE("Failed.");sL(false)}}
-  return(<div style={{...S.root,alignItems:"center",justifyContent:"center",padding:20}}><div style={{width:"100%",maxWidth:360}}>
-    <div style={{textAlign:"center",marginBottom:32}}>
-      <div style={{fontSize:20,fontWeight:700,marginBottom:6}}>Business Quotes</div>
-      <div style={{...S.row,justifyContent:"center",marginBottom:8}}><span style={S.badge(C.dv)}>Dev</span><span style={{fontSize:11,color:C.ok,fontWeight:600,background:C.ok+"15",padding:"3px 8px",borderRadius:4}}>Encrypted</span></div>
-      <div style={{fontSize:13,color:C.mt}}>Enter master password to unlock.</div>
-    </div>
-    <div style={{marginBottom:16}}><label style={S.lbl}>Password</label><input type="password" value={pw} onChange={e=>sP(e.target.value)} style={S.inp} onKeyDown={e=>e.key==="Enter"&&go()} autoFocus/></div>
-    {err&&<div style={{fontSize:13,color:C.no,marginBottom:12}}>{err}</div>}
-    <button onClick={go} disabled={ld||at>=5} style={{...S.btn,width:"100%",padding:"10px 0",opacity:(ld||at>=5)?0.6:1}}>{ld?"Deriving key...":"Unlock"}</button>
-    <div style={{textAlign:"center",marginTop:20}}><button onClick={()=>{if(confirm("Delete ALL data?")) {AUTH.nuke();location.reload()}}} style={{...S.btnG,fontSize:12,color:C.no}}>Reset (destroys all data)</button></div>
-  </div></div>);
+function sanitizeUrl(url) {
+  if (!url) return "";
+  const t = url.trim();
+  if (!t) return "";
+  if (/^javascript:/i.test(t)) return "";
+  if (/[<>"']/.test(t)) return "";
+  if (!/^https?:\/\//i.test(t)) return "https://" + t;
+  return t;
 }
 
-// --- UI ---
-function Tab({label,active,onClick}){return<button onClick={onClick} style={{background:"none",border:"none",borderBottom:active?`2px solid ${C.pr}`:"2px solid transparent",padding:"10px 14px",fontSize:13,fontWeight:500,color:active?C.pr:C.mt,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{label}</button>}
-function Bdg({status}){const s=ST[status]||ST.draft;return<span style={S.badge(s.c)}>{s.lb}</span>}
-function CB({label,cl,onConfirm,style:bs}){const[a,sA]=useState(false);useEffect(()=>{if(!a)return;const t=setTimeout(()=>sA(false),3000);return()=>clearTimeout(t)},[a]);return a?<button onClick={onConfirm} style={{...bs,fontWeight:700}}>{cl||"Confirm?"}</button>:<button onClick={()=>sA(true)} style={bs}>{label}</button>}
-function F({label,value,onChange,placeholder,type="text",span,min,max,step}){return<div style={span?{gridColumn:"1/-1"}:undefined}><label style={S.lbl}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} min={min} max={max} step={step} style={S.inp}/></div>}
-function Sel({label,value,onChange,options,span}){return<div style={span?{gridColumn:"1/-1"}:undefined}><label style={S.lbl}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} style={S.inp}>{options.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></div>}
+/* ──────── IMAGE / LOGO SECURITY ──────── */
+const LOGO_MAX_SIZE = 512 * 1024;
+const LOGO_ALLOWED_TYPES = ["image/png","image/jpeg","image/svg+xml","image/webp"];
 
-// --- DASH ---
-function Dash({quotes:qs,currency:cu,onNew,onEdit,search:sr,setSearch:sSr}){
-  const ac=qs.filter(q=>q.status==="accepted"),rv=ac.reduce((s,q)=>s+calc(q.items,q.taxPercent,q.discountPercent).tot,0),wr=qs.length>0?Math.round(ac.length/qs.length*100):0;
-  const fl=qs.filter(q=>{if(!sr)return true;const t=sr.toLowerCase();return(q.title||"").toLowerCase().includes(t)||(q.clientName||"").toLowerCase().includes(t)||(q.quoteNumber||"").toLowerCase().includes(t)}).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  const st=[{l:"Total",v:qs.length,c:C.pr},{l:"Pending",v:qs.filter(q=>q.status==="sent").length,c:C.wn},{l:"Accepted",v:ac.length,c:C.ok},{l:"Revenue",v:$(rv,cu),c:C.ac},{l:"Win Rate",v:wr+"%",c:"#06b6d4"}];
-  return(<div>
-    <div style={{...S.btwn,marginBottom:20,flexWrap:"wrap"}}><h2 style={S.h2}>Quotes</h2><button onClick={onNew} style={S.btn}>+ New</button></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))",gap:8,marginBottom:20}}>{st.map((s,i)=><div key={i} style={S.stat(s.c)}><div style={{fontSize:11,color:C.mt,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>{s.l}</div><div style={{fontSize:17,fontWeight:700,color:s.c}}>{s.v}</div></div>)}</div>
-    <input value={sr} onChange={e=>sSr(e.target.value)} placeholder="Search..." style={{...S.inp,marginBottom:14}}/>
-    {fl.length===0?<div style={S.empty}>{qs.length===0?"No quotes yet.":"No results."}</div>:fl.map(q=>{const{tot}=calc(q.items,q.taxPercent,q.discountPercent);return<div key={q.id} onClick={()=>onEdit(q)} style={S.li}><div style={{minWidth:0}}><div style={{fontSize:14,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{q.quoteNumber&&<span style={{color:C.mt,fontWeight:400,marginRight:6}}>#{q.quoteNumber}</span>}{q.title||"Untitled"}{q.signature&&<span style={{marginLeft:6,fontSize:10,color:C.ok}}>✓</span>}</div><div style={{fontSize:12,color:C.mt,marginTop:2}}>{q.clientName||"No client"} · {fd(q.createdAt)}</div></div><div style={{...S.row,flexShrink:0}}><span style={{fontWeight:600,fontSize:14}}>{$(tot,q.currency)}</span><Bdg status={q.status}/></div></div>})}
-  </div>);
+function validateImageFile(file) {
+  if (!file) return { valid: false, error: "No file selected." };
+  if (!LOGO_ALLOWED_TYPES.includes(file.type)) return { valid: false, error: "Only PNG, JPEG, WebP, or SVG allowed." };
+  if (file.size > LOGO_MAX_SIZE) return { valid: false, error: "Max 512KB." };
+  return { valid: true };
 }
 
-// --- EDITOR ---
-function Ed({initial:ini,clients:cls,catalog:cat,allQuotes:aq,biz,onSave,onDelete,onBack,notify:nt}){
-  const[q,sQ]=useState({...ini});const isEx=aq.some(x=>x.id===q.id);
-  const{l:ln,da,su,tx:tax,tot}=calc(q.items,q.taxPercent,q.discountPercent);
-  const cats=useMemo(()=>[...new Set(cat.map(p=>p.category).filter(Boolean))],[cat]);
-  const[cf,sCf]=useState("");const[sc,sSc]=useState(false);
-  function set(f,v){sQ(p=>({...p,[f]:v}))}
-  function sI(i,f,v){sQ(p=>{const it=[...p.items];it[i]={...it[i],[f]:(f==="quantity"||f==="unitPrice")?Math.max(0,Number(v)||0):v};return{...p,items:it}})}
-  function aB(){sQ(p=>({...p,items:[...p.items,{id:uid(),description:"",quantity:1,unitPrice:0}]}))}
-  function aC(pr){sQ(p=>({...p,items:[...p.items,{id:uid(),description:pr.name+(pr.description?` — ${pr.description}`:""),quantity:1,unitPrice:pr.unitPrice}]}));sSc(false)}
-  function rI(i){if(q.items.length>1)sQ(p=>({...p,items:p.items.filter((_,j)=>j!==i)}))}
-  async function doSign(){const sig=await signQ(q,biz);sQ(p=>({...p,signature:sig,signedAt:new Date().toISOString()}));nt("Signed.")}
-  function doDup(){sQ({...q,id:uid(),title:q.title+" (copy)",quoteNumber:"",status:"draft",createdAt:new Date().toISOString(),signature:"",signedAt:""});nt("Duplicated.")}
-  function doCSV(){const rows=[["BY","Business Quotes — github.com/Khaoskami"],[`© ${new Date().getFullYear()} ${biz.name||"Khaoskami"}`,"All rights reserved."],q.signature?["SIG",q.signature]:null,[],["Quote",q.title,"#",q.quoteNumber,"Date",fd(q.createdAt)],["Client",q.clientName],q.clientUrl?["Web",q.clientUrl]:null,[],["Desc","Qty","Price","Total"],...q.items.map(i=>[i.description,i.quantity,i.unitPrice,i.quantity*i.unitPrice]),[],["","","Subtotal",su],["","",`Tax(${q.taxPercent}%)`,tax],["","","TOTAL",tot]].filter(Boolean);const csv=rows.map(r=>r.map(c=>`"${c}"`).join(",")).join("\n");const b=new Blob([csv],{type:"text/csv"});const u=URL.createObjectURL(b);Object.assign(document.createElement("a"),{href:u,download:`${q.quoteNumber||q.title||"quote"}.csv`}).click();URL.revokeObjectURL(u);nt("Exported.")}
-  function doPrint(){const cur=q.currency;const ir=q.items.map(i=>`<tr><td style="padding:8px;border-bottom:1px solid #e5e5e5">${i.description}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:center">${i.quantity}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:right">${$(i.unitPrice,cur)}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:right">${$(i.quantity*i.unitPrice,cur)}</td></tr>`).join("");const sig=q.signature?`<div style="margin-top:24px;padding:12px;background:#f8f8f8;border:1px solid #ddd;border-radius:4px;font-size:11px;color:#666"><b>SIG</b><br/><code style="font-size:10px;word-break:break-all">${q.signature}</code></div>`:"";const cp=`<div style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center">© ${new Date().getFullYear()} ${biz.name||"Khaoskami"} · Business Quotes App</div>`;const cl=q.clientUrl?`<div><b>Web</b> <a href="${q.clientUrl}" style="color:#3b82f6">${q.clientUrl}</a></div>`:"";const h=`<!DOCTYPE html><html><head><title>${q.title||"Quote"}</title><style>body{font-family:-apple-system,sans-serif;padding:40px;color:#1a1a1a;max-width:800px;margin:0 auto}h1{font-size:24px;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:20px 0}th{text-align:left;padding:8px;border-bottom:2px solid #333;font-size:11px;text-transform:uppercase}td{font-size:13px}.t{margin-left:auto;width:280px}.t td{padding:4px 8px}.t .g{font-weight:700;font-size:16px;border-top:2px solid #333;padding-top:8px}.m{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;font-size:13px}.m b{display:block;font-size:10px;text-transform:uppercase;color:#666;margin-bottom:2px;font-weight:600}@media print{body{padding:20px}}</style></head><body><h1>${q.title||"Quote"}</h1>${q.quoteNumber?`<div style="color:#666;margin-bottom:16px">#${q.quoteNumber}</div>`:""}<div class="m"><div><b>Client</b>${q.clientName||"—"}</div><div><b>Date</b>${fd(q.createdAt)}</div>${cl}<div><b>Valid</b>${q.validityDays} days</div></div><table><thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead><tbody>${ir}</tbody></table><table class="t"><tr><td style="color:#666">Subtotal</td><td style="text-align:right">${$(su,cur)}</td></tr>${q.discountPercent>0?`<tr><td style="color:#666">Disc (${q.discountPercent}%)</td><td style="text-align:right;color:#c00">-${$(da,cur)}</td></tr>`:""}<tr><td style="color:#666">Tax (${q.taxPercent}%)</td><td style="text-align:right">${$(tax,cur)}</td></tr><tr class="g"><td>Total</td><td style="text-align:right">${$(tot,cur)}</td></tr></table>${q.notes?`<div style="margin-top:24px;padding-top:16px;border-top:1px solid #ddd"><b style="font-size:10px;text-transform:uppercase;color:#666">Notes</b><div style="font-size:12px;white-space:pre-wrap;margin-top:4px">${q.notes}</div></div>`:""}${sig}${cp}</body></html>`;const w=window.open("","_blank");if(w){w.document.write(h);w.document.close();w.print()}}
-  const fc=cat.filter(p=>!cf||p.category===cf);
-  return(<div>
-    <div style={{...S.row,marginBottom:20}}><button onClick={onBack} style={S.btnG}>← Back</button><h2 style={{...S.h2,margin:0,flex:1}}>{isEx?"Edit":"New"} Quote</h2></div>
-    <div style={{...S.grid,marginBottom:16}}>
-      <F label="Title" value={q.title} onChange={v=>set("title",v)} placeholder="Roof Repair, Logo Design" span/>
-      <F label="Number" value={q.quoteNumber} onChange={v=>set("quoteNumber",v)} placeholder="QT-001"/>
-      <div><label style={S.lbl}>Client</label><select value={q.clientId} onChange={e=>{const c=cls.find(x=>x.id===e.target.value);set("clientId",e.target.value);set("clientName",c?.name||"");set("clientUrl",c?.website||"")}} style={S.inp}><option value="">—</option>{cls.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-      <Sel label="Status" value={q.status} onChange={v=>set("status",v)} options={Object.entries(ST).map(([k,v])=>({v:k,l:v.lb}))}/>
-      <Sel label="Currency" value={q.currency} onChange={v=>set("currency",v)} options={CUR.map(c=>({v:c.c,l:`${c.c} (${c.s})`}))}/>
-      <F label="Tax %" type="number" value={q.taxPercent} onChange={v=>set("taxPercent",Math.min(100,Math.max(0,Number(v)||0)))} min={0} max={100}/>
-      <F label="Discount %" type="number" value={q.discountPercent} onChange={v=>set("discountPercent",Math.min(100,Math.max(0,Number(v)||0)))} min={0} max={100}/>
-      <F label="Valid (days)" type="number" value={q.validityDays} onChange={v=>set("validityDays",Math.max(1,Number(v)||1))} min={1}/>
-      <F label="Client Website" value={q.clientUrl} onChange={v=>set("clientUrl",v)} placeholder="https://client.com" span/>
-    </div>
-    <div style={{marginBottom:16}}>
-      <div style={{...S.btwn,marginBottom:8}}><span style={{...S.lbl,margin:0,fontSize:13}}>Items</span><div style={S.row}>{cat.length>0&&<button onClick={()=>sSc(!sc)} style={{...S.btnG,color:C.ac,fontSize:12}}>{sc?"Close":"Catalog"}</button>}<button onClick={aB} style={{...S.btnG,fontSize:12}}>+ Item</button></div></div>
-      {sc&&<div style={{...S.card,padding:12}}><div style={{...S.row,marginBottom:8}}><span style={{fontSize:12,color:C.mt,fontWeight:600}}>CATALOG</span><select value={cf} onChange={e=>sCf(e.target.value)} style={{...S.inp,width:"auto",fontSize:12,padding:"4px 8px"}}><option value="">All</option>{cats.map(c=><option key={c} value={c}>{c}</option>)}</select></div><div style={{maxHeight:160,overflowY:"auto"}}>{fc.length===0?<div style={{fontSize:12,color:C.mt,padding:8}}>Empty.</div>:fc.map(p=><div key={p.id} onClick={()=>aC(p)} style={{display:"flex",justifyContent:"space-between",padding:"6px 8px",borderRadius:4,cursor:"pointer",marginBottom:2,fontSize:13}}><span>{p.name}</span><span style={{color:C.mt,fontSize:12}}>{$(p.unitPrice,q.currency)}/{p.unit}</span></div>)}</div></div>}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 52px 80px 24px",gap:8,marginBottom:4}}><span style={{fontSize:11,color:C.mt}}>Description</span><span style={{fontSize:11,color:C.mt,textAlign:"center"}}>Qty</span><span style={{fontSize:11,color:C.mt}}>Price</span><span/></div>
-      {q.items.map((it,i)=><div key={it.id} style={{display:"grid",gridTemplateColumns:"1fr 52px 80px 24px",gap:8,marginBottom:6,alignItems:"center"}}><input value={it.description} onChange={e=>sI(i,"description",e.target.value)} placeholder="Description" style={S.inp}/><input type="number" min={0} value={it.quantity} onChange={e=>sI(i,"quantity",e.target.value)} style={{...S.inp,textAlign:"center"}}/><input type="number" min={0} step={0.01} value={it.unitPrice} onChange={e=>sI(i,"unitPrice",e.target.value)} style={S.inp}/><button onClick={()=>rI(i)} disabled={q.items.length<=1} style={{...S.btnG,color:q.items.length>1?C.no:C.bd,padding:2,fontSize:16}}>×</button></div>)}
-    </div>
-    <div style={S.card}>
-      {[{l:"Subtotal",v:$(su,q.currency)},q.discountPercent>0&&{l:`Disc (${q.discountPercent}%)`,v:`-${$(da,q.currency)}`,c:C.no},{l:`Tax (${q.taxPercent}%)`,v:$(tax,q.currency)}].filter(Boolean).map((r,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:14}}><span style={{color:C.mt}}>{r.l}</span><span style={r.c?{color:r.c}:undefined}>{r.v}</span></div>)}
-      <div style={S.dv}/><div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:18,fontWeight:700,color:C.ok}}><span>Total</span><span>{$(tot,q.currency)}</span></div>
-    </div>
-    {q.signature?<div style={{background:`${C.ok}08`,border:`1px solid ${C.ok}25`,borderRadius:8,padding:12,marginBottom:12}}><div style={{fontSize:12,fontWeight:600,color:C.ok}}>Signed ✓</div><div style={{fontSize:10,color:C.mt,fontFamily:"monospace",wordBreak:"break-all"}}>{q.signature}</div></div>:<button onClick={doSign} style={{...S.btn2,marginBottom:12,width:"100%"}}>Sign (SHA-256)</button>}
-    <div style={{marginBottom:20}}><label style={S.lbl}>Notes</label><textarea value={q.notes} onChange={e=>set("notes",e.target.value)} rows={3} placeholder="Terms, delivery..." style={S.ta}/></div>
-    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-      <button onClick={()=>onSave({...q,clientUrl:vUrl(q.clientUrl)})} style={S.btn}>Save</button>
-      <button onClick={doPrint} style={S.btn2}>Print</button>
-      <button onClick={doCSV} style={S.btn2}>CSV</button>
-      <button onClick={doDup} style={S.btnG}>Duplicate</button>
-      {isEx&&<CB label="Delete" cl="Confirm?" onConfirm={()=>onDelete(q.id)} style={S.btnD}/>}
-    </div>
-  </div>);
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error("Read failed."));
+    r.readAsDataURL(file);
+  });
 }
 
-// --- CLIENTS ---
-function Cls({clients:cls,onSave,onDelete,notify:nt}){
-  const[form,sF]=useState(null);const[sr,sSr]=useState("");
-  const flds=[{k:"name",l:"Name *",p:"Jane Doe"},{k:"company",l:"Company",p:"Acme"},{k:"email",l:"Email",p:"jane@acme.co"},{k:"phone",l:"Phone",p:"+27 12 345"},{k:"website",l:"Website",p:"https://client.com"},{k:"address",l:"Address",p:"123 Long St",s:true}];
-  const fl=cls.filter(c=>{if(!sr)return true;const t=sr.toLowerCase();return(c.name||"").toLowerCase().includes(t)||(c.company||"").toLowerCase().includes(t)});
-  return(<div>
-    <div style={{...S.btwn,marginBottom:20}}><h2 style={S.h2}>Clients</h2><button onClick={()=>sF(nc())} style={S.btn}>+ Add</button></div>
-    {form&&<div style={S.card}><div style={S.grid}>{flds.map(f=><F key={f.k} label={f.l} value={form[f.k]} onChange={v=>sF(p=>({...p,[f.k]:v}))} placeholder={f.p} span={f.s}/>)}</div><div style={{...S.row,marginTop:14}}><button onClick={()=>{if(!form.name.trim()){nt("Name required.","error");return}onSave({...form,id:form.id||uid(),website:vUrl(form.website)});sF(null)}} style={S.btn}>Save</button><button onClick={()=>sF(null)} style={S.btnG}>Cancel</button></div></div>}
-    <input value={sr} onChange={e=>sSr(e.target.value)} placeholder="Search..." style={{...S.inp,marginBottom:12}}/>
-    {fl.length===0?<div style={S.empty}>{cls.length===0?"No clients.":"No results."}</div>:fl.map(c=><div key={c.id} style={S.li}><div style={{minWidth:0}}><div style={{fontWeight:600}}>{c.name}{c.company&&<span style={{fontWeight:400,color:C.mt}}> — {c.company}</span>}</div><div style={{fontSize:12,color:C.mt}}>{[c.email,c.phone].filter(Boolean).join(" · ")}</div></div><div style={S.row}><button onClick={()=>sF({...c})} style={S.btnG}>Edit</button><CB label="×" cl="?" onConfirm={()=>onDelete(c.id)} style={{...S.btnG,color:C.no}}/></div></div>)}
-  </div>);
+function sanitizeSvgDataUrl(dataUrl) {
+  if (!dataUrl.startsWith("data:image/svg")) return dataUrl;
+  try {
+    const svg = atob(dataUrl.split(",")[1]);
+    if (/<script/i.test(svg) || /on\w+\s*=/i.test(svg) || /javascript:/i.test(svg)) return null;
+    return dataUrl;
+  } catch { return null; }
 }
 
-// --- CATALOG ---
-function Cat({catalog:cat,onSave,onDelete,notify:nt}){
-  const[form,sF]=useState(null);const[sr,sSr]=useState("");const[fc,sFc]=useState("");
-  const categories=useMemo(()=>[...new Set(cat.map(p=>p.category).filter(Boolean))].sort(),[cat]);
-  const UNITS=[{v:"each",l:"Each"},{v:"hour",l:"Hour"},{v:"day",l:"Day"},{v:"sqm",l:"m²"},{v:"kg",l:"kg"},{v:"unit",l:"Unit"},{v:"lot",l:"Lot"},{v:"month",l:"Month"},{v:"project",l:"Project"},{v:"session",l:"Session"},{v:"page",l:"Page"},{v:"metre",l:"Metre"},{v:"litre",l:"Litre"}];
-  const fl=cat.filter(p=>{const ms=!sr||(p.name||"").toLowerCase().includes(sr.toLowerCase());return ms&&(!fc||p.category===fc)});
-  return(<div>
-    <div style={{...S.btwn,marginBottom:20}}><h2 style={S.h2}>Products</h2><button onClick={()=>sF(np())} style={S.btn}>+ Add</button></div>
-    {form&&<div style={S.card}><div style={S.grid}><F label="Name *" value={form.name} onChange={v=>sF(p=>({...p,name:v}))} placeholder="Consultation"/><F label="Category" value={form.category} onChange={v=>sF(p=>({...p,category:v}))} placeholder="Labour"/><F label="Description" value={form.description} onChange={v=>sF(p=>({...p,description:v}))} placeholder="Detail" span/><F label="Price" type="number" value={form.unitPrice} onChange={v=>sF(p=>({...p,unitPrice:v}))} min={0} step={0.01}/><Sel label="Unit" value={form.unit} onChange={v=>sF(p=>({...p,unit:v}))} options={UNITS}/></div><div style={{...S.row,marginTop:14}}><button onClick={()=>{if(!form.name.trim()){nt("Name required.","error");return}onSave({...form,id:form.id||uid(),unitPrice:Math.max(0,Number(form.unitPrice)||0)});sF(null)}} style={S.btn}>Save</button><button onClick={()=>sF(null)} style={S.btnG}>Cancel</button></div></div>}
-    <div style={{...S.row,marginBottom:12,gap:8}}><input value={sr} onChange={e=>sSr(e.target.value)} placeholder="Search..." style={{...S.inp,flex:1}}/>{categories.length>0&&<select value={fc} onChange={e=>sFc(e.target.value)} style={{...S.inp,width:"auto"}}><option value="">All</option>{categories.map(c=><option key={c} value={c}>{c}</option>)}</select>}</div>
-    {fl.length===0?<div style={S.empty}>{cat.length===0?"Add products here.":"No results."}</div>:fl.map(p=><div key={p.id} style={S.li}><div style={{minWidth:0}}><div style={{fontWeight:600}}>{p.name}{p.category&&<span style={{...S.badge(C.ac),marginLeft:8,fontSize:10}}>{p.category}</span>}</div><div style={{fontSize:12,color:C.mt}}>{$(p.unitPrice)}/{p.unit}</div></div><div style={S.row}><button onClick={()=>sF({...p})} style={S.btnG}>Edit</button><CB label="×" cl="?" onConfirm={()=>onDelete(p.id)} style={{...S.btnG,color:C.no}}/></div></div>)}
-  </div>);
+/* ──────── PBKDF2 KEY DERIVATION ──────── */
+
+async function deriveKey(password, salt) {
+  const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt","decrypt"]);
 }
 
-// --- SETTINGS ---
-function Sett({biz,onSave,cryptoKey:ck,notify:nt,onLock,onKC}){
-  const[form,sF]=useState({...biz});
-  const[sp,sSp]=useState(false);const[op,sOp]=useState("");const[n1,sN1]=useState("");const[n2,sN2]=useState("");const[pl,sPl]=useState(false);
-  async function chp(){if(n1.length<8){nt("Min 8.","error");return}if(n1!==n2){nt("No match.","error");return}if(!/[A-Z]/.test(n1)||!/[0-9]/.test(n1)){nt("Need A-Z + 0-9.","error");return}sPl(true);try{const t=await AUTH.login(op);if(!t){nt("Wrong current pw.","error");sPl(false);return}const nk=await AUTH.chpw(ck,n1);onKC(nk);sSp(false);sOp("");sN1("");sN2("");nt("Changed. Re-encrypted.")}catch{nt("Failed.","error")}sPl(false)}
-  return(<div>
-    <h2 style={S.h2}>Settings</h2>
-    <div style={S.card}><div style={S.grid}>
-      <F label="Name" value={form.name||""} onChange={v=>sF(p=>({...p,name:v}))} placeholder="Your Business"/>
-      <F label="Email" value={form.email||""} onChange={v=>sF(p=>({...p,email:v}))} placeholder="info@biz.co"/>
-      <F label="Phone" value={form.phone||""} onChange={v=>sF(p=>({...p,phone:v}))} placeholder="+27 00 000"/>
-      <F label="Tax/VAT" value={form.taxId||""} onChange={v=>sF(p=>({...p,taxId:v}))} placeholder="VAT000"/>
-      <Sel label="Currency" value={form.defaultCurrency||"ZAR"} onChange={v=>sF(p=>({...p,defaultCurrency:v}))} options={CUR.map(c=>({v:c.c,l:`${c.c} — ${c.s}`}))}/>
-      <F label="Website" value={form.website||""} onChange={v=>sF(p=>({...p,website:v}))} placeholder="https://biz.co"/>
-      <F label="Address" value={form.address||""} onChange={v=>sF(p=>({...p,address:v}))} placeholder="123 Main Rd" span/>
-      <div style={{gridColumn:"1/-1"}}><label style={S.lbl}>Terms</label><textarea value={form.terms||""} onChange={e=>sF(p=>({...p,terms:e.target.value}))} rows={3} placeholder="Payment due..." style={S.ta}/></div>
-    </div><button onClick={()=>{onSave(form);nt("Saved.")}} style={{...S.btn,marginTop:14}}>Save</button></div>
-    <div style={S.card}>
-      <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>Auth</div>
-      <button onClick={onLock} style={{...S.btn2,marginBottom:10,width:"100%"}}>Lock Now</button>
-      <button onClick={()=>sSp(!sp)} style={{...S.btnG,width:"100%"}}>{sp?"Cancel":"Change password"}</button>
-      {sp&&<div style={{marginTop:12}}><div style={{marginBottom:8}}><label style={S.lbl}>Current</label><input type="password" value={op} onChange={e=>sOp(e.target.value)} style={S.inp}/></div><div style={{marginBottom:8}}><label style={S.lbl}>New</label><input type="password" value={n1} onChange={e=>sN1(e.target.value)} style={S.inp}/></div><div style={{marginBottom:12}}><label style={S.lbl}>Confirm</label><input type="password" value={n2} onChange={e=>sN2(e.target.value)} style={S.inp}/></div><button onClick={chp} disabled={pl} style={{...S.btn,opacity:pl?0.6:1}}>{pl?"Re-encrypting...":"Change"}</button></div>}
-    </div>
-    <div style={{marginTop:20,padding:14,background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8}}><div style={{fontSize:12,color:C.no,fontWeight:600,marginBottom:6}}>DANGER</div><p style={{fontSize:12,color:C.mt,margin:"0 0 10px"}}>Delete everything.</p><CB label="Delete All" cl="Confirm destroy?" onConfirm={()=>{AUTH.nuke();location.reload()}} style={S.btnD}/></div>
-  </div>);
+async function deriveVerificationHash(password, salt) {
+  const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" }, keyMaterial, 256);
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
 }
 
-// --- ROOT ---
-function App(){
-  const[key,sK]=useState(null);const[as,sAs]=useState("ld");const la=useRef(Date.now());
-  useEffect(()=>{sAs(AUTH.ok()?"login":"setup")},[]);
-  useEffect(()=>{if(as!=="ok")return;function r(){la.current=Date.now()}function c(){if(Date.now()-la.current>AUTH.LK){sK(null);sAs("login")}}const ev=["mousedown","keydown","touchstart","scroll"];ev.forEach(e=>window.addEventListener(e,r));const iv=setInterval(c,30000);return()=>{ev.forEach(e=>window.removeEventListener(e,r));clearInterval(iv)}},[as]);
-  function lock(){sK(null);sAs("login")}
-  if(as==="ld")return<div style={{...S.root,alignItems:"center",justifyContent:"center"}}><span style={{color:C.mt}}>Loading...</span></div>;
-  if(as==="setup")return<Setup onDone={k=>{sK(k);sAs("ok")}}/>;
-  if(as==="login")return<Login onDone={k=>{sK(k);sAs("ok");la.current=Date.now()}}/>;
-  return<Inner ck={key} onLock={lock} onKC={sK}/>;
+/* ──────── ENCRYPTION (AES-256-GCM, password-derived) ──────── */
+
+let _sessionKey = null;
+
+function setSessionKey(key) { _sessionKey = key; }
+function getSessionKey() { return _sessionKey; }
+function clearSessionKey() { _sessionKey = null; }
+
+async function encryptData(data) {
+  const key = getSessionKey();
+  if (!key) throw new Error("No session key");
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(JSON.stringify(data));
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
+  return btoa(String.fromCharCode(...iv) + String.fromCharCode(...new Uint8Array(ct)));
 }
 
-function Inner({ck,onLock,onKC}){
-  const[qs,sQs,r1]=useS("quotes",[],ck);const[cls,sCls,r2]=useS("clients",[],ck);const[cat,sCat,r3]=useS("catalog",[],ck);const[biz,sBiz,r4]=useS("biz",{name:"",email:"",phone:"",address:"",taxId:"",website:"",defaultCurrency:"ZAR",terms:""},ck);
-  const[pg,sPg]=useState("dash");const[aq,sAq]=useState(null);const[sr,sSr]=useState("");const[toast,sT]=useState(null);
-  const rdy=r1&&r2&&r3&&r4;
-  function nt(m,t="ok"){sT({m,t});setTimeout(()=>sT(null),2500)}
-  function go(p){sPg(p);sAq(null)}
-  async function svQ(q){const i=qs.findIndex(x=>x.id===q.id);await sQs(i>=0?qs.map(x=>x.id===q.id?q:x):[...qs,q]);nt("Saved.");go("dash")}
-  async function dlQ(id){await sQs(qs.filter(x=>x.id!==id));nt("Deleted.","error");go("dash")}
-  async function svC(c){const i=cls.findIndex(x=>x.id===c.id);await sCls(i>=0?cls.map(x=>x.id===c.id?c:x):[...cls,c]);nt(i>=0?"Updated.":"Added.")}
-  async function dlC(id){await sCls(cls.filter(x=>x.id!==id));nt("Deleted.","error")}
-  async function svP(p){const i=cat.findIndex(x=>x.id===p.id);await sCat(i>=0?cat.map(x=>x.id===p.id?p:x):[...cat,p]);nt(i>=0?"Updated.":"Added.")}
-  async function dlP(id){await sCat(cat.filter(x=>x.id!==id));nt("Removed.","error")}
-  if(!rdy)return<div style={{...S.root,alignItems:"center",justifyContent:"center"}}><span style={{color:C.mt}}>Decrypting...</span></div>;
-  const tabs=[{id:"dash",l:"Quotes"},{id:"cat",l:"Products"},{id:"cls",l:"Clients"},{id:"set",l:"Settings"}];
-  return(<div style={S.root}>
-    <header style={S.hdr}><h1 style={{fontSize:16,fontWeight:700,margin:0}}>{biz.name||"Business Quotes"}</h1><div style={S.row}><span style={S.badge(C.dv)}>Dev</span><span style={{fontSize:11,color:C.ok,fontWeight:600,background:C.ok+"15",padding:"3px 8px",borderRadius:4}}>Encrypted</span><button onClick={onLock} style={{...S.btnG,fontSize:12,color:C.wn,padding:"4px 8px"}}>Lock</button></div></header>
-    <nav style={S.nav}>{tabs.map(t=><Tab key={t.id} label={t.l} active={pg===t.id||(pg==="ed"&&t.id==="dash")} onClick={()=>go(t.id)}/>)}</nav>
-    <main style={S.main}>
-      {pg==="dash"&&<Dash quotes={qs} currency={biz.defaultCurrency||"ZAR"} onNew={()=>{sAq(nq(biz.defaultCurrency));sPg("ed")}} onEdit={q=>{sAq({...q});sPg("ed")}} search={sr} setSearch={sSr}/>}
-      {pg==="ed"&&aq&&<Ed initial={aq} clients={cls} catalog={cat} allQuotes={qs} biz={biz} onSave={svQ} onDelete={dlQ} onBack={()=>go("dash")} notify={nt}/>}
-      {pg==="cat"&&<Cat catalog={cat} onSave={svP} onDelete={dlP} notify={nt}/>}
-      {pg==="cls"&&<Cls clients={cls} onSave={svC} onDelete={dlC} notify={nt}/>}
-      {pg==="set"&&<Sett biz={biz} onSave={sBiz} cryptoKey={ck} notify={nt} onLock={onLock} onKC={onKC}/>}
-    </main>
-    {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
-  </div>);
+async function decryptData(encrypted) {
+  try {
+    const key = getSessionKey();
+    if (!key) return null;
+    const raw = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: raw.slice(0,12) }, key, raw.slice(12));
+    return JSON.parse(new TextDecoder().decode(decrypted));
+  } catch { return null; }
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+async function saveToStorage(key, data) {
+  localStorage.setItem(STORAGE_PREFIX + key, await encryptData(data));
+}
+
+async function loadFromStorage(key, fallback) {
+  const raw = localStorage.getItem(STORAGE_PREFIX + key);
+  if (!raw) return fallback;
+  const data = await decryptData(raw);
+  return data !== null ? data : fallback;
+}
+
+function clearAllStorage() {
+  Object.keys(localStorage).forEach(k => { if (k.startsWith(STORAGE_PREFIX)) localStorage.removeItem(k); });
+  clearSessionKey();
+}
+
+/* ──────── SHA-256 ──────── */
+async function generateSignature(quote, businessName) {
+  const payload = [quote.id, quote.title, quote.quoteNumber, JSON.stringify(quote.lineItems), String(quote.total), quote.createdAt, businessName || ""].join("|");
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+/* ──────── FORMATTING ──────── */
+function formatCurrency(amount, code) {
+  try { return new Intl.NumberFormat(undefined, { style: "currency", currency: code || "ZAR", minimumFractionDigits: 2 }).format(amount); }
+  catch { return `${code || "ZAR"} ${Number(amount).toFixed(2)}`; }
+}
+function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,9); }
+function getCurrentMonth() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
+
+/* ──────── CSV EXPORT ──────── */
+function exportQuoteCsv(quote, businessName, currency) {
+  const rows = [["GENERATED BY Business Quotes App — github.com/Khaoskami"],[],["Quote Title",sanitize(quote.title)],["Quote Number",sanitize(quote.quoteNumber||"")],["Client",sanitize(quote.clientName||"")],["Status",quote.status],["Date",new Date(quote.createdAt).toLocaleDateString()],["Currency",currency],[],["Description","Qty","Unit Price","Line Total"]];
+  (quote.lineItems||[]).forEach(i => rows.push([sanitize(i.description), i.quantity, Number(i.unitPrice).toFixed(2), (i.quantity*i.unitPrice).toFixed(2)]));
+  rows.push([],["Subtotal","","",Number(quote.subtotal||0).toFixed(2)]);
+  if (quote.discountPercent > 0) rows.push(["Discount ("+quote.discountPercent+"%)","","","-"+Number(quote.discountAmount||0).toFixed(2)]);
+  if (quote.taxPercent > 0) rows.push(["Tax ("+quote.taxPercent+"%)","","",Number(quote.taxAmount||0).toFixed(2)]);
+  rows.push(["GRAND TOTAL","","",Number(quote.total||0).toFixed(2)]);
+  if (quote.signature) rows.push([],["SHA-256 Signature",quote.signature]);
+  rows.push([],["© "+new Date().getFullYear()+" "+(businessName||"Business Quotes App")]);
+  const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (quote.quoteNumber||quote.title||"quote")+".csv";
+  a.click();
+}
+
+/* ──────── PRINT / PDF (with customisation) ──────── */
+function printQuote(quote, settings, currency) {
+  const inv = settings.invoiceSettings || {};
+  const fontCss = (INVOICE_FONTS.find(f => f.id === (inv.font || "lexend")) || INVOICE_FONTS[0]).css;
+  const accent = inv.accentColor || "#3b6b8a";
+  const logoPos = inv.logoPosition || "left";
+  const fontSize = inv.fontSize || 14;
+  const showBorder = inv.showBorder !== false;
+
+  const discountLine = quote.discountPercent > 0 ? `<tr><td colspan="3" style="text-align:right">Discount (${quote.discountPercent}%)</td><td style="text-align:right">-${formatCurrency(quote.discountAmount||0,currency)}</td></tr>` : "";
+  const taxLine = quote.taxPercent > 0 ? `<tr><td colspan="3" style="text-align:right">Tax (${quote.taxPercent}%)</td><td style="text-align:right">${formatCurrency(quote.taxAmount||0,currency)}</td></tr>` : "";
+  const sigBlock = quote.signature ? `<div style="margin-top:20px;padding:12px;background:#f9f9f9;border:1px solid #ddd;border-radius:6px"><strong>SHA-256 Signature:</strong><br><code style="font-size:10px;word-break:break-all">${sanitize(quote.signature)}</code></div>` : "";
+  const clientWebsite = quote.clientWebsite ? `<br>Web: <a href="${sanitizeUrl(quote.clientWebsite)}" style="color:${accent}">${sanitize(quote.clientWebsite)}</a>` : "";
+  const notesBlock = quote.notes ? `<div style="margin-top:20px"><strong>Notes / Terms:</strong><p style="white-space:pre-wrap;color:#555;margin-top:6px">${sanitize(quote.notes)}</p></div>` : "";
+
+  const logoAlign = logoPos === "center" ? "center" : logoPos === "right" ? "flex-end" : "flex-start";
+  const logoBlock = settings.logo ? `<div style="display:flex;justify-content:${logoAlign};margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid ${accent}"><div style="display:flex;align-items:center;gap:16px;${logoPos==='center'?'flex-direction:column;text-align:center':''}"><img src="${settings.logo}" style="max-height:80px;max-width:200px;object-fit:contain" /><div><div style="font-size:${fontSize+4}px;font-weight:700;color:${accent}">${sanitize(settings.businessName||"")}</div>${settings.address?`<div style="font-size:${fontSize-2}px;color:#666;white-space:pre-line">${sanitize(settings.address)}</div>`:""}</div></div></div>` : "";
+  const letterheadStyle = settings.letterhead ? `background-image:url('${settings.letterhead}');background-size:contain;background-repeat:no-repeat;background-position:top center;` : "";
+
+  const html = `<!DOCTYPE html><html><head><title>${sanitize(quote.title||"Quote")}</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+<style>body{font-family:${fontCss};max-width:800px;margin:0 auto;padding:40px 24px;color:#2d3748;font-size:${fontSize}px;line-height:1.7;${letterheadStyle}}
+table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:10px 12px;border-bottom:1px solid #e8e2da;text-align:left}th{background:#faf8f5;font-size:${fontSize-2}px;font-weight:600;color:${accent}}
+.total-row td{font-weight:700;font-size:${fontSize+4}px;border-top:2px solid ${accent};color:${accent}}
+${showBorder?`@page{margin:20mm}body{border:1px solid #e8e2da;border-radius:8px;padding:32px}`:""}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid #e8e2da;font-size:11px;color:#999;text-align:center}
+@media print{body{padding:20px;border:none;border-radius:0}}</style></head><body>
+${logoBlock}
+<h1 style="font-size:${fontSize+6}px;margin-bottom:4px;color:${accent}">${sanitize(quote.title||"Quote")}</h1>
+${quote.quoteNumber?`<p style="color:#888;font-size:${fontSize}px">Quote #: ${sanitize(quote.quoteNumber)}</p>`:""}
+<div style="display:flex;justify-content:space-between;margin:24px 0;gap:20px">
+<div>${!settings.logo?`<strong style="color:${accent}">From:</strong><br>${sanitize(settings.businessName||"")}<br>${sanitize(settings.email||"")}<br>${sanitize(settings.phone||"")}`:""}</div>
+<div style="text-align:right"><strong style="color:${accent}">To:</strong><br>${sanitize(quote.clientName||"")}<br>${sanitize(quote.clientCompany||"")}${clientWebsite}</div>
+</div>
+<p style="color:#888">Date: ${new Date(quote.createdAt).toLocaleDateString()} | Status: ${quote.status}${quote.validityDays?` | Valid for ${quote.validityDays} days`:""}</p>
+<table><thead><tr><th>Description</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead><tbody>
+${(quote.lineItems||[]).map(i => `<tr><td>${sanitize(i.description)}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatCurrency(i.unitPrice,currency)}</td><td style="text-align:right">${formatCurrency(i.quantity*i.unitPrice,currency)}</td></tr>`).join("")}
+<tr><td colspan="3" style="text-align:right"><strong>Subtotal</strong></td><td style="text-align:right">${formatCurrency(quote.subtotal||0,currency)}</td></tr>
+${discountLine}${taxLine}
+<tr class="total-row"><td colspan="3" style="text-align:right">Grand Total</td><td style="text-align:right">${formatCurrency(quote.total||0,currency)}</td></tr>
+</tbody></table>
+${notesBlock}${sigBlock}
+<footer>© ${new Date().getFullYear()} ${sanitize(settings.businessName||"Business Quotes App")} — Generated by Business Quotes App (github.com/Khaoskami)</footer>
+</body></html>`;
+  const win = window.open("","_blank");
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 400);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOCK SCREEN COMPONENT
+   ═══════════════════════════════════════════════════════════════ */
+
+function LockScreen({ onUnlock }) {
+  const [mode, setMode] = useState("loading"); /* loading | setup | login */
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(0);
+
+  useEffect(() => {
+    const hasVerification = localStorage.getItem(STORAGE_PREFIX + "verify");
+    setMode(hasVerification ? "login" : "setup");
+  }, []);
+
+  const isLockedOut = Date.now() < lockedUntil;
+
+  async function handleSetup() {
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (password !== confirmPassword) { setError("Passwords don't match."); return; }
+    setError("");
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const verifySalt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await deriveKey(password, salt);
+    const verifyHash = await deriveVerificationHash(password, verifySalt);
+    localStorage.setItem(STORAGE_PREFIX + "salt", btoa(String.fromCharCode(...salt)));
+    localStorage.setItem(STORAGE_PREFIX + "vsalt", btoa(String.fromCharCode(...verifySalt)));
+    localStorage.setItem(STORAGE_PREFIX + "verify", verifyHash);
+    setSessionKey(key);
+    onUnlock();
+  }
+
+  async function handleLogin() {
+    if (isLockedOut) return;
+    setError("");
+    try {
+      const salt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "salt")), c => c.charCodeAt(0));
+      const verifySalt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "vsalt")), c => c.charCodeAt(0));
+      const storedHash = localStorage.getItem(STORAGE_PREFIX + "verify");
+      const hash = await deriveVerificationHash(password, verifySalt);
+      if (hash !== storedHash) {
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+          setLockedUntil(Date.now() + LOCKOUT_DURATION);
+          setError(`Too many attempts. Locked for 30 seconds.`);
+          setTimeout(() => { setLockedUntil(0); setAttempts(0); }, LOCKOUT_DURATION);
+        } else {
+          setError(`Wrong password. ${MAX_LOGIN_ATTEMPTS - newAttempts} attempts remaining.`);
+        }
+        return;
+      }
+      const key = await deriveKey(password, salt);
+      setSessionKey(key);
+      setAttempts(0);
+      onUnlock();
+    } catch { setError("Authentication error."); }
+  }
+
+  function handleEmergencyReset() {
+    if (confirm("This will permanently DELETE ALL DATA. There is no undo. Are you sure?")) {
+      if (confirm("Last chance — ALL quotes, clients, and settings will be destroyed. Continue?")) {
+        clearAllStorage();
+        window.location.reload();
+      }
+    }
+  }
+
+  if (mode === "loading") return React.createElement("div", { className: "lock-screen" }, React.createElement("div", { className: "lock-card" }, "Loading..."));
+
+  return React.createElement("div", { className: "lock-screen" },
+    React.createElement("div", { className: "lock-card" },
+      React.createElement("div", { style: { fontSize: 32, marginBottom: 12 } }, "📋"),
+      React.createElement("h1", null, "Business Quotes"),
+      React.createElement("p", { className: "subtitle" }, mode === "setup" ? "Create a password to protect your data" : "Enter your password to unlock"),
+      React.createElement("input", { className: "lock-input", type: "password", placeholder: "Password", value: password, onChange: e => setPassword(e.target.value), onKeyDown: e => { if (e.key === "Enter") { mode === "setup" ? null : handleLogin(); } }, autoFocus: true }),
+      mode === "setup" && React.createElement("input", { className: "lock-input", type: "password", placeholder: "Confirm password", value: confirmPassword, onChange: e => setConfirmPassword(e.target.value), onKeyDown: e => { if (e.key === "Enter") handleSetup(); } }),
+      React.createElement("div", { className: "lock-error" }, error),
+      React.createElement("button", { className: "lock-btn", onClick: mode === "setup" ? handleSetup : handleLogin, disabled: isLockedOut }, mode === "setup" ? "Create Account" : "Unlock"),
+      mode === "login" && React.createElement("div", { className: "lock-footer" },
+        React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); } }, "Forgot password? Emergency reset")
+      ),
+      React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN APP
+   ═══════════════════════════════════════════════════════════════ */
+
+function App() {
+  const [unlocked, setUnlocked] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState("dashboard");
+  const [dyslexicMode, setDyslexicMode] = useState(false);
+  const lastActivity = useRef(Date.now());
+
+  /* State */
+  const [quotes, setQuotes] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [catalog, setCatalog] = useState([]);
+  const [settings, setSettings] = useState({
+    businessName: "", email: "", phone: "", taxNumber: "", website: "",
+    defaultCurrency: "ZAR", address: "", defaultTerms: "Payment due within 30 days.",
+    tier: "free", logo: null, letterhead: null,
+    invoiceSettings: { font: "lexend", accentColor: "#3b6b8a", logoPosition: "left", fontSize: 14, showBorder: true }
+  });
+
+  const [editingQuote, setEditingQuote] = useState(null);
+  const [editingClient, setEditingClient] = useState(null);
+  const [editingCatalogItem, setEditingCatalogItem] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showWalkthrough, setShowWalkthrough] = useState(false);
+
+  const tier = TIERS[settings.tier] || TIERS.free;
+
+  /* Auto-lock */
+  useEffect(() => {
+    if (!unlocked) return;
+    function resetTimer() { lastActivity.current = Date.now(); }
+    const events = ["mousedown","keydown","touchstart","scroll"];
+    events.forEach(e => window.addEventListener(e, resetTimer));
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivity.current > LOCK_TIMEOUT) {
+        clearSessionKey();
+        setUnlocked(false);
+      }
+    }, 10000);
+    return () => {
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+      clearInterval(interval);
+    };
+  }, [unlocked]);
+
+  /* Dyslexic mode toggle */
+  useEffect(() => {
+    document.body.classList.toggle("dyslexic-mode", dyslexicMode);
+  }, [dyslexicMode]);
+
+  /* Load data on unlock */
+  useEffect(() => {
+    if (!unlocked) return;
+    (async () => {
+      const [q,cl,cat,s,dm,wtDone] = await Promise.all([
+        loadFromStorage("quotes",[]),
+        loadFromStorage("clients",[]),
+        loadFromStorage("catalog",[]),
+        loadFromStorage("settings",null),
+        loadFromStorage("dyslexicMode",false),
+        loadFromStorage("walkthroughDone",false)
+      ]);
+      setQuotes(q); setClients(cl); setCatalog(cat);
+      if (s) setSettings(prev => ({ ...prev, ...s }));
+      setDyslexicMode(dm);
+      if (!wtDone) setShowWalkthrough(true);
+      setLoading(false);
+    })();
+  }, [unlocked]);
+
+  const saveQuotes = useCallback(async d => { setQuotes(d); await saveToStorage("quotes",d); }, []);
+  const saveClients = useCallback(async d => { setClients(d); await saveToStorage("clients",d); }, []);
+  const saveCatalog = useCallback(async d => { setCatalog(d); await saveToStorage("catalog",d); }, []);
+  const saveSettings = useCallback(async d => { setSettings(d); await saveToStorage("settings",d); }, []);
+
+  async function toggleDyslexicMode() {
+    const next = !dyslexicMode;
+    setDyslexicMode(next);
+    await saveToStorage("dyslexicMode", next);
+  }
+
+  async function dismissWalkthrough() {
+    setShowWalkthrough(false);
+    await saveToStorage("walkthroughDone", true);
+  }
+
+  const currentMonth = getCurrentMonth();
+  const quotesThisMonth = useMemo(() => quotes.filter(q => q.createdAt?.startsWith(currentMonth)).length, [quotes, currentMonth]);
+  const canCreateQuote = tier.quotesPerMonth === Infinity || quotesThisMonth < tier.quotesPerMonth;
+  const canAddClient = tier.maxClients === Infinity || clients.length < tier.maxClients;
+  const canAddCatalog = tier.maxCatalog === Infinity || catalog.length < tier.maxCatalog;
+
+  function getUpgradeUrl() { if (settings.tier==="free") return PAY_URLS.starter; if (settings.tier==="starter") return PAY_URLS.pro; if (settings.tier==="pro") return PAY_URLS.unlimited; return null; }
+  function getNextTierName() { if (settings.tier==="free") return "Starter"; if (settings.tier==="starter") return "Pro"; if (settings.tier==="pro") return "Unlimited"; return null; }
+
+  function calcQuoteTotals(quote) {
+    const lineItems = quote.lineItems || [];
+    const subtotal = lineItems.reduce((s,i) => s + (Number(i.quantity)||0)*(Number(i.unitPrice)||0), 0);
+    const discountPercent = Number(quote.discountPercent)||0;
+    const discountAmount = subtotal * (discountPercent/100);
+    const afterDiscount = subtotal - discountAmount;
+    const taxPercent = Number(quote.taxPercent)||0;
+    const taxAmount = afterDiscount * (taxPercent/100);
+    const total = afterDiscount + taxAmount;
+    return { ...quote, subtotal, discountAmount, taxAmount, total };
+  }
+
+  function makeNewQuote() {
+    return { id: generateId(), title: "", quoteNumber: "", clientId: "", clientName: "", clientCompany: "", clientWebsite: "", status: "Draft", currency: "", taxPercent: 0, discountPercent: 0, validityDays: 30, notes: "", lineItems: [{ id: generateId(), description: "", quantity: 1, unitPrice: 0 }], subtotal: 0, discountAmount: 0, taxAmount: 0, total: 0, signature: null, createdAt: new Date().toISOString() };
+  }
+
+  if (!unlocked) return React.createElement(LockScreen, { onUnlock: () => setUnlocked(true) });
+  if (loading) return React.createElement("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "var(--text-secondary)", fontSize: 15 } }, "Decrypting your data...");
+
+  return React.createElement("div", null,
+    /* Header */
+    React.createElement("header", { className: "app-header" },
+      React.createElement("div", { style: { display: "flex", alignItems: "center" } },
+        React.createElement("h1", null, "Business Quotes"),
+        React.createElement("span", { className: "header-tier", style: { background: `var(--${tier.color})`, color: `var(--${tier.color}-text)` } }, tier.name)
+      ),
+      React.createElement("div", { className: "header-actions" },
+        React.createElement("button", { className: "lock-icon-btn", onClick: toggleDyslexicMode, title: "Toggle dyslexia-friendly mode" }, dyslexicMode ? "Aa" : "Dy"),
+        React.createElement("button", { className: "lock-icon-btn", onClick: () => { clearSessionKey(); setUnlocked(false); }, title: "Lock" }, "🔒")
+      )
+    ),
+
+    /* Nav */
+    React.createElement("nav", { className: "nav-bar" },
+      [
+        { id: "dashboard", icon: "📊", label: "Home" },
+        { id: "quotes", icon: "📋", label: "Quotes" },
+        { id: "clients", icon: "👥", label: "Clients" },
+        { id: "catalog", icon: "📦", label: "Catalog" },
+        { id: "settings", icon: "⚙️", label: "Settings" }
+      ].map(p => React.createElement("button", {
+        key: p.id, className: page === p.id ? "active" : "",
+        onClick: () => { setPage(p.id); setEditingQuote(null); setEditingClient(null); setEditingCatalogItem(null); setSearchTerm(""); }
+      },
+        React.createElement("span", { className: "nav-icon" }, p.icon),
+        p.label
+      ))
+    ),
+
+    /* Page content */
+    React.createElement("div", { className: "page-container" },
+      page === "dashboard" && React.createElement(Dashboard, { quotes, quotesThisMonth, tier, clients, catalog, settings, canCreateQuote, currentMonth, onNewQuote: () => { setPage("quotes"); setEditingQuote(makeNewQuote()); }, upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() }),
+
+      page === "quotes" && (editingQuote
+        ? React.createElement(QuoteEditor, { quote: editingQuote, setQuote: setEditingQuote, tier, settings, clients, catalog, onSave: async q => { const c = calcQuoteTotals(q); const i = quotes.findIndex(x => x.id === c.id); await saveQuotes(i >= 0 ? quotes.map(x => x.id===c.id?c:x) : [c,...quotes]); setEditingQuote(null); }, onCancel: () => setEditingQuote(null), onDelete: async id => { await saveQuotes(quotes.filter(q => q.id !== id)); setEditingQuote(null); }, onSign: async q => { setEditingQuote({ ...q, signature: await generateSignature(q, settings.businessName) }); }, onExportCsv: q => exportQuoteCsv(calcQuoteTotals(q), settings.businessName, q.currency||settings.defaultCurrency), onPrint: q => printQuote(calcQuoteTotals(q), settings, q.currency||settings.defaultCurrency), onDuplicate: q => setEditingQuote({ ...calcQuoteTotals(q), id: generateId(), quoteNumber: "", signature: null, createdAt: new Date().toISOString(), status: "Draft" }), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
+        : React.createElement(QuoteList, { quotes, searchTerm, setSearchTerm, canCreateQuote, tier, settings, onNew: () => setEditingQuote(makeNewQuote()), onEdit: q => setEditingQuote({...q}), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
+      ),
+
+      page === "clients" && (editingClient
+        ? React.createElement(ClientEditor, { client: editingClient, setClient: setEditingClient, tier, onSave: async c => { const i = clients.findIndex(x => x.id===c.id); await saveClients(i>=0?clients.map(x => x.id===c.id?c:x):[c,...clients]); setEditingClient(null); }, onCancel: () => setEditingClient(null), onDelete: async id => { await saveClients(clients.filter(c => c.id!==id)); setEditingClient(null); }, upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
+        : React.createElement(ClientList, { clients, searchTerm, setSearchTerm, canAddClient, tier, onNew: () => setEditingClient({ id: generateId(), name: "", company: "", email: "", phone: "", website: "", address: "", notes: "" }), onEdit: c => setEditingClient({...c}), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
+      ),
+
+      page === "catalog" && (editingCatalogItem
+        ? React.createElement(CatalogEditor, { item: editingCatalogItem, setItem: setEditingCatalogItem, onSave: async item => { const i = catalog.findIndex(x => x.id===item.id); await saveCatalog(i>=0?catalog.map(x => x.id===item.id?item:x):[item,...catalog]); setEditingCatalogItem(null); }, onCancel: () => setEditingCatalogItem(null), onDelete: async id => { await saveCatalog(catalog.filter(i => i.id!==id)); setEditingCatalogItem(null); } })
+        : React.createElement(CatalogList, { catalog, searchTerm, setSearchTerm, canAddCatalog, tier, settings, onNew: () => setEditingCatalogItem({ id: generateId(), name: "", category: "", description: "", defaultPrice: "", pricingUnit: "each" }), onEdit: item => setEditingCatalogItem({...item}), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
+      ),
+
+      page === "settings" && React.createElement(SettingsPage, { settings, saveSettings, tier, onDeleteAll: () => setShowDeleteConfirm(true), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName(), onReplayWalkthrough: async () => { await saveToStorage("walkthroughDone", false); setShowWalkthrough(true); } })
+    ),
+
+    showDeleteConfirm && React.createElement("div", { className: "modal-overlay", onClick: () => setShowDeleteConfirm(false) },
+      React.createElement("div", { className: "modal-content", onClick: e => e.stopPropagation() },
+        React.createElement("h2", { className: "modal-title", style: { color: "var(--btn-danger)" } }, "Delete All Data?"),
+        React.createElement("p", { style: { fontSize: 15, marginBottom: 20, lineHeight: 1.7 } }, "This will permanently erase everything — all quotes, clients, catalog, and settings. This cannot be undone."),
+        React.createElement("div", { style: { display: "flex", gap: 10 } },
+          React.createElement("button", { className: "btn btn-outline", style: { flex: 1 }, onClick: () => setShowDeleteConfirm(false) }, "Cancel"),
+          React.createElement("button", { className: "btn btn-danger", style: { flex: 1 }, onClick: () => { clearAllStorage(); window.location.reload(); } }, "Delete Everything")
+        )
+      )
+    ),
+
+    showWalkthrough && React.createElement(Walkthrough, {
+      onDone: dismissWalkthrough,
+      onNavigate: (p) => { setPage(p); },
+      tierName: tier.name
+    })
+  );
+}
+
+/* ════ DASHBOARD ════ */
+function Dashboard({ quotes, quotesThisMonth, tier, clients, catalog, settings, canCreateQuote, currentMonth, onNewQuote, upgradeUrl, nextTierName }) {
+  const accepted = quotes.filter(q => q.createdAt?.startsWith(currentMonth) && q.status==="Accepted");
+  const revenue = accepted.reduce((s,q) => s+(q.total||0), 0);
+  const sentOrLater = quotes.filter(q => q.createdAt?.startsWith(currentMonth) && q.status!=="Draft");
+  const winRate = sentOrLater.length > 0 ? Math.round((accepted.length/sentOrLater.length)*100) : 0;
+  const pending = quotes.filter(q => q.status==="Sent").length;
+  const qLimit = tier.quotesPerMonth === Infinity ? "∞" : tier.quotesPerMonth;
+  const qUsage = tier.quotesPerMonth === Infinity ? 0 : (quotesThisMonth/tier.quotesPerMonth)*100;
+  function meterColor(p) { return p>=90?"var(--btn-danger)":p>=70?"#b8860b":"var(--btn-primary)"; }
+
+  return React.createElement("div", null,
+    !canCreateQuote && React.createElement("div", { className: "upgrade-banner" },
+      React.createElement("p", null, `You've used all ${tier.quotesPerMonth} quotes this month`),
+      upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", rel: "noopener", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)
+    ),
+    React.createElement("div", { className: "stats-grid" },
+      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Quotes This Month"), React.createElement("div", { className: "stat-value" }, `${quotesThisMonth}/${qLimit}`), tier.quotesPerMonth !== Infinity && React.createElement("div", { className: "usage-meter" }, React.createElement("div", { className: "usage-meter-fill", style: { width: `${Math.min(qUsage,100)}%`, background: meterColor(qUsage) } }))),
+      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Pending"), React.createElement("div", { className: "stat-value" }, pending)),
+      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Revenue"), React.createElement("div", { className: "stat-value", style: { fontSize: 20 } }, formatCurrency(revenue, settings.defaultCurrency))),
+      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Win Rate"), React.createElement("div", { className: "stat-value" }, `${winRate}%`))
+    ),
+    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canCreateQuote, onClick: onNewQuote, style: { marginBottom: 20, padding: "14px" } }, canCreateQuote ? "＋  Create New Quote" : `Quote limit reached (${tier.quotesPerMonth}/mo)`),
+    React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📋"), "Recent Quotes"),
+    quotes.slice(0,5).map(q => React.createElement("div", { key: q.id, className: "quote-list-item" },
+      React.createElement("div", { className: "quote-item-left" }, React.createElement("div", { className: "quote-item-title" }, sanitize(q.title||"Untitled"), q.signature && React.createElement("span", { className: "signed-badge" }, "✓")), React.createElement("div", { className: "quote-item-sub" }, [sanitize(q.clientName||"No client"), q.quoteNumber?sanitize(q.quoteNumber):null, new Date(q.createdAt).toLocaleDateString()].filter(Boolean).join(" · "))),
+      React.createElement("div", { className: "quote-item-right" }, React.createElement("div", { className: "quote-item-amount" }, formatCurrency(q.total||0, q.currency||settings.defaultCurrency)), React.createElement("span", { className: `status-badge status-${q.status.toLowerCase()}` }, q.status))
+    )),
+    quotes.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "📋"), React.createElement("p", null, "No quotes yet — create your first one above"))
+  );
+}
+
+/* ════ QUOTE LIST ════ */
+function QuoteList({ quotes, searchTerm, setSearchTerm, canCreateQuote, tier, settings, onNew, onEdit, upgradeUrl, nextTierName }) {
+  const filtered = quotes.filter(q => { const s = searchTerm.toLowerCase(); return !s || (q.title||"").toLowerCase().includes(s) || (q.clientName||"").toLowerCase().includes(s) || (q.quoteNumber||"").toLowerCase().includes(s); });
+  return React.createElement("div", null,
+    !canCreateQuote && React.createElement("div", { className: "upgrade-banner" }, React.createElement("p", null, `Monthly quote limit reached (${tier.quotesPerMonth})`), upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)),
+    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canCreateQuote, onClick: onNew, style: { marginBottom: 14 } }, canCreateQuote ? "＋  New Quote" : "Limit reached"),
+    React.createElement("input", { className: "search-input", placeholder: "Search by title, client, or number...", value: searchTerm, onChange: e => setSearchTerm(e.target.value) }),
+    filtered.map(q => React.createElement("div", { key: q.id, className: "quote-list-item", onClick: () => onEdit(q) },
+      React.createElement("div", { className: "quote-item-left" }, React.createElement("div", { className: "quote-item-title" }, sanitize(q.title||"Untitled"), q.signature && React.createElement("span", { className: "signed-badge" }, "✓")), React.createElement("div", { className: "quote-item-sub" }, [sanitize(q.clientName||""), q.quoteNumber?sanitize(q.quoteNumber):null, new Date(q.createdAt).toLocaleDateString()].filter(Boolean).join(" · "))),
+      React.createElement("div", { className: "quote-item-right" }, React.createElement("div", { className: "quote-item-amount" }, formatCurrency(q.total||0, q.currency||settings.defaultCurrency)), React.createElement("span", { className: `status-badge status-${q.status.toLowerCase()}` }, q.status))
+    )),
+    filtered.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "🔍"), React.createElement("p", null, searchTerm ? "No quotes match" : "No quotes yet"))
+  );
+}
+
+/* ════ QUOTE EDITOR ════ */
+function QuoteEditor({ quote, setQuote, tier, settings, clients, catalog, onSave, onCancel, onDelete, onSign, onExportCsv, onPrint, onDuplicate, upgradeUrl, nextTierName }) {
+  const currency = quote.currency || settings.defaultCurrency;
+  const items = quote.lineItems || [];
+  const subtotal = items.reduce((s,i) => s+(Number(i.quantity)||0)*(Number(i.unitPrice)||0), 0);
+  const dp = Number(quote.discountPercent)||0;
+  const da = subtotal*(dp/100);
+  const ad = subtotal-da;
+  const tp = Number(quote.taxPercent)||0;
+  const ta = ad*(tp/100);
+  const total = ad+ta;
+
+  function u(f,v) { setQuote({...quote,[f]:v}); }
+  function ul(id,f,v) { setQuote({...quote, lineItems: items.map(i => i.id===id?{...i,[f]:v}:i)}); }
+  function addLine() { setQuote({...quote, lineItems: [...items, {id:generateId(), description:"", quantity:1, unitPrice:0}]}); }
+  function rmLine(id) { if (items.length<=1) return; setQuote({...quote, lineItems: items.filter(i => i.id!==id)}); }
+  function addFromCatalog(item) { setQuote({...quote, lineItems: [...items, {id:generateId(), description: item.name+(item.description?` — ${item.description}`:""), quantity:1, unitPrice: Number(item.defaultPrice)||0}]}); }
+  function selectClient(cid) { const c = clients.find(x => x.id===cid); if (c) u("clientId",c.id), setQuote(prev => ({...prev, clientId:c.id, clientName:c.name, clientCompany:c.company||"", clientWebsite:c.website||""})); }
+
+  return React.createElement("div", null,
+    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
+      React.createElement("button", { className: "btn btn-ghost", onClick: onCancel }, "← Back"),
+      React.createElement("div", { style: { display: "flex", gap: 8 } },
+        React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onSave({...quote, subtotal, discountAmount:da, taxAmount:ta, total}) }, "Save"),
+        React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete this quote?")) onDelete(quote.id); } }, "Delete")
+      )
+    ),
+    React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📝"), "Quote Details"),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Title"), React.createElement("input", { className: "form-input", value: quote.title, onChange: e => u("title",e.target.value), placeholder: "e.g. Website Redesign" })),
+      React.createElement("div", { className: "form-row" },
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Quote Number"), React.createElement("input", { className: "form-input", value: quote.quoteNumber, onChange: e => u("quoteNumber",e.target.value), placeholder: "e.g. QT-001" })),
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Status"), React.createElement("select", { className: "form-select", value: quote.status, onChange: e => u("status",e.target.value) }, STATUSES.map(s => React.createElement("option", { key: s, value: s }, s))))
+      ),
+      React.createElement("div", { className: "form-row" },
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Client"), React.createElement("select", { className: "form-select", value: quote.clientId||"", onChange: e => selectClient(e.target.value) }, React.createElement("option", { value: "" }, "Select client..."), clients.map(c => React.createElement("option", { key: c.id, value: c.id }, c.name+(c.company?` (${c.company})`:"")  )))),
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Currency"), React.createElement("select", { className: "form-select", value: currency, onChange: e => u("currency",e.target.value) }, CURRENCIES.map(c => React.createElement("option", { key: c.code, value: c.code }, `${c.code} (${c.symbol})`))))
+      ),
+      React.createElement("div", { className: "form-row-3" },
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Tax %"), React.createElement("input", { className: "form-input", type: "number", min: 0, step: 0.5, value: quote.taxPercent, onChange: e => u("taxPercent",e.target.value) })),
+        tier.discounts ? React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Discount %"), React.createElement("input", { className: "form-input", type: "number", min: 0, max: 100, step: 0.5, value: quote.discountPercent||0, onChange: e => u("discountPercent",e.target.value) })) : React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Discount %"), React.createElement("p", { className: "locked-feature" }, React.createElement("a", { href: upgradeUrl, target: "_blank" }, `${nextTierName}`))),
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Valid (days)"), React.createElement("input", { className: "form-input", type: "number", min: 1, value: quote.validityDays||30, onChange: e => u("validityDays",e.target.value) }))
+      )
+    ),
+    React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📦"), "Line Items"),
+      React.createElement("div", { style: { overflowX: "auto" } },
+        React.createElement("div", { style: { minWidth: 520 } },
+          React.createElement("div", { className: "line-item-row", style: { fontSize: 12, fontWeight: 600, color: "var(--text-light)" } }, React.createElement("span",null,"Description"), React.createElement("span",null,"Qty"), React.createElement("span",null,"Unit Price"), React.createElement("span",null,"Total"), React.createElement("span",null,"")),
+          items.map(item => React.createElement("div", { key: item.id, className: "line-item-row" },
+            React.createElement("input", { className: "form-input", value: item.description, onChange: e => ul(item.id,"description",e.target.value), placeholder: "Item description" }),
+            React.createElement("input", { className: "form-input", type: "number", min: 0, value: item.quantity, onChange: e => ul(item.id,"quantity",e.target.value) }),
+            React.createElement("input", { className: "form-input", type: "number", min: 0, step: 0.01, value: item.unitPrice, onChange: e => ul(item.id,"unitPrice",e.target.value) }),
+            React.createElement("span", { style: { fontSize: 14, fontWeight: 600, textAlign: "right" } }, formatCurrency((Number(item.quantity)||0)*(Number(item.unitPrice)||0), currency)),
+            React.createElement("button", { className: "btn-ghost", onClick: () => rmLine(item.id), disabled: items.length<=1 }, "✕")
+          ))
+        )
+      ),
+      React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 12 } },
+        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: addLine }, "＋ Add Line"),
+        catalog.length > 0 && React.createElement("select", { className: "form-select", style: { width: "auto", fontSize: 13, padding: "8px 12px" }, value: "", onChange: e => { const it = catalog.find(i => i.id===e.target.value); if (it) addFromCatalog(it); } }, React.createElement("option", { value: "" }, "＋ From Catalog"), catalog.map(i => React.createElement("option", { key: i.id, value: i.id }, `${i.name} — ${formatCurrency(i.defaultPrice, currency)}`)))
+      ),
+      React.createElement("div", { className: "totals-section" },
+        React.createElement("div", { className: "totals-row" }, React.createElement("span",null,"Subtotal"), React.createElement("span",null,formatCurrency(subtotal,currency))),
+        dp > 0 && React.createElement("div", { className: "totals-row", style: { color: "var(--btn-danger)" } }, React.createElement("span",null,`Discount (${dp}%)`), React.createElement("span",null,`-${formatCurrency(da,currency)}`)),
+        tp > 0 && React.createElement("div", { className: "totals-row" }, React.createElement("span",null,`Tax (${tp}%)`), React.createElement("span",null,formatCurrency(ta,currency))),
+        React.createElement("div", { className: "totals-row grand" }, React.createElement("span",null,"Grand Total"), React.createElement("span",null,formatCurrency(total,currency)))
+      )
+    ),
+    React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Notes / Terms"), React.createElement("textarea", { className: "form-textarea", rows: 3, value: quote.notes||"", onChange: e => u("notes",e.target.value), placeholder: settings.defaultTerms }))
+    ),
+    React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📤"), "Actions"),
+      React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
+        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onExportCsv({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, "Export CSV"),
+        tier.printPdf ? React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onPrint({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, "Print / PDF") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Print (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
+        tier.duplicateQuote ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onDuplicate({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, "Duplicate") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Duplicate (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
+        tier.signatures ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onSign({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, quote.signature ? "Re-sign" : "Sign SHA-256") : React.createElement("span", { className: "locked-feature", style: { padding: "8px 0" } }, "Signatures — ", React.createElement("a", { href: PAY_URLS.pro, target: "_blank" }, "Pro"))
+      ),
+      quote.signature && React.createElement("div", { className: "signature-box" }, quote.signature)
+    )
+  );
+}
+
+/* ════ CLIENT LIST ════ */
+function ClientList({ clients, searchTerm, setSearchTerm, canAddClient, tier, onNew, onEdit, upgradeUrl, nextTierName }) {
+  const filtered = clients.filter(c => { const s = searchTerm.toLowerCase(); return !s || (c.name||"").toLowerCase().includes(s) || (c.company||"").toLowerCase().includes(s); });
+  return React.createElement("div", null,
+    !canAddClient && React.createElement("div", { className: "upgrade-banner" }, React.createElement("p", null, `Client limit reached (${tier.maxClients})`), upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)),
+    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canAddClient, onClick: onNew, style: { marginBottom: 14 } }, canAddClient ? "＋  New Client" : "Limit reached"),
+    React.createElement("input", { className: "search-input", placeholder: "Search clients...", value: searchTerm, onChange: e => setSearchTerm(e.target.value) }),
+    filtered.map(c => React.createElement("div", { key: c.id, className: "client-item", onClick: () => onEdit(c) }, React.createElement("div", { className: "client-item-name" }, sanitize(c.name)), React.createElement("div", { className: "client-item-detail" }, [c.company,c.email,c.phone].filter(Boolean).map(sanitize).join(" · ") || "No details"))),
+    filtered.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "👥"), React.createElement("p", null, searchTerm ? "No match" : "No clients yet"))
+  );
+}
+
+/* ════ CLIENT EDITOR ════ */
+function ClientEditor({ client, setClient, tier, onSave, onCancel, onDelete, upgradeUrl, nextTierName }) {
+  function u(f,v) { setClient({...client,[f]:v}); }
+  return React.createElement("div", null,
+    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 16 } }, React.createElement("button", { className: "btn btn-ghost", onClick: onCancel }, "← Back"), React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onSave(client) }, "Save"), React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete?")) onDelete(client.id); } }, "Delete"))),
+    React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "👤"), "Client Details"),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Name"), React.createElement("input", { className: "form-input", value: client.name, onChange: e => u("name",e.target.value) })),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Company"), React.createElement("input", { className: "form-input", value: client.company||"", onChange: e => u("company",e.target.value) })),
+      React.createElement("div", { className: "form-row" },
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Email"), React.createElement("input", { className: "form-input", type: "email", value: client.email||"", onChange: e => u("email",e.target.value) })),
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Phone"), React.createElement("input", { className: "form-input", value: client.phone||"", onChange: e => u("phone",e.target.value) }))
+      ),
+      tier.clientWebsite ? React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Website"), React.createElement("input", { className: "form-input", value: client.website||"", onChange: e => u("website",e.target.value), placeholder: "https://..." })) : React.createElement("p", { className: "locked-feature", style: { margin: "12px 0" } }, "Client website — ", React.createElement("a", { href: upgradeUrl, target: "_blank" }, `${nextTierName}`)),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Address"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: client.address||"", onChange: e => u("address",e.target.value) })),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Notes"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: client.notes||"", onChange: e => u("notes",e.target.value) }))
+    )
+  );
+}
+
+/* ════ CATALOG LIST ════ */
+function CatalogList({ catalog, searchTerm, setSearchTerm, canAddCatalog, tier, settings, onNew, onEdit, upgradeUrl, nextTierName }) {
+  const filtered = catalog.filter(i => { const s = searchTerm.toLowerCase(); return !s || (i.name||"").toLowerCase().includes(s) || (i.category||"").toLowerCase().includes(s); });
+  return React.createElement("div", null,
+    !canAddCatalog && React.createElement("div", { className: "upgrade-banner" }, React.createElement("p", null, `Catalog limit reached (${tier.maxCatalog})`), upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)),
+    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canAddCatalog, onClick: onNew, style: { marginBottom: 14 } }, canAddCatalog ? "＋  New Item" : "Limit reached"),
+    React.createElement("input", { className: "search-input", placeholder: "Search catalog...", value: searchTerm, onChange: e => setSearchTerm(e.target.value) }),
+    filtered.map(item => React.createElement("div", { key: item.id, className: "catalog-item", onClick: () => onEdit(item) }, React.createElement("div", { className: "catalog-item-info" }, React.createElement("div", { className: "catalog-item-name" }, sanitize(item.name)), React.createElement("div", { className: "catalog-item-detail" }, [item.category, item.pricingUnit?`per ${item.pricingUnit}`:null].filter(Boolean).join(" · "))), React.createElement("div", { style: { fontWeight: 600, fontSize: 15 } }, formatCurrency(item.defaultPrice||0, settings.defaultCurrency)))),
+    filtered.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "📦"), React.createElement("p", null, searchTerm ? "No match" : "No items yet"))
+  );
+}
+
+/* ════ CATALOG EDITOR ════ */
+function CatalogEditor({ item, setItem, onSave, onCancel, onDelete }) {
+  function u(f,v) { setItem({...item,[f]:v}); }
+  return React.createElement("div", null,
+    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 16 } }, React.createElement("button", { className: "btn btn-ghost", onClick: onCancel }, "← Back"), React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onSave(item) }, "Save"), React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete?")) onDelete(item.id); } }, "Delete"))),
+    React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📦"), "Catalog Item"),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Name"), React.createElement("input", { className: "form-input", value: item.name, onChange: e => u("name",e.target.value) })),
+      React.createElement("div", { className: "form-row" },
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Category"), React.createElement("input", { className: "form-input", value: item.category||"", onChange: e => u("category",e.target.value), placeholder: "e.g. Design, Plumbing" })),
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Pricing Unit"), React.createElement("select", { className: "form-select", value: item.pricingUnit||"each", onChange: e => u("pricingUnit",e.target.value) }, PRICING_UNITS.map(pu => React.createElement("option", { key: pu, value: pu }, pu))))
+      ),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Default Price"), React.createElement("input", { className: "form-input", type: "number", min: 0, step: 0.01, value: item.defaultPrice||"", onChange: e => u("defaultPrice",e.target.value) })),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Description"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: item.description||"", onChange: e => u("description",e.target.value) }))
+    )
+  );
+}
+
+/* ════ SETTINGS ════ */
+function SettingsPage({ settings, saveSettings, tier, onDeleteAll, upgradeUrl, nextTierName, onReplayWalkthrough }) {
+  const [activeTab, setActiveTab] = useState("business");
+  const [logoErr, setLogoErr] = useState("");
+  const [lhErr, setLhErr] = useState("");
+
+  function uf(f,v) { saveSettings({...settings,[f]:v}); }
+  function uInv(f,v) { saveSettings({...settings, invoiceSettings: {...(settings.invoiceSettings||{}), [f]:v}}); }
+
+  async function handleImageUpload(field, file, setErr) {
+    setErr("");
+    const v = validateImageFile(file);
+    if (!v.valid) { setErr(v.error); return; }
+    try {
+      const dataUrl = await fileToBase64(file);
+      if (file.type === "image/svg+xml") { const safe = sanitizeSvgDataUrl(dataUrl); if (!safe) { setErr("SVG contains unsafe content."); return; } uf(field, safe); }
+      else uf(field, dataUrl);
+    } catch { setErr("Failed to process image."); }
+  }
+
+  const inv = settings.invoiceSettings || {};
+
+  return React.createElement("div", null,
+    React.createElement("div", { className: "tab-group" },
+      ["business","invoice","plan","security"].map(t => React.createElement("button", { key: t, className: activeTab===t?"active":"", onClick: () => setActiveTab(t) }, t==="invoice" ? "Invoice Style" : t.charAt(0).toUpperCase()+t.slice(1)))
+    ),
+
+    /* ── BUSINESS TAB ── */
+    activeTab === "business" && React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🏢"), "Business Information"),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Business Name"), React.createElement("input", { className: "form-input", value: settings.businessName, onChange: e => uf("businessName",e.target.value) })),
+      React.createElement("div", { className: "form-row" },
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Email"), React.createElement("input", { className: "form-input", type: "email", value: settings.email, onChange: e => uf("email",e.target.value) })),
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Phone"), React.createElement("input", { className: "form-input", value: settings.phone, onChange: e => uf("phone",e.target.value) }))
+      ),
+      React.createElement("div", { className: "form-row" },
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Tax / VAT Number"), React.createElement("input", { className: "form-input", value: settings.taxNumber||"", onChange: e => uf("taxNumber",e.target.value) })),
+        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Default Currency"), React.createElement("select", { className: "form-select", value: settings.defaultCurrency, onChange: e => uf("defaultCurrency",e.target.value) }, CURRENCIES.map(c => React.createElement("option", { key: c.code, value: c.code }, `${c.code} — ${c.name}`))))
+      ),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Address"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: settings.address||"", onChange: e => uf("address",e.target.value) })),
+      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Default Terms"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: settings.defaultTerms||"", onChange: e => uf("defaultTerms",e.target.value) }))
+    ),
+
+    /* ── INVOICE STYLE TAB ── */
+    activeTab === "invoice" && React.createElement("div", null,
+      tier.invoiceCustom ? React.createElement("div", null,
+        /* Logo */
+        React.createElement("div", { className: "card" },
+          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🖼️"), "Logo & Letterhead"),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, "Company Logo"),
+            React.createElement("p", { className: "form-hint" }, "PNG, JPEG, WebP, or SVG. Max 512KB."),
+            settings.logo && React.createElement("div", { style: { marginBottom: 10, display: "flex", alignItems: "center", gap: 12 } }, React.createElement("img", { src: settings.logo, style: { maxHeight: 60, maxWidth: 150, objectFit: "contain", border: "1px solid var(--border)", borderRadius: 8, padding: 6, background: "var(--bg)" } }), React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => uf("logo",null) }, "Remove")),
+            React.createElement("input", { type: "file", accept: "image/png,image/jpeg,image/webp,image/svg+xml", style: { fontSize: 14 }, onChange: e => { if (e.target.files[0]) handleImageUpload("logo",e.target.files[0],setLogoErr); } }),
+            logoErr && React.createElement("p", { style: { color: "var(--btn-danger)", fontSize: 13, marginTop: 4 } }, logoErr)
+          ),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, "Letterhead Background"),
+            React.createElement("p", { className: "form-hint" }, "Full-page background for printed quotes."),
+            settings.letterhead && React.createElement("div", { style: { marginBottom: 10, display: "flex", alignItems: "center", gap: 12 } }, React.createElement("img", { src: settings.letterhead, style: { maxHeight: 80, maxWidth: 120, objectFit: "contain", border: "1px solid var(--border)", borderRadius: 8, padding: 6, background: "var(--bg)" } }), React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => uf("letterhead",null) }, "Remove")),
+            React.createElement("input", { type: "file", accept: "image/png,image/jpeg,image/webp,image/svg+xml", style: { fontSize: 14 }, onChange: e => { if (e.target.files[0]) handleImageUpload("letterhead",e.target.files[0],setLhErr); } }),
+            lhErr && React.createElement("p", { style: { color: "var(--btn-danger)", fontSize: 13, marginTop: 4 } }, lhErr)
+          ),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, "Logo Position"),
+            React.createElement("div", { style: { display: "flex", gap: 8 } }, LOGO_POSITIONS.map(p => React.createElement("button", { key: p.id, className: `btn btn-sm ${(inv.logoPosition||"left")===p.id ? "btn-dark" : "btn-outline"}`, onClick: () => uInv("logoPosition",p.id) }, p.name)))
+          )
+        ),
+
+        /* Typography */
+        React.createElement("div", { className: "card" },
+          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🔤"), "Typography"),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, "Invoice Font"),
+            React.createElement("select", { className: "form-select", value: inv.font||"lexend", onChange: e => uInv("font",e.target.value) }, INVOICE_FONTS.map(f => React.createElement("option", { key: f.id, value: f.id }, f.name)))
+          ),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, `Font Size: ${inv.fontSize||14}px`),
+            React.createElement("input", { type: "range", min: 11, max: 18, value: inv.fontSize||14, onChange: e => uInv("fontSize",Number(e.target.value)), style: { width: "100%", accentColor: "var(--btn-primary)" } })
+          )
+        ),
+
+        /* Accent Color */
+        React.createElement("div", { className: "card" },
+          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🎨"), "Accent Color"),
+          React.createElement("p", { className: "form-hint", style: { marginBottom: 10 } }, "Used for headings, borders, and totals on your printed quotes."),
+          React.createElement("div", { className: "color-picker-row" },
+            INVOICE_ACCENTS.map(c => React.createElement("button", { key: c, className: `color-swatch ${(inv.accentColor||"#3b6b8a")===c ? "selected" : ""}`, style: { background: c }, onClick: () => uInv("accentColor",c) }))
+          )
+        ),
+
+        /* Layout Options */
+        React.createElement("div", { className: "card" },
+          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📐"), "Layout"),
+          React.createElement("div", { className: "toggle-row" },
+            React.createElement("label", null, "Show border around invoice"),
+            React.createElement("button", { className: `toggle-switch ${inv.showBorder !== false ? "on" : ""}`, onClick: () => uInv("showBorder", !(inv.showBorder !== false)) })
+          )
+        )
+      ) : React.createElement("div", { className: "card", style: { textAlign: "center", padding: 40 } },
+        React.createElement("div", { style: { fontSize: 40, marginBottom: 12, opacity: 0.4 } }, "🎨"),
+        React.createElement("p", { style: { fontSize: 15, marginBottom: 16 } }, "Invoice customisation is available from Starter"),
+        upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent" }, `Upgrade to ${nextTierName}`)
+      )
+    ),
+
+    /* ── PLAN TAB ── */
+    activeTab === "plan" && React.createElement("div", null,
+      React.createElement("div", { className: "plan-cards" },
+        Object.values(TIERS).map(t => React.createElement("div", { key: t.id, className: `plan-card ${settings.tier===t.id?"current":""} ${t.id==="pro"?"recommended":""}` },
+          t.id === "pro" && React.createElement("div", { className: "plan-badge" }, "Popular"),
+          settings.tier === t.id && React.createElement("div", { className: "plan-badge", style: { background: "var(--btn-primary)" } }, "Current"),
+          React.createElement("div", { className: "plan-name" }, t.name),
+          React.createElement("div", { className: "plan-price" }, t.priceLabel),
+          React.createElement("div", { className: "plan-period" }, t.period),
+          React.createElement("ul", { className: "plan-features" },
+            React.createElement("li", null, `${t.quotesPerMonth===Infinity?"Unlimited":t.quotesPerMonth} quotes/month`),
+            React.createElement("li", null, `${t.maxClients===Infinity?"Unlimited":t.maxClients} clients`),
+            React.createElement("li", null, "CSV export"),
+            t.printPdf && React.createElement("li", null, "Print / PDF"),
+            t.logoLetterhead && React.createElement("li", null, "Logo & letterhead"),
+            t.invoiceCustom && React.createElement("li", null, "Invoice customisation"),
+            t.signatures && React.createElement("li", null, "SHA-256 signatures")
+          ),
+          t.payUrl ? (settings.tier===t.id ? React.createElement("button", { className: "btn btn-outline btn-block btn-sm", disabled: true, style: { marginTop: 14 } }, "Current Plan") : React.createElement("a", { href: t.payUrl, target: "_blank", className: `btn btn-block btn-sm ${t.id==="pro"?"btn-accent":"btn-dark"}`, style: { marginTop: 14, textDecoration: "none", display: "flex" } }, `Upgrade to ${t.name}`)) : React.createElement("button", { className: "btn btn-outline btn-block btn-sm", style: { marginTop: 14 }, disabled: settings.tier==="free", onClick: () => uf("tier","free") }, settings.tier==="free" ? "Current Plan" : "Downgrade")
+        ))
+      ),
+      React.createElement("div", { className: "card" },
+        React.createElement("div", { className: "card-title" }, "Activate Your Plan"),
+        React.createElement("p", { style: { fontSize: 14, color: "var(--text-secondary)", marginBottom: 12 } }, "Already subscribed? Select your active plan:"),
+        React.createElement("select", { className: "form-select", value: settings.tier, onChange: e => uf("tier",e.target.value) }, Object.values(TIERS).map(t => React.createElement("option", { key: t.id, value: t.id }, `${t.name} (${t.priceLabel}${t.period})`)))
+      )
+    ),
+
+    /* ── SECURITY TAB ── */
+    activeTab === "security" && React.createElement("div", null,
+      React.createElement("div", { className: "card" },
+        React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🔒"), "Security"),
+        React.createElement("ul", { className: "security-list" },
+          React.createElement("li", null, "PBKDF2 key derivation (600,000 iterations)"),
+          React.createElement("li", null, "AES-256-GCM encryption on all stored data"),
+          React.createElement("li", null, "Password never stored — only verification hash"),
+          React.createElement("li", null, "Auto-lock after 15 minutes of inactivity"),
+          React.createElement("li", null, "Rate-limited login (5 attempts, 30s lockout)"),
+          React.createElement("li", null, "XSS sanitisation on all inputs"),
+          React.createElement("li", null, "SVG sanitisation (blocks scripts, event handlers)"),
+          React.createElement("li", null, "Image upload validation (type, size, dimensions)"),
+          React.createElement("li", null, "Zero server — data never leaves your device"),
+          React.createElement("li", null, "Separate storage namespace (bqd_)")
+        )
+      ),
+      React.createElement("div", { className: "card" },
+        React.createElement("div", { className: "card-title" }, "Legal"),
+        React.createElement("div", { style: { display: "flex", gap: 20, fontSize: 14 } },
+          React.createElement("a", { href: "/terms-of-service.html", target: "_blank", style: { color: "var(--btn-primary)" } }, "Terms of Service"),
+          React.createElement("a", { href: "/privacy-policy.html", target: "_blank", style: { color: "var(--btn-primary)" } }, "Privacy Policy")
+        )
+      ),
+      React.createElement("div", { className: "card" },
+        React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "👋"), "Walkthrough"),
+        React.createElement("p", { style: { fontSize: 14, color: "var(--text-secondary)", marginBottom: 12 } }, "New to the app or want a refresher? Replay the guided tour."),
+        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: onReplayWalkthrough }, "Replay Walkthrough")
+      ),
+      React.createElement("div", { className: "danger-zone" },
+        React.createElement("h3", null, "Danger Zone"),
+        React.createElement("p", { style: { fontSize: 14, marginBottom: 14 } }, "Permanently delete all data. This cannot be undone."),
+        React.createElement("button", { className: "btn btn-danger btn-sm", onClick: onDeleteAll }, "Delete All Data")
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WALKTHROUGH COMPONENT
+   ═══════════════════════════════════════════════════════════════ */
+
+function Walkthrough({ onDone, onNavigate, tierName }) {
+  const [step, setStep] = useState(0);
+
+  const steps = [
+    {
+      icon: "👋",
+      title: "Welcome to Business Quotes",
+      body: "Let's take a quick tour so you can start creating professional quotes in minutes. This won't take long — about 60 seconds.",
+      tip: null,
+      features: null,
+      nav: null
+    },
+    {
+      icon: "📊",
+      title: "Your Dashboard",
+      body: "This is home base. At a glance you'll see how many quotes you've sent this month, your revenue, pending quotes, and your win rate.",
+      tip: { title: "Pro tip", text: "The usage meter shows how close you are to your monthly quote limit. When it fills up, you'll see an upgrade prompt." },
+      features: null,
+      nav: "dashboard"
+    },
+    {
+      icon: "📋",
+      title: "Creating a Quote",
+      body: "Tap the big \"Create New Quote\" button to get started. Every quote has a title, client, line items, tax, and optional discount.",
+      tip: { title: "How it works", text: "Add items one by one or pull them straight from your product catalog. Totals update automatically as you type." },
+      features: [
+        { icon: "📝", text: "Custom title & number" },
+        { icon: "👤", text: "Link to a client" },
+        { icon: "💰", text: "Auto-calculated totals" },
+        { icon: "📤", text: "Export as CSV or PDF" }
+      ],
+      nav: "quotes"
+    },
+    {
+      icon: "👥",
+      title: "Your Clients",
+      body: "Add your clients here once, and they'll be available in every quote. Name, company, email, phone — everything in one place.",
+      tip: { title: "Time saver", text: "When you select a client on a quote, their details are automatically filled in. No retyping." },
+      features: null,
+      nav: "clients"
+    },
+    {
+      icon: "📦",
+      title: "Product & Service Catalog",
+      body: "Build a catalog of your services and products with default pricing. When you create a quote, just pick items from the dropdown — prices are pre-filled.",
+      tip: { title: "16 pricing units", text: "Per hour, per m², per word, per session — whatever your business charges by, it's covered." },
+      features: null,
+      nav: "catalog"
+    },
+    {
+      icon: "⚙️",
+      title: "Settings & Customisation",
+      body: "Set up your business name, address, tax number, and default currency. Paid plans unlock invoice styling — fonts, colours, logo, and letterhead.",
+      tip: null,
+      features: [
+        { icon: "🏢", text: "Business details" },
+        { icon: "🎨", text: "Invoice styling" },
+        { icon: "🖼️", text: "Logo & letterhead" },
+        { icon: "🔤", text: "Font & colour picker" }
+      ],
+      nav: "settings"
+    },
+    {
+      icon: "♿",
+      title: "Accessibility",
+      body: "We've built this app to be comfortable for everyone, including people with dyslexia.",
+      tip: { title: "Dyslexia-friendly mode", text: "Tap the \"Dy\" button in the top-right corner to switch to Atkinson Hyperlegible font with extra spacing. Everything becomes easier to read." },
+      features: [
+        { icon: "🔤", text: "Lexend font by default" },
+        { icon: "📏", text: "Extra letter & word spacing" },
+        { icon: "📖", text: "High line height (1.9x)" },
+        { icon: "🎯", text: "Large, clear tap targets" }
+      ],
+      nav: null
+    },
+    {
+      icon: "🔒",
+      title: "Your Data is Safe",
+      body: "Everything you enter is encrypted with AES-256 and stored only on your device. No servers, no cloud, no tracking. Your password protects it all.",
+      tip: { title: "Important", text: "If you forget your password, we can't recover your data — there's no backdoor. Use the emergency reset on the login screen as a last resort." },
+      features: null,
+      nav: null
+    },
+    {
+      icon: "🚀",
+      title: "You're All Set!",
+      body: "That's the tour. Start by adding your business details in Settings, then create your first quote. You're on the " + tierName + " plan — upgrade anytime from the Plan tab.",
+      tip: { title: "Need help later?", text: "You can replay this walkthrough anytime from Settings > Security > Replay Walkthrough." },
+      features: null,
+      nav: "dashboard"
+    }
+  ];
+
+  const current = steps[step];
+  const totalSteps = steps.length;
+  const isFirst = step === 0;
+  const isLast = step === totalSteps - 1;
+
+  function next() {
+    if (isLast) { onDone(); return; }
+    const nextStep = step + 1;
+    setStep(nextStep);
+    if (steps[nextStep].nav) onNavigate(steps[nextStep].nav);
+  }
+
+  function prev() {
+    if (isFirst) return;
+    const prevStep = step - 1;
+    setStep(prevStep);
+    if (steps[prevStep].nav) onNavigate(steps[prevStep].nav);
+  }
+
+  return React.createElement("div", { className: "wt-overlay" },
+    React.createElement("div", { className: "wt-backdrop" }),
+    React.createElement("div", { key: step, className: "wt-card" },
+      React.createElement("span", { className: "wt-icon" }, current.icon),
+      React.createElement("h2", null, current.title),
+      React.createElement("p", null, current.body),
+
+      current.features && React.createElement("div", { className: "wt-feature-grid" },
+        current.features.map((f, i) =>
+          React.createElement("div", { key: i, className: "wt-feature-item" },
+            React.createElement("span", { className: "wt-feat-icon" }, f.icon),
+            React.createElement("span", null, f.text)
+          )
+        )
+      ),
+
+      current.tip && React.createElement("div", { className: "wt-tip-box" },
+        React.createElement("div", { className: "wt-tip-title" }, current.tip.title),
+        React.createElement("p", null, current.tip.text)
+      ),
+
+      React.createElement("div", { className: "wt-steps" },
+        steps.map((_, i) =>
+          React.createElement("div", {
+            key: i,
+            className: `wt-dot ${i === step ? "active" : ""} ${i < step ? "done" : ""}`
+          })
+        )
+      ),
+
+      React.createElement("div", { className: "wt-actions" },
+        !isFirst && React.createElement("button", { className: "btn btn-outline", onClick: prev }, "Back"),
+        React.createElement("button", { className: "btn btn-dark", onClick: next },
+          isLast ? "Get Started" : isFirst ? "Start Tour" : "Next"
+        )
+      ),
+
+      !isLast && React.createElement("button", { className: "wt-skip", onClick: onDone }, "Skip walkthrough")
+    )
+  );
+}
+
+/* ──────── MOUNT ──────── */
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});</script>
 </body>
 </html>
