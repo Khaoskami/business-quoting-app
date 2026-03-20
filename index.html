@@ -1,27 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0e0e11" />
-    <meta name="description" content="Free encrypted quoting app for any business. AES-256 encrypted. No server. No paywall." />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <title>Business Quotes</title>
-    <style>
-      html, body, #root { margin: 0; padding: 0; background: #0e0e11; min-height: 100vh; }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="./main.jsx"></script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function () {
-          navigator.serviceWorker.register("/sw.js").catch(function () {});
-        });
-      }
-    </script>
-  </body>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#0e0e11"/>
+<meta name="description" content="Free encrypted quoting app for any business."/>
+<title>Business Quotes</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body,#root{background:#0e0e11;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+input:focus,select:focus,textarea:focus{border-color:#3b82f6!important;outline:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#25252b;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.9/babel.min.js"></script>
+<script type="text/babel" data-type="module">
+const {useState,useEffect,useCallback,useMemo,useRef}=React;
+
+/* ================================================================
+   BUSINESS QUOTES — DEV BUILD (PASSWORD PROTECTED)
+   PBKDF2 (600K) + AES-256-GCM. All features unlocked.
+   Copyright (c) 2026 Khaoskami. All rights reserved.
+   ================================================================ */
+
+// --- AUTH + ENCRYPTION ---
+const AUTH={
+  PFX:"bqd_",SK:"bqd_auth_salt",HK:"bqd_auth_hash",IT:600000,KL:256,IV:12,LK:15*60*1000,
+  gs(){return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))},
+  async dk(pw,s){const sa=Uint8Array.from(atob(s),c=>c.charCodeAt(0));const b=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt:sa,iterations:this.IT,hash:"SHA-256"},b,{name:"AES-GCM",length:this.KL},false,["encrypt","decrypt"])},
+  async vh(pw,s){const sa=Uint8Array.from(atob(s),c=>c.charCodeAt(0));const ps=new Uint8Array([...sa,...new TextEncoder().encode("v")]);const b=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);const bi=await crypto.subtle.deriveBits({name:"PBKDF2",salt:ps,iterations:this.IT,hash:"SHA-256"},b,256);return btoa(String.fromCharCode(...new Uint8Array(bi)))},
+  async enc(k,d){const iv=crypto.getRandomValues(new Uint8Array(this.IV));const c=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,new TextEncoder().encode(JSON.stringify(d)));return JSON.stringify({iv:btoa(String.fromCharCode(...iv)),d:btoa(String.fromCharCode(...new Uint8Array(c)))})},
+  async dec(k,s){try{const{iv,d}=JSON.parse(s);return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:Uint8Array.from(atob(iv),c=>c.charCodeAt(0))},k,Uint8Array.from(atob(d),c=>c.charCodeAt(0)))));}catch{return null}},
+  ok(){return localStorage.getItem(this.SK)!==null&&localStorage.getItem(this.HK)!==null},
+  async setup(pw){const s=this.gs();localStorage.setItem(this.SK,s);localStorage.setItem(this.HK,await this.vh(pw,s));return this.dk(pw,s)},
+  async login(pw){const s=localStorage.getItem(this.SK),h=localStorage.getItem(this.HK);if(!s||!h)return null;if(await this.vh(pw,s)!==h)return null;return this.dk(pw,s)},
+  async chpw(ok,np){const s=this.gs(),nk=await this.dk(np,s);const ks=Object.keys(localStorage).filter(k=>k.startsWith(this.PFX)&&k!==this.SK&&k!==this.HK);for(const k of ks){const r=localStorage.getItem(k);if(!r)continue;const d=await this.dec(ok,r);if(d===null)continue;localStorage.setItem(k,await this.enc(nk,d));}localStorage.setItem(this.SK,s);localStorage.setItem(this.HK,await this.vh(np,s));return nk},
+  nuke(){Object.keys(localStorage).filter(k=>k.startsWith(this.PFX)||k===this.SK||k===this.HK).forEach(k=>localStorage.removeItem(k))},
+};
+
+// --- SANITISE ---
+function san(v){if(typeof v==="string"){const m={"<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","&":"&amp;"};return v.replace(/[<>"'&]/g,c=>m[c])}if(Array.isArray(v))return v.map(san);if(v&&typeof v==="object")return Object.fromEntries(Object.entries(v).map(([k,val])=>[k,san(val)]));return v}
+function vUrl(u){if(!u||typeof u!=="string")return"";const t=u.trim();if(!t)return"";try{const p=new URL(t.startsWith("http")?t:"https://"+t);if(!["http:","https:"].includes(p.protocol)||p.hostname.includes("javascript")||/[<>"'`]/.test(p.href))return"";return p.href}catch{return""}}
+async function signQ(q,o){const p=JSON.stringify({id:q.id,title:q.title,items:q.items,total:calc(q.items,q.taxPercent,q.discountPercent).total,created:q.createdAt,owner:o.name||"Khaoskami",ts:new Date().toISOString()});const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(p));return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("")}
+
+// --- STORAGE ---
+function useS(key,fb,ck){
+  const[data,setData]=useState(fb);const[ok,setOk]=useState(false);const fk=AUTH.PFX+key;
+  useEffect(()=>{if(!ck)return;let s=false;(async()=>{try{const r=localStorage.getItem(fk);if(r){const d=await AUTH.dec(ck,r);if(!s&&d!==null)setData(d)}}catch{}if(!s)setOk(true)})();return()=>{s=true}},[fk,ck]);
+  const save=useCallback(async(n)=>{if(!ck)return;const c=san(n);setData(c);try{localStorage.setItem(fk,await AUTH.enc(ck,c))}catch{}},[fk,ck]);
+  return[data,save,ok];
+}
+
+// --- HELPERS ---
+const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
+const CUR=[{c:"ZAR",s:"R"},{c:"USD",s:"$"},{c:"EUR",s:"€"},{c:"GBP",s:"£"},{c:"AUD",s:"A$"},{c:"CAD",s:"C$"},{c:"JPY",s:"¥"},{c:"INR",s:"₹"},{c:"BRL",s:"R$"},{c:"NGN",s:"₦"},{c:"KES",s:"KSh"},{c:"AED",s:"د.إ"},{c:"CNY",s:"¥"},{c:"CHF",s:"CHF"},{c:"NZD",s:"NZ$"},{c:"MXN",s:"MX$"},{c:"SEK",s:"kr"},{c:"SGD",s:"S$"}];
+function $(a,c="ZAR"){try{return new Intl.NumberFormat("en",{style:"currency",currency:c}).format(a||0)}catch{return(CUR.find(x=>x.c===c)?.s||"")+(a||0).toFixed(2)}}
+function fd(i){return new Date(i).toLocaleDateString("en",{day:"numeric",month:"short",year:"numeric"})}
+function calc(it,tx,dc=0){const l=it.reduce((s,i)=>s+i.quantity*i.unitPrice,0),da=l*(dc/100),su=l-da,t=su*(tx/100);return{l,da,su,tx:t,tot:su+t}}
+const ST={draft:{lb:"Draft",c:"#71717a"},sent:{lb:"Sent",c:"#3b82f6"},accepted:{lb:"Accepted",c:"#22c55e"},declined:{lb:"Declined",c:"#ef4444"},expired:{lb:"Expired",c:"#f59e0b"}};
+function nq(c){return{id:uid(),quoteNumber:"",title:"",clientId:"",clientName:"",clientUrl:"",status:"draft",currency:c||"ZAR",taxPercent:15,discountPercent:0,validityDays:30,notes:"",createdAt:new Date().toISOString(),items:[{id:uid(),description:"",quantity:1,unitPrice:0}],signature:"",signedAt:""}}
+function nc(){return{id:"",name:"",company:"",email:"",phone:"",address:"",website:"",notes:""}}
+function np(){return{id:"",name:"",category:"",description:"",unitPrice:0,unit:"each"}}
+
+// --- COLOURS/STYLES ---
+const C={bg:"#0e0e11",sf:"#16161a",bd:"#25252b",hv:"#1c1c22",tx:"#d4d4d8",mt:"#6b6b76",pr:"#3b82f6",ok:"#22c55e",no:"#ef4444",wn:"#f59e0b",ac:"#8b5cf6",dv:"#14b8a6"};
+const S={
+  root:{fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",background:C.bg,color:C.tx,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:14,lineHeight:1.5},
+  hdr:{padding:"12px 20px",borderBottom:`1px solid ${C.bd}`,display:"flex",alignItems:"center",justifyContent:"space-between"},
+  nav:{display:"flex",borderBottom:`1px solid ${C.bd}`,padding:"0 8px",overflowX:"auto",gap:2},
+  main:{padding:20,flex:1,overflowY:"auto"},
+  h2:{fontSize:20,fontWeight:700,margin:"0 0 20px",color:C.tx},
+  card:{background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8,padding:16,marginBottom:12},
+  lbl:{display:"block",fontSize:11,fontWeight:600,color:C.mt,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.04em"},
+  inp:{background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"8px 10px",color:C.tx,fontSize:13,width:"100%",boxSizing:"border-box",fontFamily:"inherit",outline:"none"},
+  ta:{background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"8px 10px",color:C.tx,fontSize:13,width:"100%",boxSizing:"border-box",fontFamily:"inherit",outline:"none",resize:"vertical"},
+  btn:{background:C.pr,color:"#fff",border:"none",borderRadius:6,padding:"8px 14px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"},
+  btn2:{background:C.sf,color:C.tx,border:`1px solid ${C.bd}`,borderRadius:6,padding:"8px 14px",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  btnD:{background:"transparent",color:C.no,border:`1px solid ${C.no}33`,borderRadius:6,padding:"8px 14px",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"},
+  btnG:{background:"none",color:C.mt,border:"none",padding:"8px 10px",fontSize:13,cursor:"pointer",fontFamily:"inherit"},
+  badge:c=>({display:"inline-block",fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,background:c+"18",color:c}),
+  grid:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12},
+  row:{display:"flex",alignItems:"center",gap:8},
+  btwn:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12},
+  stat:c=>({background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8,padding:"14px 16px",borderLeft:`3px solid ${c}`}),
+  li:{background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8,padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",gap:12,marginBottom:6},
+  empty:{textAlign:"center",padding:48,color:C.mt,fontSize:14},
+  toast:t=>({position:"fixed",bottom:20,left:"50%",transform:"translateX(-50%)",background:t==="error"?"#3b1111":"#113b1a",color:t==="error"?C.no:C.ok,padding:"10px 20px",borderRadius:8,fontSize:13,fontWeight:600,boxShadow:"0 4px 20px rgba(0,0,0,0.5)",zIndex:1000}),
+  dv:{borderTop:`1px solid ${C.bd}`,margin:"8px 0"},
+};
+
+// --- AUTH SCREENS ---
+function Setup({onDone}){
+  const[pw,sP]=useState("");const[p2,sP2]=useState("");const[err,sE]=useState("");const[ld,sL]=useState(false);
+  async function go(){sE("");if(pw.length<8){sE("Min 8 characters.");return}if(pw!==p2){sE("No match.");return}if(!/[A-Z]/.test(pw)||!/[0-9]/.test(pw)){sE("Need uppercase + number.");return}sL(true);try{onDone(await AUTH.setup(pw))}catch{sE("Failed.");sL(false)}}
+  return(<div style={{...S.root,alignItems:"center",justifyContent:"center",padding:20}}><div style={{width:"100%",maxWidth:360}}>
+    <div style={{textAlign:"center",marginBottom:32}}><div style={{fontSize:20,fontWeight:700,marginBottom:6}}>Create Master Password</div><div style={{fontSize:13,color:C.mt,lineHeight:1.6}}>This encrypts all data. Never stored. If forgotten, data is unrecoverable.</div></div>
+    <div style={{marginBottom:12}}><label style={S.lbl}>Password</label><input type="password" value={pw} onChange={e=>sP(e.target.value)} placeholder="Min 8 chars" style={S.inp} onKeyDown={e=>e.key==="Enter"&&go()} autoFocus/></div>
+    <div style={{marginBottom:12}}><label style={S.lbl}>Confirm</label><input type="password" value={p2} onChange={e=>sP2(e.target.value)} style={S.inp} onKeyDown={e=>e.key==="Enter"&&go()}/></div>
+    <div style={{fontSize:11,color:C.mt,marginBottom:16}}>8+ chars, one uppercase, one number.</div>
+    {err&&<div style={{fontSize:13,color:C.no,marginBottom:12}}>{err}</div>}
+    <button onClick={go} disabled={ld} style={{...S.btn,width:"100%",padding:"10px 0",opacity:ld?0.6:1}}>{ld?"Deriving key...":"Create & Enter"}</button>
+  </div></div>);
+}
+
+function Login({onDone}){
+  const[pw,sP]=useState("");const[err,sE]=useState("");const[ld,sL]=useState(false);const[at,sA]=useState(0);
+  async function go(){sE("");if(at>=5){sE("Locked 30s.");setTimeout(()=>sA(0),30000);return}sL(true);try{const k=await AUTH.login(pw);if(!k){sA(a=>a+1);sE(`Wrong. ${4-at} left.`);sP("");sL(false);return}onDone(k)}catch{sE("Failed.");sL(false)}}
+  return(<div style={{...S.root,alignItems:"center",justifyContent:"center",padding:20}}><div style={{width:"100%",maxWidth:360}}>
+    <div style={{textAlign:"center",marginBottom:32}}>
+      <div style={{fontSize:20,fontWeight:700,marginBottom:6}}>Business Quotes</div>
+      <div style={{...S.row,justifyContent:"center",marginBottom:8}}><span style={S.badge(C.dv)}>Dev</span><span style={{fontSize:11,color:C.ok,fontWeight:600,background:C.ok+"15",padding:"3px 8px",borderRadius:4}}>Encrypted</span></div>
+      <div style={{fontSize:13,color:C.mt}}>Enter master password to unlock.</div>
+    </div>
+    <div style={{marginBottom:16}}><label style={S.lbl}>Password</label><input type="password" value={pw} onChange={e=>sP(e.target.value)} style={S.inp} onKeyDown={e=>e.key==="Enter"&&go()} autoFocus/></div>
+    {err&&<div style={{fontSize:13,color:C.no,marginBottom:12}}>{err}</div>}
+    <button onClick={go} disabled={ld||at>=5} style={{...S.btn,width:"100%",padding:"10px 0",opacity:(ld||at>=5)?0.6:1}}>{ld?"Deriving key...":"Unlock"}</button>
+    <div style={{textAlign:"center",marginTop:20}}><button onClick={()=>{if(confirm("Delete ALL data?")) {AUTH.nuke();location.reload()}}} style={{...S.btnG,fontSize:12,color:C.no}}>Reset (destroys all data)</button></div>
+  </div></div>);
+}
+
+// --- UI ---
+function Tab({label,active,onClick}){return<button onClick={onClick} style={{background:"none",border:"none",borderBottom:active?`2px solid ${C.pr}`:"2px solid transparent",padding:"10px 14px",fontSize:13,fontWeight:500,color:active?C.pr:C.mt,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{label}</button>}
+function Bdg({status}){const s=ST[status]||ST.draft;return<span style={S.badge(s.c)}>{s.lb}</span>}
+function CB({label,cl,onConfirm,style:bs}){const[a,sA]=useState(false);useEffect(()=>{if(!a)return;const t=setTimeout(()=>sA(false),3000);return()=>clearTimeout(t)},[a]);return a?<button onClick={onConfirm} style={{...bs,fontWeight:700}}>{cl||"Confirm?"}</button>:<button onClick={()=>sA(true)} style={bs}>{label}</button>}
+function F({label,value,onChange,placeholder,type="text",span,min,max,step}){return<div style={span?{gridColumn:"1/-1"}:undefined}><label style={S.lbl}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} min={min} max={max} step={step} style={S.inp}/></div>}
+function Sel({label,value,onChange,options,span}){return<div style={span?{gridColumn:"1/-1"}:undefined}><label style={S.lbl}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} style={S.inp}>{options.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></div>}
+
+// --- DASH ---
+function Dash({quotes:qs,currency:cu,onNew,onEdit,search:sr,setSearch:sSr}){
+  const ac=qs.filter(q=>q.status==="accepted"),rv=ac.reduce((s,q)=>s+calc(q.items,q.taxPercent,q.discountPercent).tot,0),wr=qs.length>0?Math.round(ac.length/qs.length*100):0;
+  const fl=qs.filter(q=>{if(!sr)return true;const t=sr.toLowerCase();return(q.title||"").toLowerCase().includes(t)||(q.clientName||"").toLowerCase().includes(t)||(q.quoteNumber||"").toLowerCase().includes(t)}).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const st=[{l:"Total",v:qs.length,c:C.pr},{l:"Pending",v:qs.filter(q=>q.status==="sent").length,c:C.wn},{l:"Accepted",v:ac.length,c:C.ok},{l:"Revenue",v:$(rv,cu),c:C.ac},{l:"Win Rate",v:wr+"%",c:"#06b6d4"}];
+  return(<div>
+    <div style={{...S.btwn,marginBottom:20,flexWrap:"wrap"}}><h2 style={S.h2}>Quotes</h2><button onClick={onNew} style={S.btn}>+ New</button></div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))",gap:8,marginBottom:20}}>{st.map((s,i)=><div key={i} style={S.stat(s.c)}><div style={{fontSize:11,color:C.mt,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>{s.l}</div><div style={{fontSize:17,fontWeight:700,color:s.c}}>{s.v}</div></div>)}</div>
+    <input value={sr} onChange={e=>sSr(e.target.value)} placeholder="Search..." style={{...S.inp,marginBottom:14}}/>
+    {fl.length===0?<div style={S.empty}>{qs.length===0?"No quotes yet.":"No results."}</div>:fl.map(q=>{const{tot}=calc(q.items,q.taxPercent,q.discountPercent);return<div key={q.id} onClick={()=>onEdit(q)} style={S.li}><div style={{minWidth:0}}><div style={{fontSize:14,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{q.quoteNumber&&<span style={{color:C.mt,fontWeight:400,marginRight:6}}>#{q.quoteNumber}</span>}{q.title||"Untitled"}{q.signature&&<span style={{marginLeft:6,fontSize:10,color:C.ok}}>✓</span>}</div><div style={{fontSize:12,color:C.mt,marginTop:2}}>{q.clientName||"No client"} · {fd(q.createdAt)}</div></div><div style={{...S.row,flexShrink:0}}><span style={{fontWeight:600,fontSize:14}}>{$(tot,q.currency)}</span><Bdg status={q.status}/></div></div>})}
+  </div>);
+}
+
+// --- EDITOR ---
+function Ed({initial:ini,clients:cls,catalog:cat,allQuotes:aq,biz,onSave,onDelete,onBack,notify:nt}){
+  const[q,sQ]=useState({...ini});const isEx=aq.some(x=>x.id===q.id);
+  const{l:ln,da,su,tx:tax,tot}=calc(q.items,q.taxPercent,q.discountPercent);
+  const cats=useMemo(()=>[...new Set(cat.map(p=>p.category).filter(Boolean))],[cat]);
+  const[cf,sCf]=useState("");const[sc,sSc]=useState(false);
+  function set(f,v){sQ(p=>({...p,[f]:v}))}
+  function sI(i,f,v){sQ(p=>{const it=[...p.items];it[i]={...it[i],[f]:(f==="quantity"||f==="unitPrice")?Math.max(0,Number(v)||0):v};return{...p,items:it}})}
+  function aB(){sQ(p=>({...p,items:[...p.items,{id:uid(),description:"",quantity:1,unitPrice:0}]}))}
+  function aC(pr){sQ(p=>({...p,items:[...p.items,{id:uid(),description:pr.name+(pr.description?` — ${pr.description}`:""),quantity:1,unitPrice:pr.unitPrice}]}));sSc(false)}
+  function rI(i){if(q.items.length>1)sQ(p=>({...p,items:p.items.filter((_,j)=>j!==i)}))}
+  async function doSign(){const sig=await signQ(q,biz);sQ(p=>({...p,signature:sig,signedAt:new Date().toISOString()}));nt("Signed.")}
+  function doDup(){sQ({...q,id:uid(),title:q.title+" (copy)",quoteNumber:"",status:"draft",createdAt:new Date().toISOString(),signature:"",signedAt:""});nt("Duplicated.")}
+  function doCSV(){const rows=[["BY","Business Quotes — github.com/Khaoskami"],[`© ${new Date().getFullYear()} ${biz.name||"Khaoskami"}`,"All rights reserved."],q.signature?["SIG",q.signature]:null,[],["Quote",q.title,"#",q.quoteNumber,"Date",fd(q.createdAt)],["Client",q.clientName],q.clientUrl?["Web",q.clientUrl]:null,[],["Desc","Qty","Price","Total"],...q.items.map(i=>[i.description,i.quantity,i.unitPrice,i.quantity*i.unitPrice]),[],["","","Subtotal",su],["","",`Tax(${q.taxPercent}%)`,tax],["","","TOTAL",tot]].filter(Boolean);const csv=rows.map(r=>r.map(c=>`"${c}"`).join(",")).join("\n");const b=new Blob([csv],{type:"text/csv"});const u=URL.createObjectURL(b);Object.assign(document.createElement("a"),{href:u,download:`${q.quoteNumber||q.title||"quote"}.csv`}).click();URL.revokeObjectURL(u);nt("Exported.")}
+  function doPrint(){const cur=q.currency;const ir=q.items.map(i=>`<tr><td style="padding:8px;border-bottom:1px solid #e5e5e5">${i.description}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:center">${i.quantity}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:right">${$(i.unitPrice,cur)}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:right">${$(i.quantity*i.unitPrice,cur)}</td></tr>`).join("");const sig=q.signature?`<div style="margin-top:24px;padding:12px;background:#f8f8f8;border:1px solid #ddd;border-radius:4px;font-size:11px;color:#666"><b>SIG</b><br/><code style="font-size:10px;word-break:break-all">${q.signature}</code></div>`:"";const cp=`<div style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center">© ${new Date().getFullYear()} ${biz.name||"Khaoskami"} · Business Quotes App</div>`;const cl=q.clientUrl?`<div><b>Web</b> <a href="${q.clientUrl}" style="color:#3b82f6">${q.clientUrl}</a></div>`:"";const h=`<!DOCTYPE html><html><head><title>${q.title||"Quote"}</title><style>body{font-family:-apple-system,sans-serif;padding:40px;color:#1a1a1a;max-width:800px;margin:0 auto}h1{font-size:24px;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:20px 0}th{text-align:left;padding:8px;border-bottom:2px solid #333;font-size:11px;text-transform:uppercase}td{font-size:13px}.t{margin-left:auto;width:280px}.t td{padding:4px 8px}.t .g{font-weight:700;font-size:16px;border-top:2px solid #333;padding-top:8px}.m{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;font-size:13px}.m b{display:block;font-size:10px;text-transform:uppercase;color:#666;margin-bottom:2px;font-weight:600}@media print{body{padding:20px}}</style></head><body><h1>${q.title||"Quote"}</h1>${q.quoteNumber?`<div style="color:#666;margin-bottom:16px">#${q.quoteNumber}</div>`:""}<div class="m"><div><b>Client</b>${q.clientName||"—"}</div><div><b>Date</b>${fd(q.createdAt)}</div>${cl}<div><b>Valid</b>${q.validityDays} days</div></div><table><thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead><tbody>${ir}</tbody></table><table class="t"><tr><td style="color:#666">Subtotal</td><td style="text-align:right">${$(su,cur)}</td></tr>${q.discountPercent>0?`<tr><td style="color:#666">Disc (${q.discountPercent}%)</td><td style="text-align:right;color:#c00">-${$(da,cur)}</td></tr>`:""}<tr><td style="color:#666">Tax (${q.taxPercent}%)</td><td style="text-align:right">${$(tax,cur)}</td></tr><tr class="g"><td>Total</td><td style="text-align:right">${$(tot,cur)}</td></tr></table>${q.notes?`<div style="margin-top:24px;padding-top:16px;border-top:1px solid #ddd"><b style="font-size:10px;text-transform:uppercase;color:#666">Notes</b><div style="font-size:12px;white-space:pre-wrap;margin-top:4px">${q.notes}</div></div>`:""}${sig}${cp}</body></html>`;const w=window.open("","_blank");if(w){w.document.write(h);w.document.close();w.print()}}
+  const fc=cat.filter(p=>!cf||p.category===cf);
+  return(<div>
+    <div style={{...S.row,marginBottom:20}}><button onClick={onBack} style={S.btnG}>← Back</button><h2 style={{...S.h2,margin:0,flex:1}}>{isEx?"Edit":"New"} Quote</h2></div>
+    <div style={{...S.grid,marginBottom:16}}>
+      <F label="Title" value={q.title} onChange={v=>set("title",v)} placeholder="Roof Repair, Logo Design" span/>
+      <F label="Number" value={q.quoteNumber} onChange={v=>set("quoteNumber",v)} placeholder="QT-001"/>
+      <div><label style={S.lbl}>Client</label><select value={q.clientId} onChange={e=>{const c=cls.find(x=>x.id===e.target.value);set("clientId",e.target.value);set("clientName",c?.name||"");set("clientUrl",c?.website||"")}} style={S.inp}><option value="">—</option>{cls.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+      <Sel label="Status" value={q.status} onChange={v=>set("status",v)} options={Object.entries(ST).map(([k,v])=>({v:k,l:v.lb}))}/>
+      <Sel label="Currency" value={q.currency} onChange={v=>set("currency",v)} options={CUR.map(c=>({v:c.c,l:`${c.c} (${c.s})`}))}/>
+      <F label="Tax %" type="number" value={q.taxPercent} onChange={v=>set("taxPercent",Math.min(100,Math.max(0,Number(v)||0)))} min={0} max={100}/>
+      <F label="Discount %" type="number" value={q.discountPercent} onChange={v=>set("discountPercent",Math.min(100,Math.max(0,Number(v)||0)))} min={0} max={100}/>
+      <F label="Valid (days)" type="number" value={q.validityDays} onChange={v=>set("validityDays",Math.max(1,Number(v)||1))} min={1}/>
+      <F label="Client Website" value={q.clientUrl} onChange={v=>set("clientUrl",v)} placeholder="https://client.com" span/>
+    </div>
+    <div style={{marginBottom:16}}>
+      <div style={{...S.btwn,marginBottom:8}}><span style={{...S.lbl,margin:0,fontSize:13}}>Items</span><div style={S.row}>{cat.length>0&&<button onClick={()=>sSc(!sc)} style={{...S.btnG,color:C.ac,fontSize:12}}>{sc?"Close":"Catalog"}</button>}<button onClick={aB} style={{...S.btnG,fontSize:12}}>+ Item</button></div></div>
+      {sc&&<div style={{...S.card,padding:12}}><div style={{...S.row,marginBottom:8}}><span style={{fontSize:12,color:C.mt,fontWeight:600}}>CATALOG</span><select value={cf} onChange={e=>sCf(e.target.value)} style={{...S.inp,width:"auto",fontSize:12,padding:"4px 8px"}}><option value="">All</option>{cats.map(c=><option key={c} value={c}>{c}</option>)}</select></div><div style={{maxHeight:160,overflowY:"auto"}}>{fc.length===0?<div style={{fontSize:12,color:C.mt,padding:8}}>Empty.</div>:fc.map(p=><div key={p.id} onClick={()=>aC(p)} style={{display:"flex",justifyContent:"space-between",padding:"6px 8px",borderRadius:4,cursor:"pointer",marginBottom:2,fontSize:13}}><span>{p.name}</span><span style={{color:C.mt,fontSize:12}}>{$(p.unitPrice,q.currency)}/{p.unit}</span></div>)}</div></div>}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 52px 80px 24px",gap:8,marginBottom:4}}><span style={{fontSize:11,color:C.mt}}>Description</span><span style={{fontSize:11,color:C.mt,textAlign:"center"}}>Qty</span><span style={{fontSize:11,color:C.mt}}>Price</span><span/></div>
+      {q.items.map((it,i)=><div key={it.id} style={{display:"grid",gridTemplateColumns:"1fr 52px 80px 24px",gap:8,marginBottom:6,alignItems:"center"}}><input value={it.description} onChange={e=>sI(i,"description",e.target.value)} placeholder="Description" style={S.inp}/><input type="number" min={0} value={it.quantity} onChange={e=>sI(i,"quantity",e.target.value)} style={{...S.inp,textAlign:"center"}}/><input type="number" min={0} step={0.01} value={it.unitPrice} onChange={e=>sI(i,"unitPrice",e.target.value)} style={S.inp}/><button onClick={()=>rI(i)} disabled={q.items.length<=1} style={{...S.btnG,color:q.items.length>1?C.no:C.bd,padding:2,fontSize:16}}>×</button></div>)}
+    </div>
+    <div style={S.card}>
+      {[{l:"Subtotal",v:$(su,q.currency)},q.discountPercent>0&&{l:`Disc (${q.discountPercent}%)`,v:`-${$(da,q.currency)}`,c:C.no},{l:`Tax (${q.taxPercent}%)`,v:$(tax,q.currency)}].filter(Boolean).map((r,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:14}}><span style={{color:C.mt}}>{r.l}</span><span style={r.c?{color:r.c}:undefined}>{r.v}</span></div>)}
+      <div style={S.dv}/><div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:18,fontWeight:700,color:C.ok}}><span>Total</span><span>{$(tot,q.currency)}</span></div>
+    </div>
+    {q.signature?<div style={{background:`${C.ok}08`,border:`1px solid ${C.ok}25`,borderRadius:8,padding:12,marginBottom:12}}><div style={{fontSize:12,fontWeight:600,color:C.ok}}>Signed ✓</div><div style={{fontSize:10,color:C.mt,fontFamily:"monospace",wordBreak:"break-all"}}>{q.signature}</div></div>:<button onClick={doSign} style={{...S.btn2,marginBottom:12,width:"100%"}}>Sign (SHA-256)</button>}
+    <div style={{marginBottom:20}}><label style={S.lbl}>Notes</label><textarea value={q.notes} onChange={e=>set("notes",e.target.value)} rows={3} placeholder="Terms, delivery..." style={S.ta}/></div>
+    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+      <button onClick={()=>onSave({...q,clientUrl:vUrl(q.clientUrl)})} style={S.btn}>Save</button>
+      <button onClick={doPrint} style={S.btn2}>Print</button>
+      <button onClick={doCSV} style={S.btn2}>CSV</button>
+      <button onClick={doDup} style={S.btnG}>Duplicate</button>
+      {isEx&&<CB label="Delete" cl="Confirm?" onConfirm={()=>onDelete(q.id)} style={S.btnD}/>}
+    </div>
+  </div>);
+}
+
+// --- CLIENTS ---
+function Cls({clients:cls,onSave,onDelete,notify:nt}){
+  const[form,sF]=useState(null);const[sr,sSr]=useState("");
+  const flds=[{k:"name",l:"Name *",p:"Jane Doe"},{k:"company",l:"Company",p:"Acme"},{k:"email",l:"Email",p:"jane@acme.co"},{k:"phone",l:"Phone",p:"+27 12 345"},{k:"website",l:"Website",p:"https://client.com"},{k:"address",l:"Address",p:"123 Long St",s:true}];
+  const fl=cls.filter(c=>{if(!sr)return true;const t=sr.toLowerCase();return(c.name||"").toLowerCase().includes(t)||(c.company||"").toLowerCase().includes(t)});
+  return(<div>
+    <div style={{...S.btwn,marginBottom:20}}><h2 style={S.h2}>Clients</h2><button onClick={()=>sF(nc())} style={S.btn}>+ Add</button></div>
+    {form&&<div style={S.card}><div style={S.grid}>{flds.map(f=><F key={f.k} label={f.l} value={form[f.k]} onChange={v=>sF(p=>({...p,[f.k]:v}))} placeholder={f.p} span={f.s}/>)}</div><div style={{...S.row,marginTop:14}}><button onClick={()=>{if(!form.name.trim()){nt("Name required.","error");return}onSave({...form,id:form.id||uid(),website:vUrl(form.website)});sF(null)}} style={S.btn}>Save</button><button onClick={()=>sF(null)} style={S.btnG}>Cancel</button></div></div>}
+    <input value={sr} onChange={e=>sSr(e.target.value)} placeholder="Search..." style={{...S.inp,marginBottom:12}}/>
+    {fl.length===0?<div style={S.empty}>{cls.length===0?"No clients.":"No results."}</div>:fl.map(c=><div key={c.id} style={S.li}><div style={{minWidth:0}}><div style={{fontWeight:600}}>{c.name}{c.company&&<span style={{fontWeight:400,color:C.mt}}> — {c.company}</span>}</div><div style={{fontSize:12,color:C.mt}}>{[c.email,c.phone].filter(Boolean).join(" · ")}</div></div><div style={S.row}><button onClick={()=>sF({...c})} style={S.btnG}>Edit</button><CB label="×" cl="?" onConfirm={()=>onDelete(c.id)} style={{...S.btnG,color:C.no}}/></div></div>)}
+  </div>);
+}
+
+// --- CATALOG ---
+function Cat({catalog:cat,onSave,onDelete,notify:nt}){
+  const[form,sF]=useState(null);const[sr,sSr]=useState("");const[fc,sFc]=useState("");
+  const categories=useMemo(()=>[...new Set(cat.map(p=>p.category).filter(Boolean))].sort(),[cat]);
+  const UNITS=[{v:"each",l:"Each"},{v:"hour",l:"Hour"},{v:"day",l:"Day"},{v:"sqm",l:"m²"},{v:"kg",l:"kg"},{v:"unit",l:"Unit"},{v:"lot",l:"Lot"},{v:"month",l:"Month"},{v:"project",l:"Project"},{v:"session",l:"Session"},{v:"page",l:"Page"},{v:"metre",l:"Metre"},{v:"litre",l:"Litre"}];
+  const fl=cat.filter(p=>{const ms=!sr||(p.name||"").toLowerCase().includes(sr.toLowerCase());return ms&&(!fc||p.category===fc)});
+  return(<div>
+    <div style={{...S.btwn,marginBottom:20}}><h2 style={S.h2}>Products</h2><button onClick={()=>sF(np())} style={S.btn}>+ Add</button></div>
+    {form&&<div style={S.card}><div style={S.grid}><F label="Name *" value={form.name} onChange={v=>sF(p=>({...p,name:v}))} placeholder="Consultation"/><F label="Category" value={form.category} onChange={v=>sF(p=>({...p,category:v}))} placeholder="Labour"/><F label="Description" value={form.description} onChange={v=>sF(p=>({...p,description:v}))} placeholder="Detail" span/><F label="Price" type="number" value={form.unitPrice} onChange={v=>sF(p=>({...p,unitPrice:v}))} min={0} step={0.01}/><Sel label="Unit" value={form.unit} onChange={v=>sF(p=>({...p,unit:v}))} options={UNITS}/></div><div style={{...S.row,marginTop:14}}><button onClick={()=>{if(!form.name.trim()){nt("Name required.","error");return}onSave({...form,id:form.id||uid(),unitPrice:Math.max(0,Number(form.unitPrice)||0)});sF(null)}} style={S.btn}>Save</button><button onClick={()=>sF(null)} style={S.btnG}>Cancel</button></div></div>}
+    <div style={{...S.row,marginBottom:12,gap:8}}><input value={sr} onChange={e=>sSr(e.target.value)} placeholder="Search..." style={{...S.inp,flex:1}}/>{categories.length>0&&<select value={fc} onChange={e=>sFc(e.target.value)} style={{...S.inp,width:"auto"}}><option value="">All</option>{categories.map(c=><option key={c} value={c}>{c}</option>)}</select>}</div>
+    {fl.length===0?<div style={S.empty}>{cat.length===0?"Add products here.":"No results."}</div>:fl.map(p=><div key={p.id} style={S.li}><div style={{minWidth:0}}><div style={{fontWeight:600}}>{p.name}{p.category&&<span style={{...S.badge(C.ac),marginLeft:8,fontSize:10}}>{p.category}</span>}</div><div style={{fontSize:12,color:C.mt}}>{$(p.unitPrice)}/{p.unit}</div></div><div style={S.row}><button onClick={()=>sF({...p})} style={S.btnG}>Edit</button><CB label="×" cl="?" onConfirm={()=>onDelete(p.id)} style={{...S.btnG,color:C.no}}/></div></div>)}
+  </div>);
+}
+
+// --- SETTINGS ---
+function Sett({biz,onSave,cryptoKey:ck,notify:nt,onLock,onKC}){
+  const[form,sF]=useState({...biz});
+  const[sp,sSp]=useState(false);const[op,sOp]=useState("");const[n1,sN1]=useState("");const[n2,sN2]=useState("");const[pl,sPl]=useState(false);
+  async function chp(){if(n1.length<8){nt("Min 8.","error");return}if(n1!==n2){nt("No match.","error");return}if(!/[A-Z]/.test(n1)||!/[0-9]/.test(n1)){nt("Need A-Z + 0-9.","error");return}sPl(true);try{const t=await AUTH.login(op);if(!t){nt("Wrong current pw.","error");sPl(false);return}const nk=await AUTH.chpw(ck,n1);onKC(nk);sSp(false);sOp("");sN1("");sN2("");nt("Changed. Re-encrypted.")}catch{nt("Failed.","error")}sPl(false)}
+  return(<div>
+    <h2 style={S.h2}>Settings</h2>
+    <div style={S.card}><div style={S.grid}>
+      <F label="Name" value={form.name||""} onChange={v=>sF(p=>({...p,name:v}))} placeholder="Your Business"/>
+      <F label="Email" value={form.email||""} onChange={v=>sF(p=>({...p,email:v}))} placeholder="info@biz.co"/>
+      <F label="Phone" value={form.phone||""} onChange={v=>sF(p=>({...p,phone:v}))} placeholder="+27 00 000"/>
+      <F label="Tax/VAT" value={form.taxId||""} onChange={v=>sF(p=>({...p,taxId:v}))} placeholder="VAT000"/>
+      <Sel label="Currency" value={form.defaultCurrency||"ZAR"} onChange={v=>sF(p=>({...p,defaultCurrency:v}))} options={CUR.map(c=>({v:c.c,l:`${c.c} — ${c.s}`}))}/>
+      <F label="Website" value={form.website||""} onChange={v=>sF(p=>({...p,website:v}))} placeholder="https://biz.co"/>
+      <F label="Address" value={form.address||""} onChange={v=>sF(p=>({...p,address:v}))} placeholder="123 Main Rd" span/>
+      <div style={{gridColumn:"1/-1"}}><label style={S.lbl}>Terms</label><textarea value={form.terms||""} onChange={e=>sF(p=>({...p,terms:e.target.value}))} rows={3} placeholder="Payment due..." style={S.ta}/></div>
+    </div><button onClick={()=>{onSave(form);nt("Saved.")}} style={{...S.btn,marginTop:14}}>Save</button></div>
+    <div style={S.card}>
+      <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>Auth</div>
+      <button onClick={onLock} style={{...S.btn2,marginBottom:10,width:"100%"}}>Lock Now</button>
+      <button onClick={()=>sSp(!sp)} style={{...S.btnG,width:"100%"}}>{sp?"Cancel":"Change password"}</button>
+      {sp&&<div style={{marginTop:12}}><div style={{marginBottom:8}}><label style={S.lbl}>Current</label><input type="password" value={op} onChange={e=>sOp(e.target.value)} style={S.inp}/></div><div style={{marginBottom:8}}><label style={S.lbl}>New</label><input type="password" value={n1} onChange={e=>sN1(e.target.value)} style={S.inp}/></div><div style={{marginBottom:12}}><label style={S.lbl}>Confirm</label><input type="password" value={n2} onChange={e=>sN2(e.target.value)} style={S.inp}/></div><button onClick={chp} disabled={pl} style={{...S.btn,opacity:pl?0.6:1}}>{pl?"Re-encrypting...":"Change"}</button></div>}
+    </div>
+    <div style={{marginTop:20,padding:14,background:C.sf,border:`1px solid ${C.bd}`,borderRadius:8}}><div style={{fontSize:12,color:C.no,fontWeight:600,marginBottom:6}}>DANGER</div><p style={{fontSize:12,color:C.mt,margin:"0 0 10px"}}>Delete everything.</p><CB label="Delete All" cl="Confirm destroy?" onConfirm={()=>{AUTH.nuke();location.reload()}} style={S.btnD}/></div>
+  </div>);
+}
+
+// --- ROOT ---
+function App(){
+  const[key,sK]=useState(null);const[as,sAs]=useState("ld");const la=useRef(Date.now());
+  useEffect(()=>{sAs(AUTH.ok()?"login":"setup")},[]);
+  useEffect(()=>{if(as!=="ok")return;function r(){la.current=Date.now()}function c(){if(Date.now()-la.current>AUTH.LK){sK(null);sAs("login")}}const ev=["mousedown","keydown","touchstart","scroll"];ev.forEach(e=>window.addEventListener(e,r));const iv=setInterval(c,30000);return()=>{ev.forEach(e=>window.removeEventListener(e,r));clearInterval(iv)}},[as]);
+  function lock(){sK(null);sAs("login")}
+  if(as==="ld")return<div style={{...S.root,alignItems:"center",justifyContent:"center"}}><span style={{color:C.mt}}>Loading...</span></div>;
+  if(as==="setup")return<Setup onDone={k=>{sK(k);sAs("ok")}}/>;
+  if(as==="login")return<Login onDone={k=>{sK(k);sAs("ok");la.current=Date.now()}}/>;
+  return<Inner ck={key} onLock={lock} onKC={sK}/>;
+}
+
+function Inner({ck,onLock,onKC}){
+  const[qs,sQs,r1]=useS("quotes",[],ck);const[cls,sCls,r2]=useS("clients",[],ck);const[cat,sCat,r3]=useS("catalog",[],ck);const[biz,sBiz,r4]=useS("biz",{name:"",email:"",phone:"",address:"",taxId:"",website:"",defaultCurrency:"ZAR",terms:""},ck);
+  const[pg,sPg]=useState("dash");const[aq,sAq]=useState(null);const[sr,sSr]=useState("");const[toast,sT]=useState(null);
+  const rdy=r1&&r2&&r3&&r4;
+  function nt(m,t="ok"){sT({m,t});setTimeout(()=>sT(null),2500)}
+  function go(p){sPg(p);sAq(null)}
+  async function svQ(q){const i=qs.findIndex(x=>x.id===q.id);await sQs(i>=0?qs.map(x=>x.id===q.id?q:x):[...qs,q]);nt("Saved.");go("dash")}
+  async function dlQ(id){await sQs(qs.filter(x=>x.id!==id));nt("Deleted.","error");go("dash")}
+  async function svC(c){const i=cls.findIndex(x=>x.id===c.id);await sCls(i>=0?cls.map(x=>x.id===c.id?c:x):[...cls,c]);nt(i>=0?"Updated.":"Added.")}
+  async function dlC(id){await sCls(cls.filter(x=>x.id!==id));nt("Deleted.","error")}
+  async function svP(p){const i=cat.findIndex(x=>x.id===p.id);await sCat(i>=0?cat.map(x=>x.id===p.id?p:x):[...cat,p]);nt(i>=0?"Updated.":"Added.")}
+  async function dlP(id){await sCat(cat.filter(x=>x.id!==id));nt("Removed.","error")}
+  if(!rdy)return<div style={{...S.root,alignItems:"center",justifyContent:"center"}}><span style={{color:C.mt}}>Decrypting...</span></div>;
+  const tabs=[{id:"dash",l:"Quotes"},{id:"cat",l:"Products"},{id:"cls",l:"Clients"},{id:"set",l:"Settings"}];
+  return(<div style={S.root}>
+    <header style={S.hdr}><h1 style={{fontSize:16,fontWeight:700,margin:0}}>{biz.name||"Business Quotes"}</h1><div style={S.row}><span style={S.badge(C.dv)}>Dev</span><span style={{fontSize:11,color:C.ok,fontWeight:600,background:C.ok+"15",padding:"3px 8px",borderRadius:4}}>Encrypted</span><button onClick={onLock} style={{...S.btnG,fontSize:12,color:C.wn,padding:"4px 8px"}}>Lock</button></div></header>
+    <nav style={S.nav}>{tabs.map(t=><Tab key={t.id} label={t.l} active={pg===t.id||(pg==="ed"&&t.id==="dash")} onClick={()=>go(t.id)}/>)}</nav>
+    <main style={S.main}>
+      {pg==="dash"&&<Dash quotes={qs} currency={biz.defaultCurrency||"ZAR"} onNew={()=>{sAq(nq(biz.defaultCurrency));sPg("ed")}} onEdit={q=>{sAq({...q});sPg("ed")}} search={sr} setSearch={sSr}/>}
+      {pg==="ed"&&aq&&<Ed initial={aq} clients={cls} catalog={cat} allQuotes={qs} biz={biz} onSave={svQ} onDelete={dlQ} onBack={()=>go("dash")} notify={nt}/>}
+      {pg==="cat"&&<Cat catalog={cat} onSave={svP} onDelete={dlP} notify={nt}/>}
+      {pg==="cls"&&<Cls clients={cls} onSave={svC} onDelete={dlC} notify={nt}/>}
+      {pg==="set"&&<Sett biz={biz} onSave={sBiz} cryptoKey={ck} notify={nt} onLock={onLock} onKC={onKC}/>}
+    </main>
+    {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
+  </div>);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
 </html>
