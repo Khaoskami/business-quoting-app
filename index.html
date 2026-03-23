@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Business Quotes — Dev</title>
+<title>Business Quotes — Dev (All Access)</title>
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#2d3748" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -121,58 +121,155 @@ button { cursor: pointer; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 40px 32px;
+  padding: 40px 28px 32px;
   max-width: 380px;
   width: 100%;
   box-shadow: var(--shadow-lg);
   text-align: center;
 }
 
-.lock-card h1 {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: var(--text);
+.lock-card h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.lock-card .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
+
+/* Auth mode toggle */
+.auth-mode-toggle {
+  display: flex;
+  background: var(--bg-warm);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
 }
 
-.lock-card .subtitle {
-  font-size: 13px;
+.auth-mode-toggle button {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--text-secondary);
-  margin-bottom: 28px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.auth-mode-toggle button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-weight: 600;
+}
+
+/* Password input with eye */
+.lock-input-wrap {
+  position: relative;
+  margin-bottom: 12px;
 }
 
 .lock-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 14px 48px 14px 16px;
   border: 2px solid var(--border);
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 12px;
+  font-size: 16px;
   background: var(--bg);
   color: var(--text);
-  margin-bottom: 12px;
   transition: border-color 0.2s;
-  text-align: center;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.08em;
 }
 
-.lock-input:focus {
-  outline: none;
-  border-color: var(--btn-primary);
-  background: var(--surface);
+.lock-input:focus { outline: none; border-color: var(--btn-primary); background: var(--surface); }
+
+.eye-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 10px;
+  font-size: 20px;
+  color: var(--text-light);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color 0.15s;
+  line-height: 1;
 }
+
+.eye-btn:hover { color: var(--text); }
+
+/* PIN pad */
+.pin-display {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pin-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  transition: all 0.2s;
+}
+
+.pin-dot.filled { background: var(--btn-primary); border-color: var(--btn-primary); }
+.pin-dot.error-dot { background: var(--btn-danger); border-color: var(--btn-danger); animation: pin-shake 0.4s; }
+
+@keyframes pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 280px;
+  margin: 0 auto 16px;
+}
+
+.pin-key {
+  height: 56px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-key:hover { background: var(--bg-warm); }
+.pin-key:active { transform: scale(0.93); background: var(--bg); }
+.pin-key.pin-action { border-color: transparent; font-size: 16px; color: var(--text-secondary); }
+.pin-key.pin-action:hover { color: var(--text); }
+.pin-key.pin-go { background: var(--btn-dark); color: white; border-color: var(--btn-dark); }
+.pin-key.pin-go:hover { background: var(--btn-dark-hover); }
 
 .lock-error {
   color: var(--btn-danger);
   font-size: 13px;
   margin-bottom: 12px;
   min-height: 20px;
+  font-weight: 500;
 }
 
 .lock-btn {
   width: 100%;
   padding: 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
   color: white;
@@ -184,17 +281,8 @@ button { cursor: pointer; }
 .lock-btn:active { transform: scale(0.98); }
 .lock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.lock-footer {
-  margin-top: 20px;
-  font-size: 12px;
-  color: var(--text-light);
-}
-
-.lock-footer a {
-  color: var(--btn-danger);
-  text-decoration: none;
-  font-weight: 500;
-}
+.lock-footer { margin-top: 20px; font-size: 12px; color: var(--text-light); }
+.lock-footer a { color: var(--btn-danger); text-decoration: none; font-weight: 500; }
 
 /* ── APP HEADER ── */
 .app-header {
@@ -923,18 +1011,20 @@ button { cursor: pointer; }
 <div id="root"></div>
 <script type="text/babel">
 /* ═══════════════════════════════════════════════════════════════
-   Business Quoting App — Dev Build (Password Protected)
+   Business Quoting App — Dev Build (ALL ACCESS — No Tier Limits)
    Copyright (c) 2024-2026 Khaoskami. All rights reserved.
    github.com/Khaoskami/business-quoting-app
    Storage namespace: bqd_ (separate from production bq_)
+   ALL FEATURES UNLOCKED — for development and testing only
    ═══════════════════════════════════════════════════════════════ */
 
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
 /* ──────── CONSTANTS ──────── */
 
-const APP_VERSION = "2.0.0-dev";
+const APP_VERSION = "2.0.0-dev-allaccess";
 const STORAGE_PREFIX = "bqd_";
+const DEV_ALL_ACCESS = true;
 const LOCK_TIMEOUT = 15 * 60 * 1000; /* 15 minutes */
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 30 * 1000; /* 30 seconds */
@@ -1184,83 +1274,192 @@ ${notesBlock}${sigBlock}
 
 function LockScreen({ onUnlock }) {
   const [mode, setMode] = useState("loading"); /* loading | setup | login */
+  const [authType, setAuthType] = useState("pin"); /* pin | password */
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinPhase, setPinPhase] = useState("first"); /* first | confirm */
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [pinError, setPinError] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const hasVerification = localStorage.getItem(STORAGE_PREFIX + "verify");
-    setMode(hasVerification ? "login" : "setup");
+    const storedAuthType = localStorage.getItem(STORAGE_PREFIX + "authtype");
+    if (hasVerification) { setMode("login"); if (storedAuthType) setAuthType(storedAuthType); }
+    else setMode("setup");
   }, []);
 
   const isLockedOut = Date.now() < lockedUntil;
+  const PIN_LENGTH = 6;
 
-  async function handleSetup() {
-    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
-    if (password !== confirmPassword) { setError("Passwords don't match."); return; }
-    setError("");
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const verifySalt = crypto.getRandomValues(new Uint8Array(16));
-    const key = await deriveKey(password, salt);
-    const verifyHash = await deriveVerificationHash(password, verifySalt);
-    localStorage.setItem(STORAGE_PREFIX + "salt", btoa(String.fromCharCode(...salt)));
-    localStorage.setItem(STORAGE_PREFIX + "vsalt", btoa(String.fromCharCode(...verifySalt)));
-    localStorage.setItem(STORAGE_PREFIX + "verify", verifyHash);
-    setSessionKey(key);
-    onUnlock();
+  async function doSetup(secret) {
+    setBusy(true);
+    try {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const verifySalt = crypto.getRandomValues(new Uint8Array(16));
+      const key = await deriveKey(secret, salt);
+      const verifyHash = await deriveVerificationHash(secret, verifySalt);
+      localStorage.setItem(STORAGE_PREFIX + "salt", btoa(String.fromCharCode(...salt)));
+      localStorage.setItem(STORAGE_PREFIX + "vsalt", btoa(String.fromCharCode(...verifySalt)));
+      localStorage.setItem(STORAGE_PREFIX + "verify", verifyHash);
+      localStorage.setItem(STORAGE_PREFIX + "authtype", authType);
+      setSessionKey(key);
+      onUnlock();
+    } catch { setError("Setup failed."); }
+    setBusy(false);
   }
 
-  async function handleLogin() {
+  async function doLogin(secret) {
     if (isLockedOut) return;
+    setBusy(true);
     setError("");
     try {
       const salt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "salt")), c => c.charCodeAt(0));
       const verifySalt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "vsalt")), c => c.charCodeAt(0));
       const storedHash = localStorage.getItem(STORAGE_PREFIX + "verify");
-      const hash = await deriveVerificationHash(password, verifySalt);
+      const hash = await deriveVerificationHash(secret, verifySalt);
       if (hash !== storedHash) {
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-        if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+        const n = attempts + 1;
+        setAttempts(n);
+        if (n >= MAX_LOGIN_ATTEMPTS) {
           setLockedUntil(Date.now() + LOCKOUT_DURATION);
-          setError(`Too many attempts. Locked for 30 seconds.`);
+          setError("Too many tries. Wait 30 seconds.");
           setTimeout(() => { setLockedUntil(0); setAttempts(0); }, LOCKOUT_DURATION);
         } else {
-          setError(`Wrong password. ${MAX_LOGIN_ATTEMPTS - newAttempts} attempts remaining.`);
+          setError(authType === "pin" ? "Wrong PIN" : "Wrong password");
+          if (authType === "pin") { setPinError(true); setTimeout(() => { setPinError(false); setPin(""); }, 500); }
         }
+        setBusy(false);
         return;
       }
-      const key = await deriveKey(password, salt);
+      const key = await deriveKey(secret, salt);
       setSessionKey(key);
       setAttempts(0);
       onUnlock();
     } catch { setError("Authentication error."); }
+    setBusy(false);
   }
 
-  function handleEmergencyReset() {
-    if (confirm("This will permanently DELETE ALL DATA. There is no undo. Are you sure?")) {
-      if (confirm("Last chance — ALL quotes, clients, and settings will be destroyed. Continue?")) {
-        clearAllStorage();
-        window.location.reload();
+  /* ── PIN handlers ── */
+  function handlePinKey(digit) {
+    if (busy) return;
+    if (mode === "setup") {
+      if (pinPhase === "first") {
+        const next = pin + digit;
+        setPin(next);
+        setError("");
+        if (next.length === PIN_LENGTH) setPinPhase("confirm");
+      } else {
+        const next = confirmPin + digit;
+        setConfirmPin(next);
+        setError("");
+        if (next.length === PIN_LENGTH) {
+          if ((pin) !== next) { setError("PINs don't match. Try again."); setPinPhase("first"); setPin(""); setConfirmPin(""); setPinError(true); setTimeout(() => setPinError(false), 500); }
+          else doSetup(next);
+        }
       }
+    } else {
+      const next = pin + digit;
+      setPin(next);
+      setError("");
+      if (next.length === PIN_LENGTH) doLogin(next);
     }
   }
 
-  if (mode === "loading") return React.createElement("div", { className: "lock-screen" }, React.createElement("div", { className: "lock-card" }, "Loading..."));
+  function handlePinBackspace() {
+    if (mode === "setup" && pinPhase === "confirm") setConfirmPin(prev => prev.slice(0,-1));
+    else setPin(prev => prev.slice(0,-1));
+  }
+
+  /* ── Password handlers ── */
+  function handlePasswordSetup() {
+    if (password.length < 6) { setError("At least 6 characters"); return; }
+    if (password !== confirmPassword) { setError("Passwords don't match"); return; }
+    doSetup(password);
+  }
+
+  function handlePasswordLogin() { doLogin(password); }
+
+  function handleEmergencyReset() {
+    if (confirm("⚠️ DELETE ALL DATA? This cannot be undone.")) {
+      if (confirm("Last chance — everything will be erased. Continue?")) { clearAllStorage(); window.location.reload(); }
+    }
+  }
+
+  if (mode === "loading") return React.createElement("div", { className: "lock-screen" }, React.createElement("div", { className: "lock-card" }, React.createElement("div", { style: { fontSize: 40 } }, "⏳")));
+
+  const currentPin = (mode === "setup" && pinPhase === "confirm") ? confirmPin : pin;
+
+  /* ── PIN display dots ── */
+  function renderPinDots() {
+    return React.createElement("div", { className: "pin-display" },
+      Array.from({ length: PIN_LENGTH }, (_, i) =>
+        React.createElement("div", { key: i, className: `pin-dot ${i < currentPin.length ? "filled" : ""} ${pinError ? "error-dot" : ""}` })
+      )
+    );
+  }
+
+  /* ── PIN pad ── */
+  function renderPinPad() {
+    return React.createElement("div", { className: "pin-pad" },
+      [1,2,3,4,5,6,7,8,9].map(n =>
+        React.createElement("button", { key: n, className: "pin-key", onClick: () => handlePinKey(String(n)), disabled: busy || isLockedOut }, n)
+      ),
+      React.createElement("button", { className: "pin-key pin-action", onClick: handlePinBackspace, disabled: busy }, "⌫"),
+      React.createElement("button", { className: "pin-key", onClick: () => handlePinKey("0"), disabled: busy || isLockedOut }, "0"),
+      React.createElement("button", { className: "pin-key pin-action", onClick: () => { setPin(""); setConfirmPin(""); setError(""); }, disabled: busy }, "C")
+    );
+  }
+
+  /* ── Password input with eye ── */
+  function renderPasswordInput(value, onChange, placeholder, onEnter) {
+    return React.createElement("div", { className: "lock-input-wrap" },
+      React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder, value, onChange: e => onChange(e.target.value), onKeyDown: e => { if (e.key === "Enter" && onEnter) onEnter(); }, autoFocus: true, style: { textAlign: "left" } }),
+      React.createElement("button", { className: "eye-btn", type: "button", onClick: () => setShowPassword(!showPassword), tabIndex: -1, "aria-label": showPassword ? "Hide" : "Show" }, showPassword ? "👁️" : "🙈")
+    );
+  }
+
+  const setupTitle = authType === "pin"
+    ? (pinPhase === "first" ? "Choose a 6-digit PIN" : "Enter your PIN again to confirm")
+    : "Create a password";
+  const loginTitle = authType === "pin" ? "Enter your PIN" : "Enter your password";
 
   return React.createElement("div", { className: "lock-screen" },
     React.createElement("div", { className: "lock-card" },
-      React.createElement("div", { style: { fontSize: 32, marginBottom: 12 } }, "📋"),
+      React.createElement("div", { style: { fontSize: 40, marginBottom: 12 } }, "📋"),
       React.createElement("h1", null, "Business Quotes"),
-      React.createElement("p", { className: "subtitle" }, mode === "setup" ? "Create a password to protect your data" : "Enter your password to unlock"),
-      React.createElement("input", { className: "lock-input", type: "password", placeholder: "Password", value: password, onChange: e => setPassword(e.target.value), onKeyDown: e => { if (e.key === "Enter") { mode === "setup" ? null : handleLogin(); } }, autoFocus: true }),
-      mode === "setup" && React.createElement("input", { className: "lock-input", type: "password", placeholder: "Confirm password", value: confirmPassword, onChange: e => setConfirmPassword(e.target.value), onKeyDown: e => { if (e.key === "Enter") handleSetup(); } }),
-      React.createElement("div", { className: "lock-error" }, error),
-      React.createElement("button", { className: "lock-btn", onClick: mode === "setup" ? handleSetup : handleLogin, disabled: isLockedOut }, mode === "setup" ? "Create Account" : "Unlock"),
+      React.createElement("p", { className: "subtitle" }, mode === "setup" ? setupTitle : loginTitle),
+
+      /* Auth type toggle (only on setup) */
+      mode === "setup" && React.createElement("div", { className: "auth-mode-toggle" },
+        React.createElement("button", { className: authType === "pin" ? "active" : "", onClick: () => { setAuthType("pin"); setError(""); setPin(""); setConfirmPin(""); setPinPhase("first"); } }, "🔢", " PIN"),
+        React.createElement("button", { className: authType === "password" ? "active" : "", onClick: () => { setAuthType("password"); setError(""); setPassword(""); setConfirmPassword(""); } }, "🔤", " Password")
+      ),
+
+      /* PIN mode */
+      authType === "pin" && React.createElement("div", null,
+        renderPinDots(),
+        React.createElement("div", { className: "lock-error" }, error),
+        renderPinPad(),
+        busy && React.createElement("p", { style: { fontSize: 13, color: "var(--text-light)" } }, mode === "setup" ? "Setting up..." : "Unlocking...")
+      ),
+
+      /* Password mode */
+      authType === "password" && React.createElement("div", null,
+        renderPasswordInput(password, setPassword, mode === "setup" ? "Choose a password (6+ chars)" : "Password", mode === "login" ? handlePasswordLogin : null),
+        mode === "setup" && renderPasswordInput(confirmPassword, setConfirmPassword, "Confirm password", handlePasswordSetup),
+        React.createElement("div", { className: "lock-error" }, error),
+        React.createElement("button", { className: "lock-btn", onClick: mode === "setup" ? handlePasswordSetup : handlePasswordLogin, disabled: isLockedOut || busy }, busy ? "Please wait..." : mode === "setup" ? "Create Account" : "Unlock")
+      ),
+
+      /* Footer */
       mode === "login" && React.createElement("div", { className: "lock-footer" },
-        React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); } }, "Forgot password? Emergency reset")
+        React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); } }, "Forgot? Emergency reset")
       ),
       React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
     )
@@ -1296,7 +1495,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showWalkthrough, setShowWalkthrough] = useState(false);
 
-  const tier = TIERS[settings.tier] || TIERS.free;
+  const tier = DEV_ALL_ACCESS ? TIERS.unlimited : (TIERS[settings.tier] || TIERS.free);
 
   /* Auto-lock */
   useEffect(() => {
@@ -1390,7 +1589,9 @@ function App() {
     React.createElement("header", { className: "app-header" },
       React.createElement("div", { style: { display: "flex", alignItems: "center" } },
         React.createElement("h1", null, "Business Quotes"),
-        React.createElement("span", { className: "header-tier", style: { background: `var(--${tier.color})`, color: `var(--${tier.color}-text)` } }, tier.name)
+        DEV_ALL_ACCESS
+          ? React.createElement("span", { className: "header-tier", style: { background: "#16a34a", color: "white" } }, "✦ All Access")
+          : React.createElement("span", { className: "header-tier", style: { background: `var(--${tier.color})`, color: `var(--${tier.color}-text)` } }, tier.name)
       ),
       React.createElement("div", { className: "header-actions" },
         React.createElement("button", { className: "lock-icon-btn", onClick: toggleDyslexicMode, title: "Toggle dyslexia-friendly mode" }, dyslexicMode ? "Aa" : "Dy"),
@@ -1758,29 +1959,21 @@ function SettingsPage({ settings, saveSettings, tier, onDeleteAll, upgradeUrl, n
 
     /* ── PLAN TAB ── */
     activeTab === "plan" && React.createElement("div", null,
-      React.createElement("div", { className: "plan-cards" },
-        Object.values(TIERS).map(t => React.createElement("div", { key: t.id, className: `plan-card ${settings.tier===t.id?"current":""} ${t.id==="pro"?"recommended":""}` },
-          t.id === "pro" && React.createElement("div", { className: "plan-badge" }, "Popular"),
-          settings.tier === t.id && React.createElement("div", { className: "plan-badge", style: { background: "var(--btn-primary)" } }, "Current"),
-          React.createElement("div", { className: "plan-name" }, t.name),
-          React.createElement("div", { className: "plan-price" }, t.priceLabel),
-          React.createElement("div", { className: "plan-period" }, t.period),
-          React.createElement("ul", { className: "plan-features" },
-            React.createElement("li", null, `${t.quotesPerMonth===Infinity?"Unlimited":t.quotesPerMonth} quotes/month`),
-            React.createElement("li", null, `${t.maxClients===Infinity?"Unlimited":t.maxClients} clients`),
-            React.createElement("li", null, "CSV export"),
-            t.printPdf && React.createElement("li", null, "Print / PDF"),
-            t.logoLetterhead && React.createElement("li", null, "Logo & letterhead"),
-            t.invoiceCustom && React.createElement("li", null, "Invoice customisation"),
-            t.signatures && React.createElement("li", null, "SHA-256 signatures")
-          ),
-          t.payUrl ? (settings.tier===t.id ? React.createElement("button", { className: "btn btn-outline btn-block btn-sm", disabled: true, style: { marginTop: 14 } }, "Current Plan") : React.createElement("a", { href: t.payUrl, target: "_blank", className: `btn btn-block btn-sm ${t.id==="pro"?"btn-accent":"btn-dark"}`, style: { marginTop: 14, textDecoration: "none", display: "flex" } }, `Upgrade to ${t.name}`)) : React.createElement("button", { className: "btn btn-outline btn-block btn-sm", style: { marginTop: 14 }, disabled: settings.tier==="free", onClick: () => uf("tier","free") }, settings.tier==="free" ? "Current Plan" : "Downgrade")
-        ))
+      React.createElement("div", { className: "card", style: { textAlign: "center", padding: 40 } },
+        React.createElement("div", { style: { fontSize: 48, marginBottom: 12 } }, "✦"),
+        React.createElement("h2", { style: { fontSize: 20, fontWeight: 700, marginBottom: 8, color: "var(--btn-success)" } }, "Dev — All Access Mode"),
+        React.createElement("p", { style: { fontSize: 15, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.7 } }, "Every feature is unlocked. No limits on quotes, clients, or catalog items. This build is for development and testing only."),
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, textAlign: "left", maxWidth: 360, margin: "0 auto" } },
+          ["Unlimited quotes", "Print / PDF", "Logo & letterhead", "Invoice styling", "SHA-256 signatures", "Discounts", "Client websites", "Duplicate quotes"].map((f, i) =>
+            React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 8, fontSize: 14, padding: "6px 0" } },
+              React.createElement("span", { style: { color: "var(--btn-success)", fontWeight: 700 } }, "✓"),
+              f
+            )
+          )
+        )
       ),
-      React.createElement("div", { className: "card" },
-        React.createElement("div", { className: "card-title" }, "Activate Your Plan"),
-        React.createElement("p", { style: { fontSize: 14, color: "var(--text-secondary)", marginBottom: 12 } }, "Already subscribed? Select your active plan:"),
-        React.createElement("select", { className: "form-select", value: settings.tier, onChange: e => uf("tier",e.target.value) }, Object.values(TIERS).map(t => React.createElement("option", { key: t.id, value: t.id }, `${t.name} (${t.priceLabel}${t.period})`)))
+      React.createElement("div", { className: "card", style: { fontSize: 13, color: "var(--text-secondary)" } },
+        React.createElement("p", null, "The tiered production build enforces subscription limits. This dev build bypasses all gates so you can test every feature without restrictions.")
       )
     ),
 
@@ -1823,159 +2016,170 @@ function SettingsPage({ settings, saveSettings, tier, onDeleteAll, upgradeUrl, n
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   WALKTHROUGH COMPONENT
+   WALKTHROUGH — visual, icon-driven, child-friendly
    ═══════════════════════════════════════════════════════════════ */
 
 function Walkthrough({ onDone, onNavigate, tierName }) {
   const [step, setStep] = useState(0);
 
   const steps = [
-    {
-      icon: "👋",
-      title: "Welcome to Business Quotes",
-      body: "Let's take a quick tour so you can start creating professional quotes in minutes. This won't take long — about 60 seconds.",
-      tip: null,
-      features: null,
-      nav: null
+    { icon: "👋", title: "Welcome!", nav: null,
+      visual: React.createElement("div", { style: { fontSize: 64, margin: "8px 0 16px" } }, "📋"),
+      body: "Make price quotes for your business — fast, easy, and private.",
+      actions: [
+        { icon: "📊", label: "See your numbers" },
+        { icon: "📋", label: "Create quotes" },
+        { icon: "👥", label: "Save clients" },
+        { icon: "🔒", label: "100% private" }
+      ]
     },
-    {
-      icon: "📊",
-      title: "Your Dashboard",
-      body: "This is home base. At a glance you'll see how many quotes you've sent this month, your revenue, pending quotes, and your win rate.",
-      tip: { title: "Pro tip", text: "The usage meter shows how close you are to your monthly quote limit. When it fills up, you'll see an upgrade prompt." },
-      features: null,
-      nav: "dashboard"
+    { icon: "📊", title: "Dashboard", nav: "dashboard",
+      visual: React.createElement("div", { style: { display: "flex", gap: 10, justifyContent: "center", margin: "8px 0 16px" } },
+        React.createElement("div", { style: { background: "var(--success-bg)", borderRadius: 12, padding: "12px 16px", textAlign: "center" } },
+          React.createElement("div", { style: { fontSize: 22, fontWeight: 700 } }, "12"),
+          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Quotes")
+        ),
+        React.createElement("div", { style: { background: "var(--accent-bg)", borderRadius: 12, padding: "12px 16px", textAlign: "center" } },
+          React.createElement("div", { style: { fontSize: 22, fontWeight: 700 } }, "R4,200"),
+          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Revenue")
+        ),
+        React.createElement("div", { style: { background: "var(--warning-bg)", borderRadius: 12, padding: "12px 16px", textAlign: "center" } },
+          React.createElement("div", { style: { fontSize: 22, fontWeight: 700 } }, "83%"),
+          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Win Rate")
+        )
+      ),
+      body: "Your home page. See this month's quotes, revenue, and win rate at a glance.",
+      actions: null
     },
-    {
-      icon: "📋",
-      title: "Creating a Quote",
-      body: "Tap the big \"Create New Quote\" button to get started. Every quote has a title, client, line items, tax, and optional discount.",
-      tip: { title: "How it works", text: "Add items one by one or pull them straight from your product catalog. Totals update automatically as you type." },
-      features: [
-        { icon: "📝", text: "Custom title & number" },
-        { icon: "👤", text: "Link to a client" },
-        { icon: "💰", text: "Auto-calculated totals" },
-        { icon: "📤", text: "Export as CSV or PDF" }
-      ],
-      nav: "quotes"
+    { icon: "📋", title: "Create a Quote", nav: "quotes",
+      visual: React.createElement("div", { style: { background: "var(--bg)", borderRadius: 12, padding: 16, margin: "8px 0 16px", textAlign: "left" } },
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 10 } },
+          React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: "var(--btn-primary)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 16 } }, "1"),
+          React.createElement("span", { style: { fontWeight: 600 } }, "Add a title & pick your client")
+        ),
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 10 } },
+          React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: "var(--btn-success)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 16 } }, "2"),
+          React.createElement("span", { style: { fontWeight: 600 } }, "Add items — type or pick from catalog")
+        ),
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+          React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: "var(--btn-accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 16 } }, "3"),
+          React.createElement("span", { style: { fontWeight: 600 } }, "Save, print, or export as CSV")
+        )
+      ),
+      body: "Three steps. Totals calculate automatically.",
+      actions: null
     },
-    {
-      icon: "👥",
-      title: "Your Clients",
-      body: "Add your clients here once, and they'll be available in every quote. Name, company, email, phone — everything in one place.",
-      tip: { title: "Time saver", text: "When you select a client on a quote, their details are automatically filled in. No retyping." },
-      features: null,
-      nav: "clients"
+    { icon: "👥", title: "Clients", nav: "clients",
+      visual: React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 10, margin: "8px 0 16px" } },
+        ["Alex M.", "Sara K.", "Thabo N."].map(name =>
+          React.createElement("div", { key: name, style: { background: "var(--bg)", borderRadius: 12, padding: "14px 16px", textAlign: "center", flex: 1 } },
+            React.createElement("div", { style: { fontSize: 28, marginBottom: 4 } }, "👤"),
+            React.createElement("div", { style: { fontSize: 13, fontWeight: 600 } }, name)
+          )
+        )
+      ),
+      body: "Add a client once — their details auto-fill on every quote.",
+      actions: null
     },
-    {
-      icon: "📦",
-      title: "Product & Service Catalog",
-      body: "Build a catalog of your services and products with default pricing. When you create a quote, just pick items from the dropdown — prices are pre-filled.",
-      tip: { title: "16 pricing units", text: "Per hour, per m², per word, per session — whatever your business charges by, it's covered." },
-      features: null,
-      nav: "catalog"
+    { icon: "📦", title: "Catalog", nav: "catalog",
+      visual: React.createElement("div", { style: { background: "var(--bg)", borderRadius: 12, padding: 14, margin: "8px 0 16px" } },
+        [{ name: "Website Design", price: "R 8,500", unit: "project" }, { name: "Hourly Consulting", price: "R 450", unit: "hour" }, { name: "Logo Design", price: "R 2,000", unit: "each" }].map((item, i) =>
+          React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? "1px solid var(--border)" : "none" } },
+            React.createElement("div", null, React.createElement("div", { style: { fontWeight: 600, fontSize: 14 } }, item.name), React.createElement("div", { style: { fontSize: 12, color: "var(--text-light)" } }, `per ${item.unit}`)),
+            React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "var(--btn-primary)" } }, item.price)
+          )
+        )
+      ),
+      body: "Save your services with prices. Pick them when building quotes.",
+      actions: null
     },
-    {
-      icon: "⚙️",
-      title: "Settings & Customisation",
-      body: "Set up your business name, address, tax number, and default currency. Paid plans unlock invoice styling — fonts, colours, logo, and letterhead.",
-      tip: null,
-      features: [
-        { icon: "🏢", text: "Business details" },
-        { icon: "🎨", text: "Invoice styling" },
-        { icon: "🖼️", text: "Logo & letterhead" },
-        { icon: "🔤", text: "Font & colour picker" }
-      ],
-      nav: "settings"
+    { icon: "🎨", title: "Make It Yours", nav: "settings",
+      visual: React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "8px 0 16px" } },
+        [{ icon: "🖼️", label: "Add your logo" }, { icon: "🔤", label: "Pick a font" }, { icon: "🎨", label: "Choose colours" }, { icon: "📐", label: "Layout options" }].map((f, i) =>
+          React.createElement("div", { key: i, style: { background: "var(--bg)", borderRadius: 10, padding: "12px 14px", display: "flex", alignItems: "center", gap: 8 } },
+            React.createElement("span", { style: { fontSize: 20 } }, f.icon),
+            React.createElement("span", { style: { fontSize: 13, fontWeight: 600 } }, f.label)
+          )
+        )
+      ),
+      body: "Upload a logo, pick fonts and colours. Your quotes, your brand.",
+      actions: null
     },
-    {
-      icon: "♿",
-      title: "Accessibility",
-      body: "We've built this app to be comfortable for everyone, including people with dyslexia.",
-      tip: { title: "Dyslexia-friendly mode", text: "Tap the \"Dy\" button in the top-right corner to switch to Atkinson Hyperlegible font with extra spacing. Everything becomes easier to read." },
-      features: [
-        { icon: "🔤", text: "Lexend font by default" },
-        { icon: "📏", text: "Extra letter & word spacing" },
-        { icon: "📖", text: "High line height (1.9x)" },
-        { icon: "🎯", text: "Large, clear tap targets" }
-      ],
-      nav: null
+    { icon: "♿", title: "Easy to Read", nav: null,
+      visual: React.createElement("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", gap: 16, margin: "8px 0 16px" } },
+        React.createElement("div", { style: { background: "var(--bg-warm)", borderRadius: 14, padding: "16px 20px", textAlign: "center" } },
+          React.createElement("div", { style: { fontSize: 28, marginBottom: 4 } }, "Aa"),
+          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Normal")
+        ),
+        React.createElement("div", { style: { fontSize: 24 } }, "→"),
+        React.createElement("div", { style: { background: "var(--btn-primary)", borderRadius: 14, padding: "16px 20px", textAlign: "center", color: "white" } },
+          React.createElement("div", { style: { fontSize: 28, marginBottom: 4, fontFamily: "Atkinson Hyperlegible, sans-serif", letterSpacing: "0.05em" } }, "Dy"),
+          React.createElement("div", { style: { fontSize: 11 } }, "Dyslexia mode")
+        )
+      ),
+      body: "Tap \"Dy\" in the top corner for bigger spacing and a clearer font.",
+      actions: null
     },
-    {
-      icon: "🔒",
-      title: "Your Data is Safe",
-      body: "Everything you enter is encrypted with AES-256 and stored only on your device. No servers, no cloud, no tracking. Your password protects it all.",
-      tip: { title: "Important", text: "If you forget your password, we can't recover your data — there's no backdoor. Use the emergency reset on the login screen as a last resort." },
-      features: null,
-      nav: null
-    },
-    {
-      icon: "🚀",
-      title: "You're All Set!",
-      body: "That's the tour. Start by adding your business details in Settings, then create your first quote. You're on the " + tierName + " plan — upgrade anytime from the Plan tab.",
-      tip: { title: "Need help later?", text: "You can replay this walkthrough anytime from Settings > Security > Replay Walkthrough." },
-      features: null,
-      nav: "dashboard"
+    { icon: "🚀", title: "You're Ready!", nav: "dashboard",
+      visual: React.createElement("div", { style: { fontSize: 72, margin: "8px 0 16px" } }, "✨"),
+      body: "Start by adding your business info in Settings, then create your first quote!",
+      actions: [
+        { icon: "⚙️", label: "Add business info" },
+        { icon: "📋", label: "Create first quote" },
+        { icon: "👥", label: "Add a client" },
+        { icon: "📦", label: "Build your catalog" }
+      ]
     }
   ];
 
   const current = steps[step];
-  const totalSteps = steps.length;
+  const isLast = step === steps.length - 1;
   const isFirst = step === 0;
-  const isLast = step === totalSteps - 1;
 
   function next() {
     if (isLast) { onDone(); return; }
-    const nextStep = step + 1;
-    setStep(nextStep);
-    if (steps[nextStep].nav) onNavigate(steps[nextStep].nav);
+    const n = step + 1;
+    setStep(n);
+    if (steps[n].nav) onNavigate(steps[n].nav);
   }
-
   function prev() {
     if (isFirst) return;
-    const prevStep = step - 1;
-    setStep(prevStep);
-    if (steps[prevStep].nav) onNavigate(steps[prevStep].nav);
+    const n = step - 1;
+    setStep(n);
+    if (steps[n].nav) onNavigate(steps[n].nav);
   }
 
   return React.createElement("div", { className: "wt-overlay" },
     React.createElement("div", { className: "wt-backdrop" }),
     React.createElement("div", { key: step, className: "wt-card" },
-      React.createElement("span", { className: "wt-icon" }, current.icon),
-      React.createElement("h2", null, current.title),
-      React.createElement("p", null, current.body),
+      /* Visual hero area */
+      current.visual,
 
-      current.features && React.createElement("div", { className: "wt-feature-grid" },
-        current.features.map((f, i) =>
+      React.createElement("h2", null, current.title),
+      React.createElement("p", { style: { fontSize: 15, marginBottom: 4 } }, current.body),
+
+      /* Action grid (first & last slides) */
+      current.actions && React.createElement("div", { className: "wt-feature-grid", style: { marginTop: 14 } },
+        current.actions.map((a, i) =>
           React.createElement("div", { key: i, className: "wt-feature-item" },
-            React.createElement("span", { className: "wt-feat-icon" }, f.icon),
-            React.createElement("span", null, f.text)
+            React.createElement("span", { className: "wt-feat-icon" }, a.icon),
+            React.createElement("span", null, a.label)
           )
         )
       ),
 
-      current.tip && React.createElement("div", { className: "wt-tip-box" },
-        React.createElement("div", { className: "wt-tip-title" }, current.tip.title),
-        React.createElement("p", null, current.tip.text)
-      ),
-
+      /* Progress dots */
       React.createElement("div", { className: "wt-steps" },
-        steps.map((_, i) =>
-          React.createElement("div", {
-            key: i,
-            className: `wt-dot ${i === step ? "active" : ""} ${i < step ? "done" : ""}`
-          })
-        )
+        steps.map((_, i) => React.createElement("div", { key: i, className: `wt-dot ${i===step?"active":""} ${i<step?"done":""}` }))
       ),
 
+      /* Navigation buttons */
       React.createElement("div", { className: "wt-actions" },
         !isFirst && React.createElement("button", { className: "btn btn-outline", onClick: prev }, "Back"),
-        React.createElement("button", { className: "btn btn-dark", onClick: next },
-          isLast ? "Get Started" : isFirst ? "Start Tour" : "Next"
-        )
+        React.createElement("button", { className: "btn btn-dark", onClick: next }, isLast ? "Let's Go!" : isFirst ? "Show Me" : "Next")
       ),
 
-      !isLast && React.createElement("button", { className: "wt-skip", onClick: onDone }, "Skip walkthrough")
+      !isLast && React.createElement("button", { className: "wt-skip", onClick: onDone }, "Skip tour")
     )
   );
 }
