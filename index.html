@@ -999,6 +999,113 @@ button { cursor: pointer; }
 .wt-feature-item .wt-feat-icon { font-size: 16px; flex-shrink: 0; }
 .wt-feature-item span { line-height: 1.4; }
 
+/* ── SCREEN READER ONLY ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── ACCESSIBILITY ANNOUNCER ── */
+.a11y-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── SCREEN READER MODE ENHANCEMENTS ── */
+body.screen-reader-mode .nav-bar button,
+body.screen-reader-mode .btn,
+body.screen-reader-mode .quote-list-item,
+body.screen-reader-mode .catalog-item,
+body.screen-reader-mode .client-item {
+  outline-offset: 3px;
+}
+
+body.screen-reader-mode :focus {
+  outline: 3px solid var(--btn-primary) !important;
+  outline-offset: 2px;
+}
+
+body.screen-reader-mode .form-input:focus,
+body.screen-reader-mode .form-select:focus,
+body.screen-reader-mode .form-textarea:focus {
+  outline: 3px solid var(--btn-primary) !important;
+  outline-offset: 1px;
+}
+
+/* ── SIGNATURE CANVAS ── */
+.signature-canvas-wrap {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  position: relative;
+  margin: 12px 0;
+  touch-action: none;
+}
+
+.signature-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  border-radius: var(--radius-sm);
+}
+
+.signature-canvas-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.signature-preview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  background: white;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.signature-preview img {
+  max-height: 80px;
+  max-width: 100%;
+}
+
+/* ── RECOVERY KEY BOX ── */
+.recovery-key-box {
+  background: var(--warning-bg);
+  border: 2px solid #b8860b;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 12px 0;
+  text-align: center;
+}
+
+.recovery-key-box code {
+  display: block;
+  font-family: "Courier New", monospace;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text);
+  padding: 10px;
+  background: var(--surface);
+  border-radius: 8px;
+  margin: 8px 0;
+  word-break: break-all;
+  user-select: all;
+}
+
 @media (max-width: 600px) {
   .form-row, .form-row-3 { grid-template-columns: 1fr; }
   .line-item-row { grid-template-columns: 1fr; gap: 6px; }
@@ -1192,6 +1299,46 @@ async function generateSignature(quote, businessName) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 
+/* ──────── ACCESSIBILITY ANNOUNCER ──────── */
+let _announceEl = null;
+function announce(message, priority) {
+  if (!_announceEl) {
+    _announceEl = document.createElement("div");
+    _announceEl.className = "a11y-announcer";
+    _announceEl.setAttribute("role", "status");
+    _announceEl.setAttribute("aria-live", "polite");
+    _announceEl.setAttribute("aria-atomic", "true");
+    document.body.appendChild(_announceEl);
+  }
+  if (priority === "assertive") _announceEl.setAttribute("aria-live", "assertive");
+  else _announceEl.setAttribute("aria-live", "polite");
+  _announceEl.textContent = "";
+  setTimeout(() => { _announceEl.textContent = message; }, 50);
+}
+
+/* ──────── RECOVERY KEY ──────── */
+function generateRecoveryKey() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const segments = [];
+  for (let s = 0; s < 4; s++) {
+    let seg = "";
+    for (let i = 0; i < 4; i++) {
+      const idx = crypto.getRandomValues(new Uint8Array(1))[0] % chars.length;
+      seg += chars[idx];
+    }
+    segments.push(seg);
+  }
+  return segments.join("-");
+}
+
+async function deriveKeyFromRecovery(recoveryKey, salt) {
+  return deriveKey(recoveryKey.replace(/-/g, "").toUpperCase(), salt);
+}
+
+async function deriveRecoveryHash(recoveryKey, salt) {
+  return deriveVerificationHash(recoveryKey.replace(/-/g, "").toUpperCase(), salt);
+}
+
 /* ──────── FORMATTING ──────── */
 function formatCurrency(amount, code) {
   try { return new Intl.NumberFormat(undefined, { style: "currency", currency: code || "ZAR", minimumFractionDigits: 2 }).format(amount); }
@@ -1230,6 +1377,7 @@ function printQuote(quote, settings, currency) {
   const discountLine = quote.discountPercent > 0 ? `<tr><td colspan="3" style="text-align:right">Discount (${quote.discountPercent}%)</td><td style="text-align:right">-${formatCurrency(quote.discountAmount||0,currency)}</td></tr>` : "";
   const taxLine = quote.taxPercent > 0 ? `<tr><td colspan="3" style="text-align:right">Tax (${quote.taxPercent}%)</td><td style="text-align:right">${formatCurrency(quote.taxAmount||0,currency)}</td></tr>` : "";
   const sigBlock = quote.signature ? `<div style="margin-top:20px;padding:12px;background:#f9f9f9;border:1px solid #ddd;border-radius:6px"><strong>SHA-256 Signature:</strong><br><code style="font-size:10px;word-break:break-all">${sanitize(quote.signature)}</code></div>` : "";
+  const handwrittenSigBlock = quote.handwrittenSignature ? `<div style="margin-top:20px;padding:16px;border-top:1px solid #ddd"><strong>Authorized Signature:</strong><br><img src="${quote.handwrittenSignature}" style="max-height:80px;margin-top:8px" alt="Handwritten signature" /><br><span style="font-size:11px;color:#888">Signed: ${quote.handwrittenSignedAt ? new Date(quote.handwrittenSignedAt).toLocaleString() : ""}</span></div>` : "";
   const clientWebsite = quote.clientWebsite ? `<br>Web: <a href="${sanitizeUrl(quote.clientWebsite)}" style="color:${accent}">${sanitize(quote.clientWebsite)}</a>` : "";
   const notesBlock = quote.notes ? `<div style="margin-top:20px"><strong>Notes / Terms:</strong><p style="white-space:pre-wrap;color:#555;margin-top:6px">${sanitize(quote.notes)}</p></div>` : "";
 
@@ -1259,7 +1407,7 @@ ${(quote.lineItems||[]).map(i => `<tr><td>${sanitize(i.description)}</td><td sty
 ${discountLine}${taxLine}
 <tr class="total-row"><td colspan="3" style="text-align:right">Grand Total</td><td style="text-align:right">${formatCurrency(quote.total||0,currency)}</td></tr>
 </tbody></table>
-${notesBlock}${sigBlock}
+${notesBlock}${sigBlock}${handwrittenSigBlock}
 <footer>© ${new Date().getFullYear()} ${sanitize(settings.businessName||"Business Quotes App")} — Generated by Business Quotes App (github.com/Khaoskami)</footer>
 </body></html>`;
   const win = window.open("","_blank");
@@ -1273,7 +1421,7 @@ ${notesBlock}${sigBlock}
    ═══════════════════════════════════════════════════════════════ */
 
 function LockScreen({ onUnlock }) {
-  const [mode, setMode] = useState("loading"); /* loading | setup | login */
+  const [mode, setMode] = useState("loading"); /* loading | setup | login | recovery | showRecoveryKey */
   const [authType, setAuthType] = useState("pin"); /* pin | password */
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -1286,6 +1434,11 @@ function LockScreen({ onUnlock }) {
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [recoveryKey, setRecoveryKey] = useState("");
+  const [recoveryInput, setRecoveryInput] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [recoveryKeySaved, setRecoveryKeySaved] = useState(false);
 
   useEffect(() => {
     const hasVerification = localStorage.getItem(STORAGE_PREFIX + "verify");
@@ -1308,8 +1461,20 @@ function LockScreen({ onUnlock }) {
       localStorage.setItem(STORAGE_PREFIX + "vsalt", btoa(String.fromCharCode(...verifySalt)));
       localStorage.setItem(STORAGE_PREFIX + "verify", verifyHash);
       localStorage.setItem(STORAGE_PREFIX + "authtype", authType);
+
+      /* Generate recovery key for password reset */
+      const rk = generateRecoveryKey();
+      const recoverySalt = crypto.getRandomValues(new Uint8Array(16));
+      const recoveryHash = await deriveRecoveryHash(rk, recoverySalt);
+      const recoveryEncKey = await deriveKeyFromRecovery(rk, salt);
+      /* Re-encrypt verification data with recovery key so we can reset */
+      localStorage.setItem(STORAGE_PREFIX + "rsalt", btoa(String.fromCharCode(...recoverySalt)));
+      localStorage.setItem(STORAGE_PREFIX + "rverify", recoveryHash);
+
       setSessionKey(key);
-      onUnlock();
+      setRecoveryKey(rk);
+      setMode("showRecoveryKey");
+      announce("Account created. Please save your recovery key.", "assertive");
     } catch { setError("Setup failed."); }
     setBusy(false);
   }
@@ -1385,42 +1550,169 @@ function LockScreen({ onUnlock }) {
 
   function handlePasswordLogin() { doLogin(password); }
 
+  async function handleRecoveryReset() {
+    const rk = recoveryInput.trim().toUpperCase();
+    if (!rk) { setError("Enter your recovery key."); return; }
+    if (!newPassword && authType === "password") { setError("Enter a new password."); return; }
+    if (authType === "password" && newPassword.length < 6) { setError("At least 6 characters."); return; }
+    if (authType === "password" && newPassword !== confirmNewPassword) { setError("Passwords don't match."); return; }
+    setBusy(true);
+    setError("");
+    try {
+      const recoverySalt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "rsalt")), c => c.charCodeAt(0));
+      const storedRHash = localStorage.getItem(STORAGE_PREFIX + "rverify");
+      const rHash = await deriveRecoveryHash(rk, recoverySalt);
+      if (rHash !== storedRHash) { setError("Invalid recovery key."); setBusy(false); return; }
+
+      /* Recovery key valid — derive old key from recovery to decrypt data */
+      const oldSalt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "salt")), c => c.charCodeAt(0));
+      const oldKey = await deriveKeyFromRecovery(rk, oldSalt);
+      setSessionKey(oldKey);
+
+      /* Load all encrypted data with old key */
+      const [q, cl, cat, s, dm, wtDone] = await Promise.all([
+        loadFromStorage("quotes", []),
+        loadFromStorage("clients", []),
+        loadFromStorage("catalog", []),
+        loadFromStorage("settings", null),
+        loadFromStorage("dyslexicMode", false),
+        loadFromStorage("walkthroughDone", false)
+      ]);
+
+      /* Create new credentials */
+      const newSecret = authType === "pin" ? pin : newPassword;
+      const newSalt = crypto.getRandomValues(new Uint8Array(16));
+      const newVSalt = crypto.getRandomValues(new Uint8Array(16));
+      const newKey = await deriveKey(newSecret, newSalt);
+      const newVerify = await deriveVerificationHash(newSecret, newVSalt);
+
+      localStorage.setItem(STORAGE_PREFIX + "salt", btoa(String.fromCharCode(...newSalt)));
+      localStorage.setItem(STORAGE_PREFIX + "vsalt", btoa(String.fromCharCode(...newVSalt)));
+      localStorage.setItem(STORAGE_PREFIX + "verify", newVerify);
+      localStorage.setItem(STORAGE_PREFIX + "authtype", authType);
+
+      /* Generate new recovery key */
+      const newRk = generateRecoveryKey();
+      const newRSalt = crypto.getRandomValues(new Uint8Array(16));
+      const newRHash = await deriveRecoveryHash(newRk, newRSalt);
+      localStorage.setItem(STORAGE_PREFIX + "rsalt", btoa(String.fromCharCode(...newRSalt)));
+      localStorage.setItem(STORAGE_PREFIX + "rverify", newRHash);
+
+      /* Re-encrypt all data with new key */
+      setSessionKey(newKey);
+      await Promise.all([
+        saveToStorage("quotes", q),
+        saveToStorage("clients", cl),
+        saveToStorage("catalog", cat),
+        saveToStorage("settings", s),
+        saveToStorage("dyslexicMode", dm),
+        saveToStorage("walkthroughDone", wtDone)
+      ]);
+
+      setRecoveryKey(newRk);
+      setMode("showRecoveryKey");
+      announce("Password reset successful. Save your new recovery key.", "assertive");
+    } catch(e) { setError("Recovery failed. Check your key and try again."); }
+    setBusy(false);
+  }
+
   function handleEmergencyReset() {
-    if (confirm("⚠️ DELETE ALL DATA? This cannot be undone.")) {
+    if (confirm("⚠️ DELETE ALL DATA? This cannot be undone. Try 'Reset Password' first to keep your data.")) {
       if (confirm("Last chance — everything will be erased. Continue?")) { clearAllStorage(); window.location.reload(); }
     }
   }
 
-  if (mode === "loading") return React.createElement("div", { className: "lock-screen" }, React.createElement("div", { className: "lock-card" }, React.createElement("div", { style: { fontSize: 40 } }, "⏳")));
+  if (mode === "loading") return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": "Loading" }, React.createElement("div", { className: "lock-card" }, React.createElement("div", { style: { fontSize: 40 }, "aria-hidden": "true" }, "⏳"), React.createElement("span", { className: "sr-only" }, "Loading...")));
+
+  /* ── Show Recovery Key after setup or reset ── */
+  if (mode === "showRecoveryKey") {
+    return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": "Recovery key" },
+      React.createElement("div", { className: "lock-card" },
+        React.createElement("div", { style: { fontSize: 40, marginBottom: 12 }, "aria-hidden": "true" }, "🔑"),
+        React.createElement("h1", null, "Save Your Recovery Key"),
+        React.createElement("p", { className: "subtitle" }, "If you forget your PIN or password, this key lets you reset it without losing any data. Write it down or take a screenshot."),
+        React.createElement("div", { className: "recovery-key-box", role: "region", "aria-label": "Recovery key" },
+          React.createElement("p", { style: { fontSize: 13, fontWeight: 600, marginBottom: 4 } }, "Your Recovery Key:"),
+          React.createElement("code", { "aria-label": `Recovery key: ${recoveryKey}` }, recoveryKey),
+          React.createElement("p", { style: { fontSize: 12, color: "#8a6a3a", marginTop: 4 } }, "Store this somewhere safe. You will not see it again.")
+        ),
+        React.createElement("div", { style: { margin: "12px 0" } },
+          React.createElement("label", { style: { fontSize: 14, display: "flex", alignItems: "center", gap: 8, justifyContent: "center", cursor: "pointer" } },
+            React.createElement("input", { type: "checkbox", checked: recoveryKeySaved, onChange: e => setRecoveryKeySaved(e.target.checked), "aria-label": "I have saved my recovery key" }),
+            "I have saved my recovery key"
+          )
+        ),
+        React.createElement("button", { className: "lock-btn", disabled: !recoveryKeySaved, onClick: () => { announce("Welcome! Your account is ready.", "polite"); onUnlock(); } }, "Continue to App"),
+        React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
+      )
+    );
+  }
+
+  /* ── Password Reset / Recovery Flow ── */
+  if (mode === "recovery") {
+    const storedAuthType = localStorage.getItem(STORAGE_PREFIX + "authtype") || "password";
+    return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": "Password recovery" },
+      React.createElement("div", { className: "lock-card" },
+        React.createElement("div", { style: { fontSize: 40, marginBottom: 12 }, "aria-hidden": "true" }, "🔑"),
+        React.createElement("h1", null, "Reset Password"),
+        React.createElement("p", { className: "subtitle" }, "Enter your recovery key and choose a new ", storedAuthType === "pin" ? "PIN" : "password", ". Your data will be preserved."),
+        React.createElement("div", { className: "form-group" },
+          React.createElement("label", { className: "form-label", htmlFor: "recovery-key-input" }, "Recovery Key"),
+          React.createElement("input", { id: "recovery-key-input", className: "lock-input", placeholder: "XXXX-XXXX-XXXX-XXXX", value: recoveryInput, onChange: e => { setRecoveryInput(e.target.value.toUpperCase()); setError(""); }, style: { textAlign: "center", letterSpacing: "0.15em", fontFamily: "monospace" }, "aria-label": "Recovery key" })
+        ),
+        storedAuthType === "password" && React.createElement("div", null,
+          React.createElement("div", { className: "lock-input-wrap" },
+            React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder: "New password (6+ chars)", value: newPassword, onChange: e => setNewPassword(e.target.value), "aria-label": "New password" }),
+            React.createElement("button", { className: "eye-btn", type: "button", onClick: () => setShowPassword(!showPassword), "aria-label": showPassword ? "Hide password" : "Show password" }, showPassword ? "👁️" : "🙈")
+          ),
+          React.createElement("div", { className: "lock-input-wrap", style: { marginTop: 8 } },
+            React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder: "Confirm new password", value: confirmNewPassword, onChange: e => setConfirmNewPassword(e.target.value), "aria-label": "Confirm new password" })
+          )
+        ),
+        storedAuthType === "pin" && React.createElement("div", null,
+          React.createElement("p", { style: { fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 } }, "Enter a new 6-digit PIN:"),
+          React.createElement("input", { className: "lock-input", type: "number", maxLength: 6, placeholder: "6-digit PIN", value: pin, onChange: e => { if (e.target.value.length <= 6) setPin(e.target.value); }, style: { textAlign: "center", letterSpacing: "0.3em" }, "aria-label": "New PIN" })
+        ),
+        React.createElement("div", { className: "lock-error", role: "alert" }, error),
+        React.createElement("button", { className: "lock-btn", onClick: handleRecoveryReset, disabled: busy, style: { marginBottom: 8 } }, busy ? "Resetting..." : "Reset & Recover Data"),
+        React.createElement("button", { className: "btn btn-ghost btn-block", onClick: () => { setMode("login"); setError(""); setRecoveryInput(""); setNewPassword(""); setConfirmNewPassword(""); setPin(""); } }, "Back to Login"),
+        React.createElement("div", { className: "lock-footer", style: { marginTop: 12 } },
+          React.createElement("p", { style: { fontSize: 12, color: "var(--text-light)" } }, "No recovery key? "),
+          React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); }, style: { color: "var(--btn-danger)", fontSize: 12 } }, "Emergency reset (deletes all data)")
+        ),
+        React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
+      )
+    );
+  }
 
   const currentPin = (mode === "setup" && pinPhase === "confirm") ? confirmPin : pin;
 
   /* ── PIN display dots ── */
   function renderPinDots() {
-    return React.createElement("div", { className: "pin-display" },
+    return React.createElement("div", { className: "pin-display", role: "status", "aria-label": `PIN entered: ${currentPin.length} of ${PIN_LENGTH} digits` },
       Array.from({ length: PIN_LENGTH }, (_, i) =>
-        React.createElement("div", { key: i, className: `pin-dot ${i < currentPin.length ? "filled" : ""} ${pinError ? "error-dot" : ""}` })
+        React.createElement("div", { key: i, className: `pin-dot ${i < currentPin.length ? "filled" : ""} ${pinError ? "error-dot" : ""}`, "aria-hidden": "true" })
       )
     );
   }
 
   /* ── PIN pad ── */
   function renderPinPad() {
-    return React.createElement("div", { className: "pin-pad" },
+    return React.createElement("div", { className: "pin-pad", role: "group", "aria-label": "PIN keypad" },
       [1,2,3,4,5,6,7,8,9].map(n =>
-        React.createElement("button", { key: n, className: "pin-key", onClick: () => handlePinKey(String(n)), disabled: busy || isLockedOut }, n)
+        React.createElement("button", { key: n, className: "pin-key", onClick: () => handlePinKey(String(n)), disabled: busy || isLockedOut, "aria-label": `Digit ${n}` }, n)
       ),
-      React.createElement("button", { className: "pin-key pin-action", onClick: handlePinBackspace, disabled: busy }, "⌫"),
-      React.createElement("button", { className: "pin-key", onClick: () => handlePinKey("0"), disabled: busy || isLockedOut }, "0"),
-      React.createElement("button", { className: "pin-key pin-action", onClick: () => { setPin(""); setConfirmPin(""); setError(""); }, disabled: busy }, "C")
+      React.createElement("button", { className: "pin-key pin-action", onClick: handlePinBackspace, disabled: busy, "aria-label": "Backspace" }, "⌫"),
+      React.createElement("button", { className: "pin-key", onClick: () => handlePinKey("0"), disabled: busy || isLockedOut, "aria-label": "Digit 0" }, "0"),
+      React.createElement("button", { className: "pin-key pin-action", onClick: () => { setPin(""); setConfirmPin(""); setError(""); }, disabled: busy, "aria-label": "Clear PIN" }, "C")
     );
   }
 
   /* ── Password input with eye ── */
   function renderPasswordInput(value, onChange, placeholder, onEnter) {
     return React.createElement("div", { className: "lock-input-wrap" },
-      React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder, value, onChange: e => onChange(e.target.value), onKeyDown: e => { if (e.key === "Enter" && onEnter) onEnter(); }, autoFocus: true, style: { textAlign: "left" } }),
-      React.createElement("button", { className: "eye-btn", type: "button", onClick: () => setShowPassword(!showPassword), tabIndex: -1, "aria-label": showPassword ? "Hide" : "Show" }, showPassword ? "👁️" : "🙈")
+      React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder, value, onChange: e => onChange(e.target.value), onKeyDown: e => { if (e.key === "Enter" && onEnter) onEnter(); }, autoFocus: true, style: { textAlign: "left" }, "aria-label": placeholder }),
+      React.createElement("button", { className: "eye-btn", type: "button", onClick: () => setShowPassword(!showPassword), tabIndex: -1, "aria-label": showPassword ? "Hide password" : "Show password" }, showPassword ? "👁️" : "🙈")
     );
   }
 
@@ -1429,37 +1721,38 @@ function LockScreen({ onUnlock }) {
     : "Create a password";
   const loginTitle = authType === "pin" ? "Enter your PIN" : "Enter your password";
 
-  return React.createElement("div", { className: "lock-screen" },
+  return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": mode === "setup" ? "Account setup" : "Login" },
     React.createElement("div", { className: "lock-card" },
-      React.createElement("div", { style: { fontSize: 40, marginBottom: 12 } }, "📋"),
+      React.createElement("div", { style: { fontSize: 40, marginBottom: 12 }, "aria-hidden": "true" }, "📋"),
       React.createElement("h1", null, "Business Quotes"),
-      React.createElement("p", { className: "subtitle" }, mode === "setup" ? setupTitle : loginTitle),
+      React.createElement("p", { className: "subtitle", "aria-live": "polite" }, mode === "setup" ? setupTitle : loginTitle),
 
       /* Auth type toggle (only on setup) */
-      mode === "setup" && React.createElement("div", { className: "auth-mode-toggle" },
-        React.createElement("button", { className: authType === "pin" ? "active" : "", onClick: () => { setAuthType("pin"); setError(""); setPin(""); setConfirmPin(""); setPinPhase("first"); } }, "🔢", " PIN"),
-        React.createElement("button", { className: authType === "password" ? "active" : "", onClick: () => { setAuthType("password"); setError(""); setPassword(""); setConfirmPassword(""); } }, "🔤", " Password")
+      mode === "setup" && React.createElement("div", { className: "auth-mode-toggle", role: "tablist", "aria-label": "Authentication method" },
+        React.createElement("button", { className: authType === "pin" ? "active" : "", onClick: () => { setAuthType("pin"); setError(""); setPin(""); setConfirmPin(""); setPinPhase("first"); }, role: "tab", "aria-selected": authType === "pin", "aria-label": "Use PIN" }, "🔢", " PIN"),
+        React.createElement("button", { className: authType === "password" ? "active" : "", onClick: () => { setAuthType("password"); setError(""); setPassword(""); setConfirmPassword(""); }, role: "tab", "aria-selected": authType === "password", "aria-label": "Use password" }, "🔤", " Password")
       ),
 
       /* PIN mode */
       authType === "pin" && React.createElement("div", null,
         renderPinDots(),
-        React.createElement("div", { className: "lock-error" }, error),
+        React.createElement("div", { className: "lock-error", role: "alert" }, error),
         renderPinPad(),
-        busy && React.createElement("p", { style: { fontSize: 13, color: "var(--text-light)" } }, mode === "setup" ? "Setting up..." : "Unlocking...")
+        busy && React.createElement("p", { style: { fontSize: 13, color: "var(--text-light)" }, "aria-live": "polite" }, mode === "setup" ? "Setting up..." : "Unlocking...")
       ),
 
       /* Password mode */
       authType === "password" && React.createElement("div", null,
         renderPasswordInput(password, setPassword, mode === "setup" ? "Choose a password (6+ chars)" : "Password", mode === "login" ? handlePasswordLogin : null),
         mode === "setup" && renderPasswordInput(confirmPassword, setConfirmPassword, "Confirm password", handlePasswordSetup),
-        React.createElement("div", { className: "lock-error" }, error),
-        React.createElement("button", { className: "lock-btn", onClick: mode === "setup" ? handlePasswordSetup : handlePasswordLogin, disabled: isLockedOut || busy }, busy ? "Please wait..." : mode === "setup" ? "Create Account" : "Unlock")
+        React.createElement("div", { className: "lock-error", role: "alert" }, error),
+        React.createElement("button", { className: "lock-btn", onClick: mode === "setup" ? handlePasswordSetup : handlePasswordLogin, disabled: isLockedOut || busy, "aria-label": mode === "setup" ? "Create account" : "Unlock" }, busy ? "Please wait..." : mode === "setup" ? "Create Account" : "Unlock")
       ),
 
       /* Footer */
       mode === "login" && React.createElement("div", { className: "lock-footer" },
-        React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); } }, "Forgot? Emergency reset")
+        React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); setMode("recovery"); setError(""); }, "aria-label": "Reset password using recovery key" }, "Forgot? Reset Password"),
+        localStorage.getItem(STORAGE_PREFIX + "rverify") ? null : React.createElement("span", null, " | ", React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); }, style: { color: "var(--btn-danger)" } }, "Emergency reset"))
       ),
       React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
     )
@@ -1494,6 +1787,7 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const [screenReaderMode, setScreenReaderMode] = useState(() => localStorage.getItem("bqd_srmode") === "true");
 
   const tier = DEV_ALL_ACCESS ? TIERS.unlimited : (TIERS[settings.tier] || TIERS.free);
 
@@ -1519,6 +1813,18 @@ function App() {
   useEffect(() => {
     document.body.classList.toggle("dyslexic-mode", dyslexicMode);
   }, [dyslexicMode]);
+
+  /* Screen reader mode toggle */
+  useEffect(() => {
+    document.body.classList.toggle("screen-reader-mode", screenReaderMode);
+  }, [screenReaderMode]);
+
+  function toggleScreenReaderMode() {
+    const next = !screenReaderMode;
+    setScreenReaderMode(next);
+    localStorage.setItem("bqd_srmode", String(next));
+    announce(next ? "Screen reader mode enabled. Enhanced focus indicators and labels are now active." : "Screen reader mode disabled.", "assertive");
+  }
 
   /* Load data on unlock */
   useEffect(() => {
@@ -1586,21 +1892,22 @@ function App() {
 
   return React.createElement("div", null,
     /* Header */
-    React.createElement("header", { className: "app-header" },
+    React.createElement("header", { className: "app-header", role: "banner" },
       React.createElement("div", { style: { display: "flex", alignItems: "center" } },
         React.createElement("h1", null, "Business Quotes"),
         DEV_ALL_ACCESS
-          ? React.createElement("span", { className: "header-tier", style: { background: "#16a34a", color: "white" } }, "✦ All Access")
-          : React.createElement("span", { className: "header-tier", style: { background: `var(--${tier.color})`, color: `var(--${tier.color}-text)` } }, tier.name)
+          ? React.createElement("span", { className: "header-tier", style: { background: "#16a34a", color: "white" }, "aria-label": "All Access tier" }, "✦ All Access")
+          : React.createElement("span", { className: "header-tier", style: { background: `var(--${tier.color})`, color: `var(--${tier.color}-text)` }, "aria-label": `${tier.name} tier` }, tier.name)
       ),
       React.createElement("div", { className: "header-actions" },
-        React.createElement("button", { className: "lock-icon-btn", onClick: toggleDyslexicMode, title: "Toggle dyslexia-friendly mode" }, dyslexicMode ? "Aa" : "Dy"),
-        React.createElement("button", { className: "lock-icon-btn", onClick: () => { clearSessionKey(); setUnlocked(false); }, title: "Lock" }, "🔒")
+        React.createElement("button", { className: "lock-icon-btn", onClick: toggleScreenReaderMode, title: "Toggle screen reader mode", "aria-label": screenReaderMode ? "Disable screen reader mode" : "Enable screen reader mode", "aria-pressed": screenReaderMode, style: screenReaderMode ? { background: "var(--btn-primary)", color: "white", borderColor: "var(--btn-primary)" } : {} }, "♿"),
+        React.createElement("button", { className: "lock-icon-btn", onClick: toggleDyslexicMode, title: "Toggle dyslexia-friendly mode", "aria-label": dyslexicMode ? "Switch to standard font" : "Switch to dyslexia-friendly font", "aria-pressed": dyslexicMode }, dyslexicMode ? "Aa" : "Dy"),
+        React.createElement("button", { className: "lock-icon-btn", onClick: () => { clearSessionKey(); setUnlocked(false); announce("App locked", "assertive"); }, title: "Lock", "aria-label": "Lock the app" }, "🔒")
       )
     ),
 
     /* Nav */
-    React.createElement("nav", { className: "nav-bar" },
+    React.createElement("nav", { className: "nav-bar", role: "navigation", "aria-label": "Main navigation" },
       [
         { id: "dashboard", icon: "📊", label: "Home" },
         { id: "quotes", icon: "📋", label: "Quotes" },
@@ -1609,15 +1916,17 @@ function App() {
         { id: "settings", icon: "⚙️", label: "Settings" }
       ].map(p => React.createElement("button", {
         key: p.id, className: page === p.id ? "active" : "",
-        onClick: () => { setPage(p.id); setEditingQuote(null); setEditingClient(null); setEditingCatalogItem(null); setSearchTerm(""); }
+        onClick: () => { setPage(p.id); setEditingQuote(null); setEditingClient(null); setEditingCatalogItem(null); setSearchTerm(""); announce(`Navigated to ${p.label}`, "polite"); },
+        "aria-label": `${p.label}${page === p.id ? " (current page)" : ""}`,
+        "aria-current": page === p.id ? "page" : undefined
       },
-        React.createElement("span", { className: "nav-icon" }, p.icon),
+        React.createElement("span", { className: "nav-icon", "aria-hidden": "true" }, p.icon),
         p.label
       ))
     ),
 
     /* Page content */
-    React.createElement("div", { className: "page-container" },
+    React.createElement("main", { className: "page-container", role: "main", "aria-label": `${page.charAt(0).toUpperCase() + page.slice(1)} page` },
       page === "dashboard" && React.createElement(Dashboard, { quotes, quotesThisMonth, tier, clients, catalog, settings, canCreateQuote, currentMonth, onNewQuote: () => { setPage("quotes"); setEditingQuote(makeNewQuote()); }, upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() }),
 
       page === "quotes" && (editingQuote
@@ -1704,6 +2013,122 @@ function QuoteList({ quotes, searchTerm, setSearchTerm, canCreateQuote, tier, se
   );
 }
 
+/* ════ SIGNATURE PAD (Canvas) ════ */
+function SignaturePad({ onSave, onCancel, existingSignature }) {
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = 180;
+    ctx.strokeStyle = "#2d3748";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    /* Draw a subtle guide line */
+    ctx.save();
+    ctx.strokeStyle = "#e8e2da";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(20, 140);
+    ctx.lineTo(canvas.width - 20, 140);
+    ctx.stroke();
+    ctx.restore();
+  }, []);
+
+  function getPos(e) {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setIsDrawing(true);
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const pos = getPos(e);
+    ctx.strokeStyle = "#2d3748";
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([]);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    setHasDrawn(true);
+  }
+
+  function endDraw() { setIsDrawing(false); }
+
+  function clearCanvas() {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    /* Redraw guide line */
+    ctx.save();
+    ctx.strokeStyle = "#e8e2da";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(20, 140);
+    ctx.lineTo(canvas.width - 20, 140);
+    ctx.stroke();
+    ctx.restore();
+    setHasDrawn(false);
+  }
+
+  function saveSignature() {
+    if (!hasDrawn) return;
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+    onSave(dataUrl);
+    announce("Signature saved.", "polite");
+  }
+
+  return React.createElement("div", { role: "region", "aria-label": "Signature pad" },
+    React.createElement("p", { style: { fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 } }, "Draw your signature below:"),
+    React.createElement("div", { className: "signature-canvas-wrap" },
+      React.createElement("canvas", {
+        ref: canvasRef,
+        onMouseDown: startDraw,
+        onMouseMove: draw,
+        onMouseUp: endDraw,
+        onMouseLeave: endDraw,
+        onTouchStart: startDraw,
+        onTouchMove: draw,
+        onTouchEnd: endDraw,
+        "aria-label": "Signature drawing area. Use mouse or touch to draw your signature.",
+        role: "img"
+      })
+    ),
+    React.createElement("div", { className: "signature-canvas-actions" },
+      React.createElement("button", { className: "btn btn-dark btn-sm", onClick: saveSignature, disabled: !hasDrawn, "aria-label": "Save signature" }, "Save Signature"),
+      React.createElement("button", { className: "btn btn-outline btn-sm", onClick: clearCanvas, "aria-label": "Clear signature" }, "Clear"),
+      React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: onCancel, "aria-label": "Cancel signature" }, "Cancel")
+    ),
+    existingSignature && React.createElement("div", { className: "signature-preview" },
+      React.createElement("p", { style: { fontSize: 12, color: "var(--text-light)", marginBottom: 4 } }, "Current signature:"),
+      React.createElement("img", { src: existingSignature, alt: "Saved handwritten signature", style: { maxHeight: 60 } })
+    )
+  );
+}
+
 /* ════ QUOTE EDITOR ════ */
 function QuoteEditor({ quote, setQuote, tier, settings, clients, catalog, onSave, onCancel, onDelete, onSign, onExportCsv, onPrint, onDuplicate, upgradeUrl, nextTierName }) {
   const currency = quote.currency || settings.defaultCurrency;
@@ -1723,14 +2148,60 @@ function QuoteEditor({ quote, setQuote, tier, settings, clients, catalog, onSave
   function addFromCatalog(item) { setQuote({...quote, lineItems: [...items, {id:generateId(), description: item.name+(item.description?` — ${item.description}`:""), quantity:1, unitPrice: Number(item.defaultPrice)||0}]}); }
   function selectClient(cid) { const c = clients.find(x => x.id===cid); if (c) u("clientId",c.id), setQuote(prev => ({...prev, clientId:c.id, clientName:c.name, clientCompany:c.company||"", clientWebsite:c.website||""})); }
 
-  return React.createElement("div", null,
-    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
-      React.createElement("button", { className: "btn btn-ghost", onClick: onCancel }, "← Back"),
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
+
+  function handleSaveQuote() {
+    onSave({...quote, subtotal, discountAmount:da, taxAmount:ta, total});
+    announce("Quote saved.", "polite");
+  }
+
+  function handleSaveHandwrittenSignature(dataUrl) {
+    setQuote({...quote, handwrittenSignature: dataUrl, handwrittenSignedAt: new Date().toISOString()});
+    setShowSignaturePad(false);
+    announce("Handwritten signature saved.", "polite");
+  }
+
+  function buildEmailBody(q) {
+    const c = q.currency || settings.defaultCurrency;
+    let body = `Quote: ${q.title || "Untitled"}\n`;
+    if (q.quoteNumber) body += `Quote #: ${q.quoteNumber}\n`;
+    body += `Date: ${new Date(q.createdAt).toLocaleDateString()}\n`;
+    body += `Status: ${q.status}\n\n`;
+    body += "--- Line Items ---\n";
+    (q.lineItems || []).forEach(i => {
+      body += `${i.description}: ${i.quantity} x ${formatCurrency(i.unitPrice, c)} = ${formatCurrency(i.quantity * i.unitPrice, c)}\n`;
+    });
+    body += `\nSubtotal: ${formatCurrency(subtotal, c)}\n`;
+    if (dp > 0) body += `Discount (${dp}%): -${formatCurrency(da, c)}\n`;
+    if (tp > 0) body += `Tax (${tp}%): ${formatCurrency(ta, c)}\n`;
+    body += `Grand Total: ${formatCurrency(total, c)}\n`;
+    if (q.notes) body += `\nNotes: ${q.notes}\n`;
+    body += `\n---\n${settings.businessName || "Business Quotes App"}\n${settings.email || ""}\n${settings.phone || ""}`;
+    return body;
+  }
+
+  function emailQuote() {
+    const client = clients.find(c => c.id === quote.clientId);
+    const to = client?.email || "";
+    const subject = encodeURIComponent(`Quote: ${quote.title || "Untitled"}${quote.quoteNumber ? ` (#${quote.quoteNumber})` : ""}`);
+    const body = encodeURIComponent(buildEmailBody(quote));
+    window.open(`mailto:${to}?subject=${subject}&body=${body}`, "_self");
+    announce("Opening email client.", "polite");
+  }
+
+  /* Save bar (reusable for top and bottom) */
+  function renderSaveBar() {
+    return React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
+      React.createElement("button", { className: "btn btn-ghost", onClick: onCancel, "aria-label": "Go back to quote list" }, "← Back"),
       React.createElement("div", { style: { display: "flex", gap: 8 } },
-        React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onSave({...quote, subtotal, discountAmount:da, taxAmount:ta, total}) }, "Save"),
-        React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete this quote?")) onDelete(quote.id); } }, "Delete")
+        React.createElement("button", { className: "btn btn-dark btn-sm", onClick: handleSaveQuote, "aria-label": "Save quote" }, "Save"),
+        React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete this quote?")) onDelete(quote.id); }, "aria-label": "Delete quote" }, "Delete")
       )
-    ),
+    );
+  }
+
+  return React.createElement("div", { role: "form", "aria-label": "Quote editor" },
+    renderSaveBar(),
     React.createElement("div", { className: "card" },
       React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📝"), "Quote Details"),
       React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Title"), React.createElement("input", { className: "form-input", value: quote.title, onChange: e => u("title",e.target.value), placeholder: "e.g. Website Redesign" })),
@@ -1777,15 +2248,31 @@ function QuoteEditor({ quote, setQuote, tier, settings, clients, catalog, onSave
       React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Notes / Terms"), React.createElement("textarea", { className: "form-textarea", rows: 3, value: quote.notes||"", onChange: e => u("notes",e.target.value), placeholder: settings.defaultTerms }))
     ),
     React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📤"), "Actions"),
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon", "aria-hidden": "true" }, "📤"), "Actions"),
       React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
-        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onExportCsv({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, "Export CSV"),
-        tier.printPdf ? React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onPrint({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, "Print / PDF") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Print (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
-        tier.duplicateQuote ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onDuplicate({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, "Duplicate") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Duplicate (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
-        tier.signatures ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onSign({...quote,subtotal,discountAmount:da,taxAmount:ta,total}) }, quote.signature ? "Re-sign" : "Sign SHA-256") : React.createElement("span", { className: "locked-feature", style: { padding: "8px 0" } }, "Signatures — ", React.createElement("a", { href: PAY_URLS.pro, target: "_blank" }, "Pro"))
+        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onExportCsv({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": "Export quote as CSV" }, "Export CSV"),
+        tier.printPdf ? React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onPrint({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": "Print or save as PDF" }, "Print / PDF") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Print (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
+        tier.duplicateQuote ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onDuplicate({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": "Duplicate this quote" }, "Duplicate") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Duplicate (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
+        tier.signatures ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onSign({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": quote.signature ? "Re-sign with SHA-256" : "Sign with SHA-256" }, quote.signature ? "Re-sign" : "Sign SHA-256") : React.createElement("span", { className: "locked-feature", style: { padding: "8px 0" } }, "Signatures — ", React.createElement("a", { href: PAY_URLS.pro, target: "_blank" }, "Pro")),
+        React.createElement("button", { className: "btn btn-primary btn-sm", onClick: emailQuote, "aria-label": "Email this quote to client" }, "✉ Email to Client")
       ),
-      quote.signature && React.createElement("div", { className: "signature-box" }, quote.signature)
-    )
+      quote.signature && React.createElement("div", { className: "signature-box", role: "region", "aria-label": "SHA-256 digital signature" }, quote.signature)
+    ),
+
+    /* ── Handwritten Signature Card ── */
+    React.createElement("div", { className: "card" },
+      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon", "aria-hidden": "true" }, "✍️"), "Handwritten Signature"),
+      quote.handwrittenSignature && !showSignaturePad && React.createElement("div", { className: "signature-preview", style: { marginBottom: 12 } },
+        React.createElement("img", { src: quote.handwrittenSignature, alt: "Saved handwritten signature" }),
+        React.createElement("p", { style: { fontSize: 12, color: "var(--text-light)", marginTop: 4 } }, "Signed: ", new Date(quote.handwrittenSignedAt).toLocaleString())
+      ),
+      showSignaturePad
+        ? React.createElement(SignaturePad, { onSave: handleSaveHandwrittenSignature, onCancel: () => setShowSignaturePad(false), existingSignature: quote.handwrittenSignature })
+        : React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => setShowSignaturePad(true), "aria-label": quote.handwrittenSignature ? "Re-sign with handwritten signature" : "Add handwritten signature" }, quote.handwrittenSignature ? "Re-sign" : "Add Signature")
+    ),
+
+    /* ── Bottom Save Bar ── */
+    renderSaveBar()
   );
 }
 
@@ -1987,6 +2474,7 @@ function SettingsPage({ settings, saveSettings, tier, onDeleteAll, upgradeUrl, n
           React.createElement("li", null, "Password never stored — only verification hash"),
           React.createElement("li", null, "Auto-lock after 15 minutes of inactivity"),
           React.createElement("li", null, "Rate-limited login (5 attempts, 30s lockout)"),
+          React.createElement("li", null, "Recovery key for password reset without data loss"),
           React.createElement("li", null, "XSS sanitisation on all inputs"),
           React.createElement("li", null, "SVG sanitisation (blocks scripts, event handlers)"),
           React.createElement("li", null, "Image upload validation (type, size, dimensions)"),
@@ -2106,7 +2594,7 @@ function Walkthrough({ onDone, onNavigate, tierName }) {
       actions: null
     },
     { icon: "♿", title: "Easy to Read", nav: null,
-      visual: React.createElement("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", gap: 16, margin: "8px 0 16px" } },
+      visual: React.createElement("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", gap: 12, margin: "8px 0 16px", flexWrap: "wrap" } },
         React.createElement("div", { style: { background: "var(--bg-warm)", borderRadius: 14, padding: "16px 20px", textAlign: "center" } },
           React.createElement("div", { style: { fontSize: 28, marginBottom: 4 } }, "Aa"),
           React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Normal")
@@ -2115,9 +2603,14 @@ function Walkthrough({ onDone, onNavigate, tierName }) {
         React.createElement("div", { style: { background: "var(--btn-primary)", borderRadius: 14, padding: "16px 20px", textAlign: "center", color: "white" } },
           React.createElement("div", { style: { fontSize: 28, marginBottom: 4, fontFamily: "Atkinson Hyperlegible, sans-serif", letterSpacing: "0.05em" } }, "Dy"),
           React.createElement("div", { style: { fontSize: 11 } }, "Dyslexia mode")
+        ),
+        React.createElement("div", { style: { fontSize: 24 } }, "|"),
+        React.createElement("div", { style: { background: "var(--btn-success)", borderRadius: 14, padding: "16px 20px", textAlign: "center", color: "white" } },
+          React.createElement("div", { style: { fontSize: 28, marginBottom: 4 } }, "♿"),
+          React.createElement("div", { style: { fontSize: 11 } }, "Talk Back")
         )
       ),
-      body: "Tap \"Dy\" in the top corner for bigger spacing and a clearer font.",
+      body: "Tap \"Dy\" for a dyslexia-friendly font, or \"♿\" for screen reader mode with enhanced focus and ARIA labels.",
       actions: null
     },
     { icon: "🚀", title: "You're Ready!", nav: "dashboard",
