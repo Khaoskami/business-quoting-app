@@ -1,16 +1,17 @@
 /*
- * Service Worker — Business Quotes App
+ * Service Worker — Business Quotes App (SaaS)
  *
  * Strategy:
- *   - HTML: network-first (so deployed updates reach users immediately)
- *   - Static assets (JS/CSS/fonts/images): cache-first (fast offline)
+ *   - /api/* and /auth/*: always go to the network (never cache auth or data).
+ *   - HTML: network-first (so deploys reach users immediately).
+ *   - Other assets: cache-first for offline shell.
  */
 
-const CACHE_VERSION = 'bq-v2';
+const CACHE_VERSION = 'bq-saas-v1';
 const CORE_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_VERSION).then((cache) => cache.addAll(CORE_ASSETS)));
+  event.waitUntil(caches.open(CACHE_VERSION).then((c) => c.addAll(CORE_ASSETS)));
   self.skipWaiting();
 });
 
@@ -26,7 +27,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  const isHtml = url.pathname === '/' || url.pathname.endsWith('.html');
+
+  // Never intercept API or auth.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return;
+
+  const isHtml = url.pathname === '/' || url.pathname.endsWith('.html') ||
+                 event.request.headers.get('accept')?.includes('text/html');
 
   if (isHtml) {
     event.respondWith(
@@ -36,7 +42,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_VERSION).then((c) => c.put(event.request, clone));
           return res;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
     );
   } else {
     event.respondWith(

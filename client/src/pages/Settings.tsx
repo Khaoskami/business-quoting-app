@@ -1,0 +1,160 @@
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../api';
+import { useToast } from '../components/Toast';
+import { CURRENCIES, fmtDate } from '../lib/quote';
+
+const TIERS = [
+  { key: 'free',     name: 'Free',     price: 'Free forever', features: ['5 quotes/month', '3 clients', '10 catalog items', 'CSV export'] },
+  { key: 'pro',      name: 'Pro',      price: '$9.99/mo',     features: ['50 quotes/month', '999 clients', 'Print/PDF', 'Discounts', 'Signatures'] },
+  { key: 'business', name: 'Business', price: '$24.99/mo',    features: ['Unlimited quotes', 'Unlimited clients', 'All Pro features'] },
+];
+
+function hasOldLocalStorage() {
+  try { return Object.keys(localStorage).some(k => k.startsWith('bq_')); }
+  catch { return false; }
+}
+
+export default function Settings() {
+  const qc = useQueryClient();
+  const { notify } = useToast();
+  const { data: profile, refetch } = useQuery({ queryKey: ['profile'], queryFn: api.profile.get });
+  const tier = profile?.subscription?.tier ?? 'free';
+
+  const [form, setForm] = useState<any>(profile?.profile ?? {});
+  useEffect(() => { if (profile?.profile) setForm(profile.profile); }, [profile?.profile]);
+
+  // Handle billing return banner
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('billing') === 'success') {
+      notify('Payment received. Refreshing your plan…');
+      setTimeout(() => refetch(), 1500);
+    } else if (params.get('billing') === 'cancelled') {
+      notify('Checkout cancelled.', 'warning');
+    }
+  }, []);
+
+  const saveProfile = useMutation({
+    mutationFn: () => api.profile.save(form),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['profile'] }); notify('Saved.'); },
+    onError: (e: any) => notify(e.message ?? 'Save failed', 'error'),
+  });
+
+  const checkout = useMutation({
+    mutationFn: (t: string) => api.billing.checkout(t),
+    onSuccess: ({ url }) => { if (url) window.location.href = url; },
+    onError: (e: any) => notify(e.message ?? 'Checkout failed', 'error'),
+  });
+
+  const portal = useMutation({
+    mutationFn: () => api.billing.portal(),
+    onSuccess: ({ url }) => { if (url) window.location.href = url; },
+    onError: (e: any) => notify(e.message ?? 'Could not open portal', 'error'),
+  });
+
+  async function importFromLocalStorage() {
+    const prefix = 'bq_';
+    const keys = ['quotes', 'clients', 'catalog', 'biz'];
+    const results: Record<string, any> = {};
+    for (const key of keys) {
+      try {
+        const raw = localStorage.getItem(prefix + key);
+        if (raw) results[key] = JSON.parse(raw);
+      } catch {}
+    }
+
+    if (!results.quotes?.length && !results.clients?.length && !results.catalog?.length) {
+      notify('No importable data found. Encrypted data cannot be migrated automatically.', 'error');
+      return;
+    }
+
+    try {
+      for (const q of results.quotes ?? [])  await api.quotes.create(q);
+      for (const c of results.clients ?? []) await api.clients.create(c);
+      for (const p of results.catalog ?? []) await api.catalog.create(p);
+      if (results.biz) await api.profile.save(results.biz);
+      notify(`Imported ${results.quotes?.length ?? 0} quotes, ${results.clients?.length ?? 0} clients, ${results.catalog?.length ?? 0} items.`);
+      qc.invalidateQueries();
+    } catch (e: any) {
+      notify(e.message ?? 'Import failed partway. Some records may have been saved.', 'error');
+      qc.invalidateQueries();
+    }
+  }
+
+  return (
+    <div className="page-enter">
+      <div className="page-header"><h1 className="page-title">Settings</h1></div>
+
+      <h2 className="section-title">Your Plan</h2>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="tier-grid">
+          {TIERS.map(t => (
+            <div key={t.key} className={`tier-card ${tier === t.key ? 'active' : ''}`}>
+              <h4>{t.name}</h4>
+              <div className="price">{t.price}</div>
+              <ul>{t.features.map(f => <li key={f}>✓ {f}</li>)}</ul>
+              {tier === t.key
+                ? <span className="field-hint" style={{ marginTop: 8 }}>Current plan</span>
+                : t.key !== 'free' && (
+                  <button className="btn btn--primary btn--sm" style={{ marginTop: 8 }}
+                          onClick={() => checkout.mutate(t.key)}
+                          disabled={checkout.isPending}>Upgrade</button>
+                )}
+            </div>
+          ))}
+        </div>
+        {profile?.subscription?.currentPeriodEnd && (
+          <div className="field-hint" style={{ marginTop: 12 }}>
+            Renews {fmtDate(profile.subscription.currentPeriodEnd)}
+            {profile?.subscription?.comped && ' (comped)'}
+          </div>
+        )}
+        {tier !== 'free' && !profile?.subscription?.comped && (
+          <button onClick={() => portal.mutate()} disabled={portal.isPending}
+                  className="btn btn--secondary" style={{ marginTop: 12 }}>Manage billing</button>
+        )}
+      </div>
+
+      <h2 className="section-title">Business Info</h2>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="form-grid">
+          <div className="field-group"><label className="field-label">Business Name</label>
+            <input className="field-input" value={form.name ?? ''} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+          <div className="field-group"><label className="field-label">Email</label>
+            <input className="field-input" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+          <div className="field-group"><label className="field-label">Phone</label>
+            <input className="field-input" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+          <div className="field-group"><label className="field-label">Tax / VAT</label>
+            <input className="field-input" value={form.taxId ?? ''} onChange={(e) => setForm({ ...form, taxId: e.target.value })} /></div>
+          <div className="field-group"><label className="field-label">Website</label>
+            <input className="field-input" value={form.website ?? ''} onChange={(e) => setForm({ ...form, website: e.target.value })} /></div>
+          <div className="field-group"><label className="field-label">Currency</label>
+            <select className="field-select" value={form.defaultCurrency ?? 'ZAR'} onChange={(e) => setForm({ ...form, defaultCurrency: e.target.value })}>
+              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} — {c.symbol}</option>)}
+            </select>
+          </div>
+          <div className="field-group field-group--span"><label className="field-label">Address</label>
+            <input className="field-input" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+          <div className="field-group field-group--span"><label className="field-label">Default Terms</label>
+            <textarea className="field-textarea" rows={3} value={form.terms ?? ''} onChange={(e) => setForm({ ...form, terms: e.target.value })} /></div>
+        </div>
+        <button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}
+                className={`btn btn--primary ${saveProfile.isPending ? 'btn--loading' : ''}`} style={{ marginTop: 14 }}>Save</button>
+      </div>
+
+      {hasOldLocalStorage() && (
+        <>
+          <h2 className="section-title">Import from old app</h2>
+          <div className="card" style={{ marginBottom: 24 }}>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+              We found data from a previous local-only version of the app on this device. Click to upload it to your account.
+              Encrypted data cannot be migrated automatically — only plain-text records from before the auth update.
+            </p>
+            <button onClick={importFromLocalStorage} className="btn btn--secondary">Import</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
