@@ -1,16 +1,8 @@
 [build]
-builder = "nixpacks"
-buildCommand = "bun install && bun run build"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "bun run db:migrate && bun start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-[[services]]
-name = "web"
-
-[services.variables]
-PORT = "3000"
