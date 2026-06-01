@@ -18,12 +18,31 @@ Free encrypted quoting application for any business in any field.
 
 ## Security
 
-- AES-256-GCM encryption via Web Crypto API with unique 12-byte IV per record
-- Session-scoped encryption keys (destroyed on tab close)
-- XSS sanitisation on all inputs (HTML entity encoding)
-- URL validation (protocol whitelisting, script injection blocking)
-- Content Security Policy headers via vercel.json
-- No eval(), no dynamic scripts, no cookies, no tokens
+- **PBKDF2 key derivation** (600,000 iterations) — encryption key derived from a master password the user creates on first launch
+- **AES-256-GCM encryption** with unique 12-byte IV per record
+- **Password never stored** — only a verification hash on disk
+- **Auto-lock** after 15 minutes of inactivity
+- **Rate-limited login** — 5 failed attempts triggers a 30s lockout (persisted across page refresh)
+- **URL validation** — protocol whitelisting, script-injection blocking
+- **HTML escaping at the render boundary** — raw data is stored as-is; the print/CSV output escapes it
+- **Strict Content Security Policy** via `vercel.json` (`script-src 'self'`, `connect-src 'none'`)
+- No eval(), no dynamic scripts, no cookies, no tokens, no CDN runtime dependencies
+
+## License Keys (paid tiers)
+
+After a customer pays, generate a license key locally and email it to them:
+
+```bash
+node scripts/generate-license.js pro
+# BQ-PRO-LK3M8F-A9X2KP
+
+node scripts/generate-license.js business
+# BQ-BUSINESS-LK3M8F-XXXXXX
+```
+
+The customer enters the key in **Settings → Activate License** to unlock the paid tier.
+
+**Note:** the key format is a structural checksum (not a cryptographic signature). It is a reasonable deterrent for a zero-backend app, but a motivated user could reverse-engineer it. If you need real signing, run the verification through a tiny backend.
 
 ## Two Builds
 

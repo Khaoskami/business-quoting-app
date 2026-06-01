@@ -2,82 +2,82 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Business Quotes — Dev (All Access)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Business Quotes</title>
 <link rel="manifest" href="/manifest.json" />
-<meta name="theme-color" content="#2d3748" />
+<meta name="theme-color" content="#faf8f5" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="description" content="Create professional business quotes. Free, private, works offline." />
-<!--
-  Business Quoting App — Dev Build (Password Protected)
-  Copyright (c) 2024-2026 Khaoskami. All rights reserved.
-  github.com/Khaoskami/business-quoting-app
-  Proprietary software. See LICENSE for terms.
--->
+<meta name="description" content="Create professional business quotes. Private, encrypted, works offline." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
-<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --font-main: "Lexend", -apple-system, sans-serif;
-  --font-dyslexic: "Atkinson Hyperlegible", sans-serif;
-
-  --bg: #faf8f5;
-  --bg-warm: #f5f0eb;
-  --surface: #ffffff;
-  --surface-hover: #fdfcfb;
-  --border: #e8e2da;
-  --border-focus: #b8a99a;
-
-  --text: #2d3748;
-  --text-secondary: #6b7280;
-  --text-light: #9ca3af;
-
-  --btn-dark: #2d3748;
-  --btn-dark-hover: #1a202c;
-  --btn-primary: #3b6b8a;
-  --btn-primary-hover: #2d5570;
-  --btn-success: #4a8c6f;
-  --btn-success-hover: #3d7a5f;
-  --btn-danger: #c0564f;
-  --btn-danger-hover: #a8453f;
-  --btn-accent: #7c6db0;
-  --btn-accent-hover: #6a5b9e;
-
-  --tag-free: #e8e2da;
-  --tag-free-text: #6b7280;
-  --tag-starter: #d0e2f0;
-  --tag-starter-text: #2d5570;
-  --tag-pro: #e0d4f0;
-  --tag-pro-text: #5b4a8a;
-  --tag-unlimited: #f0e0c8;
-  --tag-unlimited-text: #8a6a3a;
-
-  --success-bg: #eef7f0;
-  --warning-bg: #fdf6e3;
-  --danger-bg: #fdf0ef;
-  --accent-bg: #f3f0f8;
-
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
-
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-
+  --font-main: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 26px;
+  --font-size-2xl: 32px;
+  --line-height: 1.65;
   --letter-spacing: 0.01em;
-  --line-height: 1.7;
+
+  /* Surfaces */
+  --bg:             #faf8f5;
+  --bg-warm:        #f5f0eb;
+  --surface:        #ffffff;
+  --surface-raised: #fffefb;
+  --surface-sunken: #f0ece6;
+
+  /* Borders */
+  --border:         #e8e2da;
+  --border-strong:  #c8c0b6;
+  --border-focus:   #9a8a7a;
+
+  /* Text */
+  --text:           #1e2430;
+  --text-secondary: #6b7280;
+  --text-tertiary:  #9ca3af;
+  --text-inverse:   #ffffff;
+
+  /* Brand */
+  --brand:          #3b6b8a;
+  --brand-hover:    #2d5570;
+  --brand-light:    #e8f1f7;
+  --brand-muted:    #d0e4f0;
+
+  /* Semantic */
+  --success:        #4a8c6f;
+  --success-bg:     #eef7f0;
+  --warning:        #c07a30;
+  --warning-bg:     #fdf3e8;
+  --danger:         #c0564f;
+  --danger-bg:      #fdf0ef;
+  --accent:         #7c6db0;
+  --accent-bg:      #f3f0f8;
+
+  /* Tier badges */
+  --tier-free:      #9ca3af;
+  --tier-pro:       var(--brand);
+  --tier-business:  var(--accent);
+
+  /* Layout */
+  --radius-sm:      6px;
+  --radius:         10px;
+  --radius-lg:      14px;
+  --radius-xl:      20px;
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow:         0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:      0 12px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+  --transition:     150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+html, body, #root { height: 100%; }
 
 body {
   font-family: var(--font-main);
@@ -85,2601 +85,682 @@ body {
   color: var(--text);
   line-height: var(--line-height);
   letter-spacing: var(--letter-spacing);
+  font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
-  font-size: 15px;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body.dyslexic-mode {
-  font-family: var(--font-dyslexic);
-  letter-spacing: 0.05em;
-  word-spacing: 0.12em;
-  --line-height: 1.9;
-  line-height: 1.9;
+button, input, select, textarea { font-family: inherit; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
-body.dyslexic-mode * { font-style: normal !important; }
-
-input, select, textarea, button {
-  font-family: inherit;
-  font-size: inherit;
-  letter-spacing: inherit;
-}
-
-button { cursor: pointer; }
-
-/* ── LOCK SCREEN ── */
-.lock-screen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-warm);
-  padding: 24px;
-}
-
-.lock-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 40px 28px 32px;
-  max-width: 380px;
-  width: 100%;
-  box-shadow: var(--shadow-lg);
-  text-align: center;
-}
-
-.lock-card h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
-.lock-card .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
-
-/* Auth mode toggle */
-.auth-mode-toggle {
-  display: flex;
-  background: var(--bg-warm);
-  border-radius: 10px;
-  padding: 4px;
-  margin-bottom: 20px;
-}
-
-.auth-mode-toggle button {
-  flex: 1;
-  padding: 10px 14px;
-  border: none;
-  background: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.auth-mode-toggle button.active {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
-  font-weight: 600;
-}
-
-/* Password input with eye */
-.lock-input-wrap {
-  position: relative;
-  margin-bottom: 12px;
-}
-
-.lock-input {
-  width: 100%;
-  padding: 14px 48px 14px 16px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  font-size: 16px;
-  background: var(--bg);
-  color: var(--text);
-  transition: border-color 0.2s;
-  letter-spacing: 0.08em;
-}
-
-.lock-input:focus { outline: none; border-color: var(--btn-primary); background: var(--surface); }
-
-.eye-btn {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 10px;
-  font-size: 20px;
-  color: var(--text-light);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: color 0.15s;
-  line-height: 1;
-}
-
-.eye-btn:hover { color: var(--text); }
-
-/* PIN pad */
-.pin-display {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.pin-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background: var(--bg);
-  transition: all 0.2s;
-}
-
-.pin-dot.filled { background: var(--btn-primary); border-color: var(--btn-primary); }
-.pin-dot.error-dot { background: var(--btn-danger); border-color: var(--btn-danger); animation: pin-shake 0.4s; }
-
-@keyframes pin-shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
-}
-
-.pin-pad {
+/* ===== APP SHELL ===== */
+.app-shell {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  max-width: 280px;
-  margin: 0 auto 16px;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
 }
-
-.pin-key {
-  height: 56px;
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
+.sidebar {
   background: var(--surface);
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--text);
-  cursor: pointer;
-  transition: all 0.1s;
+  border-right: 1px solid var(--border);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  padding: 20px 12px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  gap: 4px;
 }
-
-.pin-key:hover { background: var(--bg-warm); }
-.pin-key:active { transform: scale(0.93); background: var(--bg); }
-.pin-key.pin-action { border-color: transparent; font-size: 16px; color: var(--text-secondary); }
-.pin-key.pin-action:hover { color: var(--text); }
-.pin-key.pin-go { background: var(--btn-dark); color: white; border-color: var(--btn-dark); }
-.pin-key.pin-go:hover { background: var(--btn-dark-hover); }
-
-.lock-error {
-  color: var(--btn-danger);
-  font-size: 13px;
-  margin-bottom: 12px;
-  min-height: 20px;
-  font-weight: 500;
+.main-content {
+  background: var(--bg);
+  padding: 32px;
+  overflow-y: auto;
+  min-width: 0;
 }
-
-.lock-btn {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  color: white;
-  background: var(--btn-dark);
-  transition: background 0.15s, transform 0.1s;
-}
-
-.lock-btn:hover { background: var(--btn-dark-hover); }
-.lock-btn:active { transform: scale(0.98); }
-.lock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.lock-footer { margin-top: 20px; font-size: 12px; color: var(--text-light); }
-.lock-footer a { color: var(--btn-danger); text-decoration: none; font-weight: 500; }
-
-/* ── APP HEADER ── */
-.app-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 20px;
-  height: 60px;
+.page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
 }
-
-.app-header h1 {
-  font-size: 17px;
+.page-title {
+  font-size: var(--font-size-2xl);
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--text);
 }
-
-.header-tier {
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 600;
-  margin-left: 10px;
-  vertical-align: middle;
+.page-enter { animation: fadeSlideIn 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.header-actions { display: flex; align-items: center; gap: 8px; }
-
-.lock-icon-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  transition: all 0.15s;
-}
-
-.lock-icon-btn:hover { background: var(--bg); border-color: var(--border-focus); }
-
-/* ── NAVIGATION ── */
-.nav-bar {
+/* ===== SIDEBAR ===== */
+.sidebar-brand {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.brand-mark {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--brand);
+  color: white;
+  font-weight: 600;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+.brand-name { font-size: var(--font-size-sm); font-weight: 600; color: var(--text); line-height: 1.2; }
+.brand-sub { font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+.sidebar-footer {
+  margin-top: auto;
+  display: flex; flex-direction: column; gap: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-footer .tier-badge { margin: 4px 4px 8px; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  min-height: 38px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  text-align: left;
+}
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item:hover { background: var(--bg-warm); color: var(--text); }
+.nav-item.active { background: var(--brand-light); color: var(--brand); }
+.nav-item--danger:hover { background: var(--danger-bg); color: var(--danger); }
+
+/* ===== BOTTOM NAV (mobile) ===== */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  z-index: 50;
+}
+.bottom-nav-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+.bottom-nav-item {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  padding: 6px 4px;
+  border: none; background: none;
+  color: var(--text-tertiary);
+  font-size: 10px; font-weight: 500;
+  cursor: pointer;
+  min-height: 44px;
+  justify-content: center;
+}
+.bottom-nav-item svg { width: 20px; height: 20px; }
+.bottom-nav-item.active { color: var(--brand); }
+
+.mobile-bar {
+  display: none;
+  position: sticky; top: 0; z-index: 30;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0 12px;
-}
-
-.nav-bar button {
-  flex: 1;
-  min-width: 0;
-  padding: 14px 12px 12px;
-  border: none;
-  background: none;
-  color: var(--text-light);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  border-bottom: 3px solid transparent;
-  transition: all 0.15s;
-  display: flex;
-  flex-direction: column;
+  padding: 12px 16px;
   align-items: center;
-  gap: 2px;
+  justify-content: space-between;
+}
+.mobile-bar .brand-name { font-size: var(--font-size-md); }
+.mobile-bar-actions { display: flex; gap: 6px; align-items: center; }
+
+@media (max-width: 768px) {
+  .app-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .sidebar { display: none; }
+  .bottom-nav { display: block; }
+  .mobile-bar { display: flex; }
+  .main-content { padding: 16px; padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .page-title { font-size: var(--font-size-xl); }
 }
 
-.nav-bar button .nav-icon { font-size: 18px; }
-
-.nav-bar button.active {
-  color: var(--btn-primary);
-  border-bottom-color: var(--btn-primary);
-  font-weight: 600;
-}
-
-/* ── PAGE ── */
-.page-container {
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 20px 16px;
-}
-
-/* ── CARDS ── */
+/* ===== CARDS ===== */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
 }
+.card--raised { box-shadow: var(--shadow-sm); }
+.card--flat { background: var(--bg-warm); border-color: transparent; }
 
-.card-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-title .icon { font-size: 18px; }
-
-/* ── FORMS ── */
-.form-group { margin-bottom: 16px; }
-
-.form-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-
-.form-hint {
-  font-size: 12px;
-  color: var(--text-light);
-  margin-top: 4px;
-}
-
-.form-input, .form-select, .form-textarea {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  color: var(--text);
-  background: var(--bg);
-  transition: all 0.2s;
-  line-height: var(--line-height);
-}
-
-.form-input:focus, .form-select:focus, .form-textarea:focus {
-  outline: none;
-  border-color: var(--btn-primary);
-  background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(59,107,138,0.12);
-}
-
-.form-textarea { resize: vertical; min-height: 70px; }
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.form-row-3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 14px;
-}
-
-/* ── BUTTONS ── */
+/* ===== BUTTONS ===== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
+  gap: 6px;
+  padding: 9px 16px;
+  min-height: 38px;
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
   font-weight: 500;
-  transition: all 0.15s;
-  text-decoration: none;
-}
-
-.btn:active { transform: scale(0.97); }
-
-.btn-dark { background: var(--btn-dark); color: white; }
-.btn-dark:hover { background: var(--btn-dark-hover); }
-.btn-primary { background: var(--btn-primary); color: white; }
-.btn-primary:hover { background: var(--btn-primary-hover); }
-.btn-success { background: var(--btn-success); color: white; }
-.btn-success:hover { background: var(--btn-success-hover); }
-.btn-danger { background: var(--btn-danger); color: white; }
-.btn-danger:hover { background: var(--btn-danger-hover); }
-.btn-accent { background: var(--btn-accent); color: white; }
-.btn-accent:hover { background: var(--btn-accent-hover); }
-
-.btn-outline {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  color: var(--text);
-}
-.btn-outline:hover { background: var(--bg); border-color: var(--border-focus); }
-
-.btn-ghost {
-  background: none;
   border: none;
-  color: var(--text-secondary);
-  padding: 8px 12px;
-  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), transform var(--transition), border-color var(--transition);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--text);
+  background: var(--surface);
 }
-.btn-ghost:hover { color: var(--text); background: var(--bg); border-radius: var(--radius-sm); }
-
-.btn-sm { padding: 8px 14px; font-size: 13px; }
-.btn-block { width: 100%; }
+.btn--primary { background: var(--brand); color: var(--text-inverse); }
+.btn--primary:hover { background: var(--brand-hover); }
+.btn--secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+}
+.btn--secondary:hover { background: var(--bg-warm); }
+.btn--ghost { background: transparent; color: var(--text-secondary); }
+.btn--ghost:hover { background: var(--bg-warm); color: var(--text); }
+.btn--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid transparent;
+}
+.btn--danger:hover { background: var(--danger); color: white; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn--sm { padding: 6px 12px; min-height: 30px; font-size: var(--font-size-xs); }
+.btn--lg { padding: 12px 24px; min-height: 44px; font-size: var(--font-size-md); }
+.btn--full { width: 100%; }
+.btn--loading { position: relative; color: transparent; }
+.btn--loading::after {
+  content: ''; position: absolute;
+  width: 14px; height: 14px;
+  border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── STATS ── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
+/* ===== FORMS ===== */
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group--span { grid-column: 1 / -1; }
+.field-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.field-input, .field-select, .field-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  -webkit-appearance: none;
+}
+.field-textarea { resize: vertical; min-height: 80px; }
+.field-input:hover, .field-select:hover { border-color: var(--border-strong); }
+.field-input:focus, .field-select:focus, .field-textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--brand-muted);
+}
+.field-input::placeholder { color: var(--text-tertiary); }
+.field-hint { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.field-error { font-size: var(--font-size-xs); color: var(--danger); }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) {
+  .form-grid { grid-template-columns: 1fr; }
 }
 
+/* ===== BADGES ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.badge::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge--draft    { background: var(--surface-sunken); color: var(--text-secondary); }
+.badge--sent     { background: var(--warning-bg);     color: var(--warning); }
+.badge--accepted { background: var(--success-bg);     color: var(--success); }
+.badge--declined { background: var(--danger-bg);      color: var(--danger); }
+.badge--expired  { background: var(--surface-sunken); color: var(--text-secondary); }
+.badge--invoiced { background: var(--brand-light);    color: var(--brand); }
+
+.tier-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--font-size-xs); font-weight: 600;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--surface-sunken); color: var(--text-secondary);
+}
+.tier-badge--pro { background: var(--brand-light); color: var(--brand); }
+.tier-badge--business { background: var(--accent-bg); color: var(--accent); }
+
+/* ===== STATS ===== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
-  box-shadow: var(--shadow);
-}
-
-.stat-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-light);
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.stat-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-
-.usage-meter {
-  background: var(--bg-warm);
-  border-radius: 6px;
-  height: 8px;
-  margin-top: 8px;
-  overflow: hidden;
-}
-
-.usage-meter-fill {
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.4s ease;
-}
-
-/* ── QUOTE LIST ── */
-.quote-list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: var(--shadow);
-}
-
-.quote-list-item:hover {
-  border-color: var(--btn-primary);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.quote-item-left { flex: 1; min-width: 0; }
-.quote-item-title {
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.quote-item-sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
-
-.quote-item-right { text-align: right; flex-shrink: 0; margin-left: 16px; }
-.quote-item-amount { font-size: 15px; font-weight: 700; }
-
-.status-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-draft { background: var(--bg-warm); color: var(--text-secondary); }
-.status-sent { background: var(--tag-starter); color: var(--tag-starter-text); }
-.status-accepted { background: var(--success-bg); color: var(--btn-success); }
-.status-declined { background: var(--danger-bg); color: var(--btn-danger); }
-.status-expired { background: var(--warning-bg); color: #8a6a3a; }
-
-.signed-badge {
-  display: inline-block;
-  font-size: 12px;
-  color: var(--btn-success);
-  margin-left: 6px;
-}
-
-/* ── LINE ITEMS ── */
-.line-item-row {
-  display: grid;
-  grid-template-columns: 1fr 80px 110px 90px 40px;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.line-item-row input { font-size: 14px; padding: 8px 10px; }
-
-.totals-section {
-  border-top: 2px solid var(--border);
-  padding-top: 16px;
-  margin-top: 16px;
-}
-
-.totals-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 0;
-  font-size: 15px;
-}
-
-.totals-row.grand {
-  font-size: 20px;
-  font-weight: 700;
-  border-top: 2px solid var(--text);
-  padding-top: 10px;
-  margin-top: 6px;
-}
-
-/* ── SEARCH ── */
-.search-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  margin-bottom: 16px;
-  background: var(--bg);
-  color: var(--text);
-  transition: all 0.2s;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--btn-primary);
-  background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(59,107,138,0.12);
-}
-
-/* ── UPGRADE BANNER ── */
-.upgrade-banner {
-  background: var(--accent-bg);
-  border: 1.5px solid var(--btn-accent);
-  border-radius: var(--radius);
+  border-top: 3px solid var(--brand);
+  border-radius: var(--radius-lg);
   padding: 18px 20px;
-  margin-bottom: 20px;
-  text-align: center;
+  display: flex; flex-direction: column; gap: 6px;
 }
-
-.upgrade-banner p {
-  font-size: 14px;
-  color: var(--btn-accent);
-  margin-bottom: 10px;
+.stat-card--warning  { border-top-color: var(--warning); }
+.stat-card--success  { border-top-color: var(--success); }
+.stat-card--accent   { border-top-color: var(--accent); }
+.stat-icon { color: var(--text-tertiary); }
+.stat-value { font-size: 28px; font-weight: 600; color: var(--text); line-height: 1.1; letter-spacing: -0.02em; }
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   font-weight: 500;
 }
 
-/* ── PLAN CARDS ── */
-.plan-cards {
+/* ===== LIST ===== */
+.list { display: flex; flex-direction: column; }
+.list-header {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.plan-card {
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  text-align: center;
-  transition: all 0.2s;
-  position: relative;
-  background: var(--surface);
-}
-
-.plan-card.current { border-color: var(--btn-primary); }
-.plan-card.recommended { border-color: var(--btn-accent); box-shadow: var(--shadow-md); }
-
-.plan-badge {
-  position: absolute;
-  top: -11px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--btn-accent);
-  color: white;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 12px;
-  border-radius: 20px;
-}
-
-.plan-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-.plan-price { font-size: 28px; font-weight: 800; margin-bottom: 2px; }
-.plan-period { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
-
-.plan-features { list-style: none; text-align: left; font-size: 13px; }
-.plan-features li { padding: 5px 0; display: flex; align-items: flex-start; gap: 8px; }
-.plan-features li::before { content: "✓"; color: var(--btn-success); font-weight: 700; flex-shrink: 0; }
-
-/* ── EMPTY / LOCKED ── */
-.empty-state { text-align: center; padding: 48px 20px; color: var(--text-secondary); }
-.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
-.empty-state p { font-size: 15px; margin-top: 8px; }
-
-.locked-feature { color: var(--text-light); font-size: 13px; }
-.locked-feature a { color: var(--btn-accent); text-decoration: none; font-weight: 600; }
-
-/* ── TABS ── */
-.tab-group {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-  background: var(--bg-warm);
-  border-radius: var(--radius-sm);
-  padding: 4px;
-}
-
-.tab-group button {
-  flex: 1;
-  padding: 8px 14px;
-  border: none;
-  background: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  transition: all 0.15s;
-}
-
-.tab-group button.active {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
-}
-
-/* ── MISC ── */
-.signature-box {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  font-family: "Courier New", monospace;
-  font-size: 11px;
-  word-break: break-all;
-  color: var(--text-secondary);
-  margin-top: 10px;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 20px;
-}
-
-.modal-content {
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 28px;
-  max-width: 460px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-}
-
-.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-
-.danger-zone {
-  border: 2px solid var(--btn-danger);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-top: 20px;
-}
-
-.danger-zone h3 { color: var(--btn-danger); font-size: 15px; margin-bottom: 10px; }
-
-.security-list { font-size: 14px; color: var(--text-secondary); list-style: none; }
-.security-list li { padding: 5px 0; padding-left: 20px; position: relative; }
-.security-list li::before { content: "🔒"; position: absolute; left: 0; font-size: 12px; }
-
-.catalog-item, .client-item {
-  padding: 14px 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: all 0.15s;
-}
-.catalog-item:hover, .client-item:hover { border-color: var(--btn-primary); transform: translateY(-1px); }
-
-.catalog-item { display: flex; justify-content: space-between; align-items: center; }
-.catalog-item-info { flex: 1; }
-.catalog-item-name, .client-item-name { font-size: 15px; font-weight: 600; }
-.catalog-item-detail, .client-item-detail { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
-
-/* ── TOGGLE SWITCH ── */
-.toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
-.toggle-row label { font-size: 14px; color: var(--text); }
-.toggle-switch {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  background: var(--border);
-  border-radius: 24px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border: none;
-}
-.toggle-switch.on { background: var(--btn-primary); }
-.toggle-switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.toggle-switch.on::after { transform: translateX(20px); }
-
-/* ── INVOICE PREVIEW MINI ── */
-.preview-mini {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  background: var(--bg);
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 12px;
-}
-
-.color-picker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-.color-swatch {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.color-swatch:hover { transform: scale(1.1); }
-.color-swatch.selected { border-color: var(--text); box-shadow: 0 0 0 2px white, 0 0 0 4px var(--text); }
-
-/* ── WALKTHROUGH ── */
-.wt-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.wt-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(3px);
-}
-
-.wt-card {
-  position: relative;
-  z-index: 1;
-  background: var(--surface);
-  border-radius: 20px;
-  padding: 36px 32px 28px;
-  max-width: 440px;
-  width: 100%;
-  box-shadow: var(--shadow-lg);
-  text-align: center;
-  animation: wt-in 0.35s ease;
-}
-
-@keyframes wt-in {
-  from { opacity: 0; transform: translateY(20px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.wt-icon { font-size: 48px; margin-bottom: 16px; display: block; }
-
-.wt-card h2 {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: var(--text);
-}
-
-.wt-card p {
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: 6px;
-}
-
-.wt-card .wt-highlight {
-  display: inline-block;
-  background: var(--bg-warm);
-  border: 1px solid var(--border);
-  padding: 2px 10px;
-  border-radius: 6px;
+  grid-template-columns: 90px 1fr 1fr 110px 110px 110px;
+  gap: 12px;
+  padding: 10px 16px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+}
+.list-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr 110px 110px 110px;
+  gap: 12px;
+  padding: 14px 16px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--transition);
+  font-size: var(--font-size-sm);
+}
+.list-row:hover { background: var(--bg-warm); }
+.list-row .num { color: var(--text-tertiary); font-family: var(--font-mono); font-size: var(--font-size-xs); }
+.list-row .title { font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-row .client { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-row .date { color: var(--text-secondary); }
+.list-row .value { font-family: var(--font-mono); font-weight: 500; color: var(--text); }
+
+@media (max-width: 768px) {
+  .list-header { display: none; }
+  .list-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "title value" "client date" "client status";
+    row-gap: 4px;
+  }
+  .list-row .num { display: none; }
+  .list-row .title { grid-area: title; }
+  .list-row .client { grid-area: client; }
+  .list-row .date { grid-area: date; text-align: right; font-size: var(--font-size-xs); }
+  .list-row .value { grid-area: value; text-align: right; }
+  .list-row .status-cell { grid-area: status; justify-self: end; }
+}
+
+/* Card-style list (clients, catalog) */
+.simple-list { display: flex; flex-direction: column; gap: 6px; }
+.simple-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: background var(--transition), border-color var(--transition);
+}
+.simple-row:hover { background: var(--surface-raised); border-color: var(--border-strong); }
+.simple-row .name { font-weight: 500; color: var(--text); }
+.simple-row .meta { font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px; }
+.simple-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+/* ===== EMPTY ===== */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 12px;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.empty-state svg { color: var(--text-tertiary); margin-bottom: 4px; }
+.empty-state h3 { font-size: var(--font-size-lg); font-weight: 500; color: var(--text); }
+.empty-state p { font-size: var(--font-size-sm); max-width: 320px; }
+
+/* ===== EDITOR ===== */
+.editor-shell {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1024px) {
+  .editor-shell { grid-template-columns: 1fr; }
+}
+.editor-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.totals-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: sticky;
+  top: 24px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.totals-row {
+  display: flex; justify-content: space-between;
+  padding: 4px 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+.totals-row .totals-value { font-family: var(--font-mono); color: var(--text); }
+.totals-row.grand {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
   color: var(--text);
-}
-
-.wt-steps {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: 20px 0 18px;
-}
-
-.wt-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: all 0.3s;
-}
-
-.wt-dot.active { background: var(--btn-primary); transform: scale(1.3); }
-.wt-dot.done { background: var(--btn-success); }
-
-.wt-actions {
-  display: flex;
-  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
   margin-top: 4px;
 }
+.totals-row.grand .totals-value { color: var(--text); font-weight: 600; }
+.totals-row.discount .totals-value { color: var(--danger); }
 
-.wt-actions button { flex: 1; }
-
-.wt-skip {
-  margin-top: 14px;
-  font-size: 13px;
-  color: var(--text-light);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-}
-.wt-skip:hover { color: var(--text-secondary); }
-
-.wt-tip-box {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-  margin: 14px 0 4px;
-  text-align: left;
-}
-
-.wt-tip-box .wt-tip-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--btn-primary);
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.wt-tip-box p { font-size: 13px; margin-bottom: 0; }
-
-.wt-feature-grid {
+.line-items { display: flex; flex-direction: column; gap: 8px; }
+.line-items-header {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 70px 110px 110px 32px;
   gap: 8px;
-  margin: 14px 0;
-  text-align: left;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0 12px;
 }
-
-.wt-feature-item {
-  display: flex;
-  align-items: flex-start;
+.line-items-row {
+  display: grid;
+  grid-template-columns: 1fr 70px 110px 110px 32px;
   gap: 8px;
-  font-size: 13px;
-  color: var(--text);
-  padding: 8px 10px;
-  background: var(--bg);
-  border-radius: 8px;
-}
-
-.wt-feature-item .wt-feat-icon { font-size: 16px; flex-shrink: 0; }
-.wt-feature-item span { line-height: 1.4; }
-
-/* ── SCREEN READER ONLY ── */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ── ACCESSIBILITY ANNOUNCER ── */
-.a11y-announcer {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ── SCREEN READER MODE ENHANCEMENTS ── */
-body.screen-reader-mode .nav-bar button,
-body.screen-reader-mode .btn,
-body.screen-reader-mode .quote-list-item,
-body.screen-reader-mode .catalog-item,
-body.screen-reader-mode .client-item {
-  outline-offset: 3px;
-}
-
-body.screen-reader-mode :focus {
-  outline: 3px solid var(--btn-primary) !important;
-  outline-offset: 2px;
-}
-
-body.screen-reader-mode .form-input:focus,
-body.screen-reader-mode .form-select:focus,
-body.screen-reader-mode .form-textarea:focus {
-  outline: 3px solid var(--btn-primary) !important;
-  outline-offset: 1px;
-}
-
-/* ── SIGNATURE CANVAS ── */
-.signature-canvas-wrap {
-  border: 2px dashed var(--border);
-  border-radius: var(--radius-sm);
-  background: white;
-  position: relative;
-  margin: 12px 0;
-  touch-action: none;
-}
-
-.signature-canvas-wrap canvas {
-  display: block;
-  width: 100%;
-  cursor: crosshair;
-  border-radius: var(--radius-sm);
-}
-
-.signature-canvas-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.signature-preview {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px;
-  background: white;
-  margin-top: 10px;
-  text-align: center;
-}
-
-.signature-preview img {
-  max-height: 80px;
-  max-width: 100%;
-}
-
-/* ── RECOVERY KEY BOX ── */
-.recovery-key-box {
-  background: var(--warning-bg);
-  border: 2px solid #b8860b;
+  align-items: center;
+  background: var(--bg-warm);
+  border: 1px solid transparent;
   border-radius: var(--radius);
-  padding: 16px;
-  margin: 12px 0;
-  text-align: center;
+  padding: 8px 12px;
+  transition: border-color var(--transition);
+}
+.line-items-row:focus-within { border-color: var(--border-focus); background: var(--surface); }
+.line-items-row .li-input {
+  background: transparent; border: none; padding: 6px 0;
+  font-size: var(--font-size-sm); color: var(--text); width: 100%;
+}
+.line-items-row .li-input:focus { outline: none; }
+.line-items-row .li-input--num { font-family: var(--font-mono); text-align: right; }
+.line-items-row .li-total { font-family: var(--font-mono); font-size: var(--font-size-sm); color: var(--text); text-align: right; font-weight: 500; }
+.line-items-row .li-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary); font-size: 18px; padding: 4px;
+  border-radius: 4px;
+}
+.line-items-row .li-remove:hover:not(:disabled) { color: var(--danger); background: var(--danger-bg); }
+.line-items-row .li-remove:disabled { opacity: 0.3; cursor: not-allowed; }
+@media (max-width: 640px) {
+  .line-items-header { display: none; }
+  .line-items-row {
+    grid-template-columns: 1fr 32px;
+    grid-template-areas: "desc remove" "qty price" "total total";
+    row-gap: 6px;
+  }
 }
 
-.recovery-key-box code {
-  display: block;
-  font-family: "Courier New", monospace;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--text);
-  padding: 10px;
+.catalog-drawer {
   background: var(--surface);
-  border-radius: 8px;
-  margin: 8px 0;
-  word-break: break-all;
-  user-select: all;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.catalog-pick {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+.catalog-pick:hover { background: var(--bg-warm); }
+.catalog-pick .price { color: var(--text-secondary); font-family: var(--font-mono); }
+
+/* ===== LOCK SCREEN ===== */
+.lock-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  padding: 24px;
+}
+.lock-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 48px 40px 40px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow-lg);
+}
+.lock-logo {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--brand);
+  color: white;
+  margin: 0 auto 24px;
+  display: grid; place-items: center;
+  font-size: 22px; font-weight: 600;
+}
+.lock-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 6px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.lock-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.lock-tabs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  background: var(--surface-sunken);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 4px;
+}
+.lock-tab {
+  background: transparent; border: none; cursor: pointer;
+  padding: 8px 12px;
+  font-size: var(--font-size-sm); font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: calc(var(--radius) - 4px);
+  transition: background var(--transition), color var(--transition);
+}
+.lock-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: grid; place-items: center;
+  padding: 24px; z-index: 100;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header h2 { font-size: var(--font-size-md); font-weight: 600; }
+.modal-body { padding: 20px 24px; font-size: var(--font-size-sm); color: var(--text-secondary); }
+.modal-body p { margin-bottom: 8px; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
 }
 
-@media (max-width: 600px) {
-  .form-row, .form-row-3 { grid-template-columns: 1fr; }
-  .line-item-row { grid-template-columns: 1fr; gap: 6px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .plan-cards { grid-template-columns: 1fr; }
+/* ===== TIER CARDS ===== */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.tier-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  background: var(--surface);
+  transition: border-color var(--transition), transform var(--transition);
+  display: flex; flex-direction: column; gap: 8px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.tier-card:hover { border-color: var(--border-strong); }
+.tier-card.active { border-color: var(--brand); background: var(--brand-light); }
+.tier-card h4 { font-size: var(--font-size-md); font-weight: 600; }
+.tier-card .price { font-size: var(--font-size-sm); color: var(--text-secondary); }
+.tier-card ul { list-style: none; font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 6px; line-height: 1.8; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  top: 20px; right: 20px;
+  background: var(--text);
+  color: var(--text-inverse);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 200;
+  max-width: 320px;
+}
+.toast--success { background: var(--success); }
+.toast--error   { background: var(--danger); }
+.toast--warning { background: var(--warning); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== USAGE METER ===== */
+.meter { margin-bottom: 16px; }
+.meter-head { display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--text-secondary); margin-bottom: 6px; }
+.meter-track { height: 4px; background: var(--surface-sunken); border-radius: 2px; overflow: hidden; }
+.meter-fill { height: 100%; background: var(--brand); border-radius: 2px; transition: width var(--transition); }
+.meter-fill--warn { background: var(--warning); }
+.meter-fill--over { background: var(--danger); }
+
+/* ===== UPGRADE BANNER ===== */
+.upgrade-banner {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap;
+}
+.upgrade-banner-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--accent); }
+.upgrade-banner-sub { font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px; }
+
+/* ===== SECTION ===== */
+.section-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin: 24px 0 12px;
+  color: var(--text);
+}
+.section-title:first-child { margin-top: 0; }
+
+.action-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
-/* ═══════════════════════════════════════════════════════════════
-   Business Quoting App — Dev Build (ALL ACCESS — No Tier Limits)
-   Copyright (c) 2024-2026 Khaoskami. All rights reserved.
-   github.com/Khaoskami/business-quoting-app
-   Storage namespace: bqd_ (separate from production bq_)
-   ALL FEATURES UNLOCKED — for development and testing only
-   ═══════════════════════════════════════════════════════════════ */
-
-const { useState, useEffect, useCallback, useMemo, useRef } = React;
-
-/* ──────── CONSTANTS ──────── */
-
-const APP_VERSION = "2.0.0-dev-allaccess";
-const STORAGE_PREFIX = "bqd_";
-const DEV_ALL_ACCESS = true;
-const LOCK_TIMEOUT = 15 * 60 * 1000; /* 15 minutes */
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 30 * 1000; /* 30 seconds */
-const PBKDF2_ITERATIONS = 600000;
-
-const PAY_URLS = {
-  starter: "https://your-starter-payment-link.com",
-  pro: "https://your-pro-payment-link.com",
-  unlimited: "https://your-unlimited-payment-link.com"
-};
-
-const TIERS = {
-  free: { id: "free", name: "Free", price: 0, priceLabel: "$0", period: "forever", quotesPerMonth: 30, maxClients: 20, maxCatalog: 25, csvExport: true, printPdf: false, discounts: false, signatures: false, clientWebsite: false, duplicateQuote: false, logoLetterhead: false, invoiceCustom: false, color: "tag-free", payUrl: null },
-  starter: { id: "starter", name: "Starter", price: 20, priceLabel: "$20", period: "/month", quotesPerMonth: 50, maxClients: 100, maxCatalog: 100, csvExport: true, printPdf: true, discounts: true, signatures: false, clientWebsite: true, duplicateQuote: true, logoLetterhead: true, invoiceCustom: true, color: "tag-starter", payUrl: PAY_URLS.starter },
-  pro: { id: "pro", name: "Pro", price: 50, priceLabel: "$50", period: "/month", quotesPerMonth: 80, maxClients: 500, maxCatalog: 500, csvExport: true, printPdf: true, discounts: true, signatures: true, clientWebsite: true, duplicateQuote: true, logoLetterhead: true, invoiceCustom: true, color: "tag-pro", payUrl: PAY_URLS.pro },
-  unlimited: { id: "unlimited", name: "Unlimited", price: 150, priceLabel: "$150", period: "/month", quotesPerMonth: Infinity, maxClients: Infinity, maxCatalog: Infinity, csvExport: true, printPdf: true, discounts: true, signatures: true, clientWebsite: true, duplicateQuote: true, logoLetterhead: true, invoiceCustom: true, color: "tag-unlimited", payUrl: PAY_URLS.unlimited }
-};
-
-const CURRENCIES = [
-  { code: "ZAR", symbol: "R", name: "South African Rand" },
-  { code: "USD", symbol: "$", name: "US Dollar" },
-  { code: "EUR", symbol: "€", name: "Euro" },
-  { code: "GBP", symbol: "£", name: "British Pound" },
-  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
-  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
-  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
-  { code: "INR", symbol: "₹", name: "Indian Rupee" },
-  { code: "BRL", symbol: "R$", name: "Brazilian Real" },
-  { code: "NGN", symbol: "₦", name: "Nigerian Naira" },
-  { code: "KES", symbol: "KSh", name: "Kenyan Shilling" },
-  { code: "AED", symbol: "د.إ", name: "UAE Dirham" },
-  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
-  { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
-  { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
-  { code: "MXN", symbol: "MX$", name: "Mexican Peso" },
-  { code: "SEK", symbol: "kr", name: "Swedish Krona" },
-  { code: "SGD", symbol: "S$", name: "Singapore Dollar" }
-];
-
-const PRICING_UNITS = ["each","hour","day","m²","ft²","kg","km","unit","lot","month","project","session","page","word","metre","litre"];
-const STATUSES = ["Draft","Sent","Accepted","Declined","Expired"];
-
-const INVOICE_FONTS = [
-  { id: "lexend", name: "Lexend", css: '"Lexend", sans-serif' },
-  { id: "atkinson", name: "Atkinson Hyperlegible", css: '"Atkinson Hyperlegible", sans-serif' },
-  { id: "system", name: "System Default", css: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
-  { id: "georgia", name: "Georgia (Serif)", css: 'Georgia, "Times New Roman", serif' },
-  { id: "courier", name: "Courier (Mono)", css: '"Courier New", Courier, monospace' }
-];
-
-const INVOICE_ACCENTS = ["#3b6b8a","#4a8c6f","#7c6db0","#c0564f","#b8860b","#2d3748","#6b4423","#1a6b5a"];
-
-const LOGO_POSITIONS = [
-  { id: "left", name: "Left" },
-  { id: "center", name: "Center" },
-  { id: "right", name: "Right" }
-];
-
-/* ──────── SECURITY HELPERS ──────── */
-
-function sanitize(str) {
-  if (typeof str !== "string") return str;
-  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
-}
-
-function sanitizeUrl(url) {
-  if (!url) return "";
-  const t = url.trim();
-  if (!t) return "";
-  if (/^javascript:/i.test(t)) return "";
-  if (/[<>"']/.test(t)) return "";
-  if (!/^https?:\/\//i.test(t)) return "https://" + t;
-  return t;
-}
-
-/* ──────── IMAGE / LOGO SECURITY ──────── */
-const LOGO_MAX_SIZE = 512 * 1024;
-const LOGO_ALLOWED_TYPES = ["image/png","image/jpeg","image/svg+xml","image/webp"];
-
-function validateImageFile(file) {
-  if (!file) return { valid: false, error: "No file selected." };
-  if (!LOGO_ALLOWED_TYPES.includes(file.type)) return { valid: false, error: "Only PNG, JPEG, WebP, or SVG allowed." };
-  if (file.size > LOGO_MAX_SIZE) return { valid: false, error: "Max 512KB." };
-  return { valid: true };
-}
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(new Error("Read failed."));
-    r.readAsDataURL(file);
-  });
-}
-
-function sanitizeSvgDataUrl(dataUrl) {
-  if (!dataUrl.startsWith("data:image/svg")) return dataUrl;
-  try {
-    const svg = atob(dataUrl.split(",")[1]);
-    if (/<script/i.test(svg) || /on\w+\s*=/i.test(svg) || /javascript:/i.test(svg)) return null;
-    return dataUrl;
-  } catch { return null; }
-}
-
-/* ──────── PBKDF2 KEY DERIVATION ──────── */
-
-async function deriveKey(password, salt) {
-  const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt","decrypt"]);
-}
-
-async function deriveVerificationHash(password, salt) {
-  const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" }, keyMaterial, 256);
-  return btoa(String.fromCharCode(...new Uint8Array(bits)));
-}
-
-/* ──────── ENCRYPTION (AES-256-GCM, password-derived) ──────── */
-
-let _sessionKey = null;
-
-function setSessionKey(key) { _sessionKey = key; }
-function getSessionKey() { return _sessionKey; }
-function clearSessionKey() { _sessionKey = null; }
-
-async function encryptData(data) {
-  const key = getSessionKey();
-  if (!key) throw new Error("No session key");
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encoded = new TextEncoder().encode(JSON.stringify(data));
-  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
-  return btoa(String.fromCharCode(...iv) + String.fromCharCode(...new Uint8Array(ct)));
-}
-
-async function decryptData(encrypted) {
-  try {
-    const key = getSessionKey();
-    if (!key) return null;
-    const raw = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
-    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: raw.slice(0,12) }, key, raw.slice(12));
-    return JSON.parse(new TextDecoder().decode(decrypted));
-  } catch { return null; }
-}
-
-async function saveToStorage(key, data) {
-  localStorage.setItem(STORAGE_PREFIX + key, await encryptData(data));
-}
-
-async function loadFromStorage(key, fallback) {
-  const raw = localStorage.getItem(STORAGE_PREFIX + key);
-  if (!raw) return fallback;
-  const data = await decryptData(raw);
-  return data !== null ? data : fallback;
-}
-
-function clearAllStorage() {
-  Object.keys(localStorage).forEach(k => { if (k.startsWith(STORAGE_PREFIX)) localStorage.removeItem(k); });
-  clearSessionKey();
-}
-
-/* ──────── SHA-256 ──────── */
-async function generateSignature(quote, businessName) {
-  const payload = [quote.id, quote.title, quote.quoteNumber, JSON.stringify(quote.lineItems), String(quote.total), quote.createdAt, businessName || ""].join("|");
-  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,"0")).join("");
-}
-
-/* ──────── ACCESSIBILITY ANNOUNCER ──────── */
-let _announceEl = null;
-function announce(message, priority) {
-  if (!_announceEl) {
-    _announceEl = document.createElement("div");
-    _announceEl.className = "a11y-announcer";
-    _announceEl.setAttribute("role", "status");
-    _announceEl.setAttribute("aria-live", "polite");
-    _announceEl.setAttribute("aria-atomic", "true");
-    document.body.appendChild(_announceEl);
-  }
-  if (priority === "assertive") _announceEl.setAttribute("aria-live", "assertive");
-  else _announceEl.setAttribute("aria-live", "polite");
-  _announceEl.textContent = "";
-  setTimeout(() => { _announceEl.textContent = message; }, 50);
-}
-
-/* ──────── RECOVERY KEY ──────── */
-function generateRecoveryKey() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const segments = [];
-  for (let s = 0; s < 4; s++) {
-    let seg = "";
-    for (let i = 0; i < 4; i++) {
-      const idx = crypto.getRandomValues(new Uint8Array(1))[0] % chars.length;
-      seg += chars[idx];
-    }
-    segments.push(seg);
-  }
-  return segments.join("-");
-}
-
-async function deriveKeyFromRecovery(recoveryKey, salt) {
-  return deriveKey(recoveryKey.replace(/-/g, "").toUpperCase(), salt);
-}
-
-async function deriveRecoveryHash(recoveryKey, salt) {
-  return deriveVerificationHash(recoveryKey.replace(/-/g, "").toUpperCase(), salt);
-}
-
-/* ──────── FORMATTING ──────── */
-function formatCurrency(amount, code) {
-  try { return new Intl.NumberFormat(undefined, { style: "currency", currency: code || "ZAR", minimumFractionDigits: 2 }).format(amount); }
-  catch { return `${code || "ZAR"} ${Number(amount).toFixed(2)}`; }
-}
-function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,9); }
-function getCurrentMonth() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
-
-/* ──────── CSV EXPORT ──────── */
-function exportQuoteCsv(quote, businessName, currency) {
-  const rows = [["GENERATED BY Business Quotes App — github.com/Khaoskami"],[],["Quote Title",sanitize(quote.title)],["Quote Number",sanitize(quote.quoteNumber||"")],["Client",sanitize(quote.clientName||"")],["Status",quote.status],["Date",new Date(quote.createdAt).toLocaleDateString()],["Currency",currency],[],["Description","Qty","Unit Price","Line Total"]];
-  (quote.lineItems||[]).forEach(i => rows.push([sanitize(i.description), i.quantity, Number(i.unitPrice).toFixed(2), (i.quantity*i.unitPrice).toFixed(2)]));
-  rows.push([],["Subtotal","","",Number(quote.subtotal||0).toFixed(2)]);
-  if (quote.discountPercent > 0) rows.push(["Discount ("+quote.discountPercent+"%)","","","-"+Number(quote.discountAmount||0).toFixed(2)]);
-  if (quote.taxPercent > 0) rows.push(["Tax ("+quote.taxPercent+"%)","","",Number(quote.taxAmount||0).toFixed(2)]);
-  rows.push(["GRAND TOTAL","","",Number(quote.total||0).toFixed(2)]);
-  if (quote.signature) rows.push([],["SHA-256 Signature",quote.signature]);
-  rows.push([],["© "+new Date().getFullYear()+" "+(businessName||"Business Quotes App")]);
-  const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = (quote.quoteNumber||quote.title||"quote")+".csv";
-  a.click();
-}
-
-/* ──────── PRINT / PDF (with customisation) ──────── */
-function printQuote(quote, settings, currency) {
-  const inv = settings.invoiceSettings || {};
-  const fontCss = (INVOICE_FONTS.find(f => f.id === (inv.font || "lexend")) || INVOICE_FONTS[0]).css;
-  const accent = inv.accentColor || "#3b6b8a";
-  const logoPos = inv.logoPosition || "left";
-  const fontSize = inv.fontSize || 14;
-  const showBorder = inv.showBorder !== false;
-
-  const discountLine = quote.discountPercent > 0 ? `<tr><td colspan="3" style="text-align:right">Discount (${quote.discountPercent}%)</td><td style="text-align:right">-${formatCurrency(quote.discountAmount||0,currency)}</td></tr>` : "";
-  const taxLine = quote.taxPercent > 0 ? `<tr><td colspan="3" style="text-align:right">Tax (${quote.taxPercent}%)</td><td style="text-align:right">${formatCurrency(quote.taxAmount||0,currency)}</td></tr>` : "";
-  const sigBlock = quote.signature ? `<div style="margin-top:20px;padding:12px;background:#f9f9f9;border:1px solid #ddd;border-radius:6px"><strong>SHA-256 Signature:</strong><br><code style="font-size:10px;word-break:break-all">${sanitize(quote.signature)}</code></div>` : "";
-  const handwrittenSigBlock = quote.handwrittenSignature ? `<div style="margin-top:20px;padding:16px;border-top:1px solid #ddd"><strong>Authorized Signature:</strong><br><img src="${quote.handwrittenSignature}" style="max-height:80px;margin-top:8px" alt="Handwritten signature" /><br><span style="font-size:11px;color:#888">Signed: ${quote.handwrittenSignedAt ? new Date(quote.handwrittenSignedAt).toLocaleString() : ""}</span></div>` : "";
-  const clientWebsite = quote.clientWebsite ? `<br>Web: <a href="${sanitizeUrl(quote.clientWebsite)}" style="color:${accent}">${sanitize(quote.clientWebsite)}</a>` : "";
-  const notesBlock = quote.notes ? `<div style="margin-top:20px"><strong>Notes / Terms:</strong><p style="white-space:pre-wrap;color:#555;margin-top:6px">${sanitize(quote.notes)}</p></div>` : "";
-
-  const logoAlign = logoPos === "center" ? "center" : logoPos === "right" ? "flex-end" : "flex-start";
-  const logoBlock = settings.logo ? `<div style="display:flex;justify-content:${logoAlign};margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid ${accent}"><div style="display:flex;align-items:center;gap:16px;${logoPos==='center'?'flex-direction:column;text-align:center':''}"><img src="${settings.logo}" style="max-height:80px;max-width:200px;object-fit:contain" /><div><div style="font-size:${fontSize+4}px;font-weight:700;color:${accent}">${sanitize(settings.businessName||"")}</div>${settings.address?`<div style="font-size:${fontSize-2}px;color:#666;white-space:pre-line">${sanitize(settings.address)}</div>`:""}</div></div></div>` : "";
-  const letterheadStyle = settings.letterhead ? `background-image:url('${settings.letterhead}');background-size:contain;background-repeat:no-repeat;background-position:top center;` : "";
-
-  const html = `<!DOCTYPE html><html><head><title>${sanitize(quote.title||"Quote")}</title>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
-<style>body{font-family:${fontCss};max-width:800px;margin:0 auto;padding:40px 24px;color:#2d3748;font-size:${fontSize}px;line-height:1.7;${letterheadStyle}}
-table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:10px 12px;border-bottom:1px solid #e8e2da;text-align:left}th{background:#faf8f5;font-size:${fontSize-2}px;font-weight:600;color:${accent}}
-.total-row td{font-weight:700;font-size:${fontSize+4}px;border-top:2px solid ${accent};color:${accent}}
-${showBorder?`@page{margin:20mm}body{border:1px solid #e8e2da;border-radius:8px;padding:32px}`:""}
-footer{margin-top:40px;padding-top:16px;border-top:1px solid #e8e2da;font-size:11px;color:#999;text-align:center}
-@media print{body{padding:20px;border:none;border-radius:0}}</style></head><body>
-${logoBlock}
-<h1 style="font-size:${fontSize+6}px;margin-bottom:4px;color:${accent}">${sanitize(quote.title||"Quote")}</h1>
-${quote.quoteNumber?`<p style="color:#888;font-size:${fontSize}px">Quote #: ${sanitize(quote.quoteNumber)}</p>`:""}
-<div style="display:flex;justify-content:space-between;margin:24px 0;gap:20px">
-<div>${!settings.logo?`<strong style="color:${accent}">From:</strong><br>${sanitize(settings.businessName||"")}<br>${sanitize(settings.email||"")}<br>${sanitize(settings.phone||"")}`:""}</div>
-<div style="text-align:right"><strong style="color:${accent}">To:</strong><br>${sanitize(quote.clientName||"")}<br>${sanitize(quote.clientCompany||"")}${clientWebsite}</div>
-</div>
-<p style="color:#888">Date: ${new Date(quote.createdAt).toLocaleDateString()} | Status: ${quote.status}${quote.validityDays?` | Valid for ${quote.validityDays} days`:""}</p>
-<table><thead><tr><th>Description</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead><tbody>
-${(quote.lineItems||[]).map(i => `<tr><td>${sanitize(i.description)}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatCurrency(i.unitPrice,currency)}</td><td style="text-align:right">${formatCurrency(i.quantity*i.unitPrice,currency)}</td></tr>`).join("")}
-<tr><td colspan="3" style="text-align:right"><strong>Subtotal</strong></td><td style="text-align:right">${formatCurrency(quote.subtotal||0,currency)}</td></tr>
-${discountLine}${taxLine}
-<tr class="total-row"><td colspan="3" style="text-align:right">Grand Total</td><td style="text-align:right">${formatCurrency(quote.total||0,currency)}</td></tr>
-</tbody></table>
-${notesBlock}${sigBlock}${handwrittenSigBlock}
-<footer>© ${new Date().getFullYear()} ${sanitize(settings.businessName||"Business Quotes App")} — Generated by Business Quotes App (github.com/Khaoskami)</footer>
-</body></html>`;
-  const win = window.open("","_blank");
-  win.document.write(html);
-  win.document.close();
-  setTimeout(() => win.print(), 400);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   LOCK SCREEN COMPONENT
-   ═══════════════════════════════════════════════════════════════ */
-
-function LockScreen({ onUnlock }) {
-  const [mode, setMode] = useState("loading"); /* loading | setup | login | recovery | showRecoveryKey */
-  const [authType, setAuthType] = useState("pin"); /* pin | password */
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
-  const [pinPhase, setPinPhase] = useState("first"); /* first | confirm */
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [pinError, setPinError] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [recoveryKey, setRecoveryKey] = useState("");
-  const [recoveryInput, setRecoveryInput] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [recoveryKeySaved, setRecoveryKeySaved] = useState(false);
-
-  useEffect(() => {
-    const hasVerification = localStorage.getItem(STORAGE_PREFIX + "verify");
-    const storedAuthType = localStorage.getItem(STORAGE_PREFIX + "authtype");
-    if (hasVerification) { setMode("login"); if (storedAuthType) setAuthType(storedAuthType); }
-    else setMode("setup");
-  }, []);
-
-  const isLockedOut = Date.now() < lockedUntil;
-  const PIN_LENGTH = 6;
-
-  async function doSetup(secret) {
-    setBusy(true);
-    try {
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const verifySalt = crypto.getRandomValues(new Uint8Array(16));
-      const key = await deriveKey(secret, salt);
-      const verifyHash = await deriveVerificationHash(secret, verifySalt);
-      localStorage.setItem(STORAGE_PREFIX + "salt", btoa(String.fromCharCode(...salt)));
-      localStorage.setItem(STORAGE_PREFIX + "vsalt", btoa(String.fromCharCode(...verifySalt)));
-      localStorage.setItem(STORAGE_PREFIX + "verify", verifyHash);
-      localStorage.setItem(STORAGE_PREFIX + "authtype", authType);
-
-      /* Generate recovery key for password reset */
-      const rk = generateRecoveryKey();
-      const recoverySalt = crypto.getRandomValues(new Uint8Array(16));
-      const recoveryHash = await deriveRecoveryHash(rk, recoverySalt);
-      const recoveryEncKey = await deriveKeyFromRecovery(rk, salt);
-      /* Re-encrypt verification data with recovery key so we can reset */
-      localStorage.setItem(STORAGE_PREFIX + "rsalt", btoa(String.fromCharCode(...recoverySalt)));
-      localStorage.setItem(STORAGE_PREFIX + "rverify", recoveryHash);
-
-      setSessionKey(key);
-      setRecoveryKey(rk);
-      setMode("showRecoveryKey");
-      announce("Account created. Please save your recovery key.", "assertive");
-    } catch { setError("Setup failed."); }
-    setBusy(false);
-  }
-
-  async function doLogin(secret) {
-    if (isLockedOut) return;
-    setBusy(true);
-    setError("");
-    try {
-      const salt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "salt")), c => c.charCodeAt(0));
-      const verifySalt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "vsalt")), c => c.charCodeAt(0));
-      const storedHash = localStorage.getItem(STORAGE_PREFIX + "verify");
-      const hash = await deriveVerificationHash(secret, verifySalt);
-      if (hash !== storedHash) {
-        const n = attempts + 1;
-        setAttempts(n);
-        if (n >= MAX_LOGIN_ATTEMPTS) {
-          setLockedUntil(Date.now() + LOCKOUT_DURATION);
-          setError("Too many tries. Wait 30 seconds.");
-          setTimeout(() => { setLockedUntil(0); setAttempts(0); }, LOCKOUT_DURATION);
-        } else {
-          setError(authType === "pin" ? "Wrong PIN" : "Wrong password");
-          if (authType === "pin") { setPinError(true); setTimeout(() => { setPinError(false); setPin(""); }, 500); }
-        }
-        setBusy(false);
-        return;
-      }
-      const key = await deriveKey(secret, salt);
-      setSessionKey(key);
-      setAttempts(0);
-      onUnlock();
-    } catch { setError("Authentication error."); }
-    setBusy(false);
-  }
-
-  /* ── PIN handlers ── */
-  function handlePinKey(digit) {
-    if (busy) return;
-    if (mode === "setup") {
-      if (pinPhase === "first") {
-        const next = pin + digit;
-        setPin(next);
-        setError("");
-        if (next.length === PIN_LENGTH) setPinPhase("confirm");
-      } else {
-        const next = confirmPin + digit;
-        setConfirmPin(next);
-        setError("");
-        if (next.length === PIN_LENGTH) {
-          if ((pin) !== next) { setError("PINs don't match. Try again."); setPinPhase("first"); setPin(""); setConfirmPin(""); setPinError(true); setTimeout(() => setPinError(false), 500); }
-          else doSetup(next);
-        }
-      }
-    } else {
-      const next = pin + digit;
-      setPin(next);
-      setError("");
-      if (next.length === PIN_LENGTH) doLogin(next);
-    }
-  }
-
-  function handlePinBackspace() {
-    if (mode === "setup" && pinPhase === "confirm") setConfirmPin(prev => prev.slice(0,-1));
-    else setPin(prev => prev.slice(0,-1));
-  }
-
-  /* ── Password handlers ── */
-  function handlePasswordSetup() {
-    if (password.length < 6) { setError("At least 6 characters"); return; }
-    if (password !== confirmPassword) { setError("Passwords don't match"); return; }
-    doSetup(password);
-  }
-
-  function handlePasswordLogin() { doLogin(password); }
-
-  async function handleRecoveryReset() {
-    const rk = recoveryInput.trim().toUpperCase();
-    if (!rk) { setError("Enter your recovery key."); return; }
-    if (!newPassword && authType === "password") { setError("Enter a new password."); return; }
-    if (authType === "password" && newPassword.length < 6) { setError("At least 6 characters."); return; }
-    if (authType === "password" && newPassword !== confirmNewPassword) { setError("Passwords don't match."); return; }
-    setBusy(true);
-    setError("");
-    try {
-      const recoverySalt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "rsalt")), c => c.charCodeAt(0));
-      const storedRHash = localStorage.getItem(STORAGE_PREFIX + "rverify");
-      const rHash = await deriveRecoveryHash(rk, recoverySalt);
-      if (rHash !== storedRHash) { setError("Invalid recovery key."); setBusy(false); return; }
-
-      /* Recovery key valid — derive old key from recovery to decrypt data */
-      const oldSalt = Uint8Array.from(atob(localStorage.getItem(STORAGE_PREFIX + "salt")), c => c.charCodeAt(0));
-      const oldKey = await deriveKeyFromRecovery(rk, oldSalt);
-      setSessionKey(oldKey);
-
-      /* Load all encrypted data with old key */
-      const [q, cl, cat, s, dm, wtDone] = await Promise.all([
-        loadFromStorage("quotes", []),
-        loadFromStorage("clients", []),
-        loadFromStorage("catalog", []),
-        loadFromStorage("settings", null),
-        loadFromStorage("dyslexicMode", false),
-        loadFromStorage("walkthroughDone", false)
-      ]);
-
-      /* Create new credentials */
-      const newSecret = authType === "pin" ? pin : newPassword;
-      const newSalt = crypto.getRandomValues(new Uint8Array(16));
-      const newVSalt = crypto.getRandomValues(new Uint8Array(16));
-      const newKey = await deriveKey(newSecret, newSalt);
-      const newVerify = await deriveVerificationHash(newSecret, newVSalt);
-
-      localStorage.setItem(STORAGE_PREFIX + "salt", btoa(String.fromCharCode(...newSalt)));
-      localStorage.setItem(STORAGE_PREFIX + "vsalt", btoa(String.fromCharCode(...newVSalt)));
-      localStorage.setItem(STORAGE_PREFIX + "verify", newVerify);
-      localStorage.setItem(STORAGE_PREFIX + "authtype", authType);
-
-      /* Generate new recovery key */
-      const newRk = generateRecoveryKey();
-      const newRSalt = crypto.getRandomValues(new Uint8Array(16));
-      const newRHash = await deriveRecoveryHash(newRk, newRSalt);
-      localStorage.setItem(STORAGE_PREFIX + "rsalt", btoa(String.fromCharCode(...newRSalt)));
-      localStorage.setItem(STORAGE_PREFIX + "rverify", newRHash);
-
-      /* Re-encrypt all data with new key */
-      setSessionKey(newKey);
-      await Promise.all([
-        saveToStorage("quotes", q),
-        saveToStorage("clients", cl),
-        saveToStorage("catalog", cat),
-        saveToStorage("settings", s),
-        saveToStorage("dyslexicMode", dm),
-        saveToStorage("walkthroughDone", wtDone)
-      ]);
-
-      setRecoveryKey(newRk);
-      setMode("showRecoveryKey");
-      announce("Password reset successful. Save your new recovery key.", "assertive");
-    } catch(e) { setError("Recovery failed. Check your key and try again."); }
-    setBusy(false);
-  }
-
-  function handleEmergencyReset() {
-    if (confirm("⚠️ DELETE ALL DATA? This cannot be undone. Try 'Reset Password' first to keep your data.")) {
-      if (confirm("Last chance — everything will be erased. Continue?")) { clearAllStorage(); window.location.reload(); }
-    }
-  }
-
-  if (mode === "loading") return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": "Loading" }, React.createElement("div", { className: "lock-card" }, React.createElement("div", { style: { fontSize: 40 }, "aria-hidden": "true" }, "⏳"), React.createElement("span", { className: "sr-only" }, "Loading...")));
-
-  /* ── Show Recovery Key after setup or reset ── */
-  if (mode === "showRecoveryKey") {
-    return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": "Recovery key" },
-      React.createElement("div", { className: "lock-card" },
-        React.createElement("div", { style: { fontSize: 40, marginBottom: 12 }, "aria-hidden": "true" }, "🔑"),
-        React.createElement("h1", null, "Save Your Recovery Key"),
-        React.createElement("p", { className: "subtitle" }, "If you forget your PIN or password, this key lets you reset it without losing any data. Write it down or take a screenshot."),
-        React.createElement("div", { className: "recovery-key-box", role: "region", "aria-label": "Recovery key" },
-          React.createElement("p", { style: { fontSize: 13, fontWeight: 600, marginBottom: 4 } }, "Your Recovery Key:"),
-          React.createElement("code", { "aria-label": `Recovery key: ${recoveryKey}` }, recoveryKey),
-          React.createElement("p", { style: { fontSize: 12, color: "#8a6a3a", marginTop: 4 } }, "Store this somewhere safe. You will not see it again.")
-        ),
-        React.createElement("div", { style: { margin: "12px 0" } },
-          React.createElement("label", { style: { fontSize: 14, display: "flex", alignItems: "center", gap: 8, justifyContent: "center", cursor: "pointer" } },
-            React.createElement("input", { type: "checkbox", checked: recoveryKeySaved, onChange: e => setRecoveryKeySaved(e.target.checked), "aria-label": "I have saved my recovery key" }),
-            "I have saved my recovery key"
-          )
-        ),
-        React.createElement("button", { className: "lock-btn", disabled: !recoveryKeySaved, onClick: () => { announce("Welcome! Your account is ready.", "polite"); onUnlock(); } }, "Continue to App"),
-        React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
-      )
-    );
-  }
-
-  /* ── Password Reset / Recovery Flow ── */
-  if (mode === "recovery") {
-    const storedAuthType = localStorage.getItem(STORAGE_PREFIX + "authtype") || "password";
-    return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": "Password recovery" },
-      React.createElement("div", { className: "lock-card" },
-        React.createElement("div", { style: { fontSize: 40, marginBottom: 12 }, "aria-hidden": "true" }, "🔑"),
-        React.createElement("h1", null, "Reset Password"),
-        React.createElement("p", { className: "subtitle" }, "Enter your recovery key and choose a new ", storedAuthType === "pin" ? "PIN" : "password", ". Your data will be preserved."),
-        React.createElement("div", { className: "form-group" },
-          React.createElement("label", { className: "form-label", htmlFor: "recovery-key-input" }, "Recovery Key"),
-          React.createElement("input", { id: "recovery-key-input", className: "lock-input", placeholder: "XXXX-XXXX-XXXX-XXXX", value: recoveryInput, onChange: e => { setRecoveryInput(e.target.value.toUpperCase()); setError(""); }, style: { textAlign: "center", letterSpacing: "0.15em", fontFamily: "monospace" }, "aria-label": "Recovery key" })
-        ),
-        storedAuthType === "password" && React.createElement("div", null,
-          React.createElement("div", { className: "lock-input-wrap" },
-            React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder: "New password (6+ chars)", value: newPassword, onChange: e => setNewPassword(e.target.value), "aria-label": "New password" }),
-            React.createElement("button", { className: "eye-btn", type: "button", onClick: () => setShowPassword(!showPassword), "aria-label": showPassword ? "Hide password" : "Show password" }, showPassword ? "👁️" : "🙈")
-          ),
-          React.createElement("div", { className: "lock-input-wrap", style: { marginTop: 8 } },
-            React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder: "Confirm new password", value: confirmNewPassword, onChange: e => setConfirmNewPassword(e.target.value), "aria-label": "Confirm new password" })
-          )
-        ),
-        storedAuthType === "pin" && React.createElement("div", null,
-          React.createElement("p", { style: { fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 } }, "Enter a new 6-digit PIN:"),
-          React.createElement("input", { className: "lock-input", type: "number", maxLength: 6, placeholder: "6-digit PIN", value: pin, onChange: e => { if (e.target.value.length <= 6) setPin(e.target.value); }, style: { textAlign: "center", letterSpacing: "0.3em" }, "aria-label": "New PIN" })
-        ),
-        React.createElement("div", { className: "lock-error", role: "alert" }, error),
-        React.createElement("button", { className: "lock-btn", onClick: handleRecoveryReset, disabled: busy, style: { marginBottom: 8 } }, busy ? "Resetting..." : "Reset & Recover Data"),
-        React.createElement("button", { className: "btn btn-ghost btn-block", onClick: () => { setMode("login"); setError(""); setRecoveryInput(""); setNewPassword(""); setConfirmNewPassword(""); setPin(""); } }, "Back to Login"),
-        React.createElement("div", { className: "lock-footer", style: { marginTop: 12 } },
-          React.createElement("p", { style: { fontSize: 12, color: "var(--text-light)" } }, "No recovery key? "),
-          React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); }, style: { color: "var(--btn-danger)", fontSize: 12 } }, "Emergency reset (deletes all data)")
-        ),
-        React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
-      )
-    );
-  }
-
-  const currentPin = (mode === "setup" && pinPhase === "confirm") ? confirmPin : pin;
-
-  /* ── PIN display dots ── */
-  function renderPinDots() {
-    return React.createElement("div", { className: "pin-display", role: "status", "aria-label": `PIN entered: ${currentPin.length} of ${PIN_LENGTH} digits` },
-      Array.from({ length: PIN_LENGTH }, (_, i) =>
-        React.createElement("div", { key: i, className: `pin-dot ${i < currentPin.length ? "filled" : ""} ${pinError ? "error-dot" : ""}`, "aria-hidden": "true" })
-      )
-    );
-  }
-
-  /* ── PIN pad ── */
-  function renderPinPad() {
-    return React.createElement("div", { className: "pin-pad", role: "group", "aria-label": "PIN keypad" },
-      [1,2,3,4,5,6,7,8,9].map(n =>
-        React.createElement("button", { key: n, className: "pin-key", onClick: () => handlePinKey(String(n)), disabled: busy || isLockedOut, "aria-label": `Digit ${n}` }, n)
-      ),
-      React.createElement("button", { className: "pin-key pin-action", onClick: handlePinBackspace, disabled: busy, "aria-label": "Backspace" }, "⌫"),
-      React.createElement("button", { className: "pin-key", onClick: () => handlePinKey("0"), disabled: busy || isLockedOut, "aria-label": "Digit 0" }, "0"),
-      React.createElement("button", { className: "pin-key pin-action", onClick: () => { setPin(""); setConfirmPin(""); setError(""); }, disabled: busy, "aria-label": "Clear PIN" }, "C")
-    );
-  }
-
-  /* ── Password input with eye ── */
-  function renderPasswordInput(value, onChange, placeholder, onEnter) {
-    return React.createElement("div", { className: "lock-input-wrap" },
-      React.createElement("input", { className: "lock-input", type: showPassword ? "text" : "password", placeholder, value, onChange: e => onChange(e.target.value), onKeyDown: e => { if (e.key === "Enter" && onEnter) onEnter(); }, autoFocus: true, style: { textAlign: "left" }, "aria-label": placeholder }),
-      React.createElement("button", { className: "eye-btn", type: "button", onClick: () => setShowPassword(!showPassword), tabIndex: -1, "aria-label": showPassword ? "Hide password" : "Show password" }, showPassword ? "👁️" : "🙈")
-    );
-  }
-
-  const setupTitle = authType === "pin"
-    ? (pinPhase === "first" ? "Choose a 6-digit PIN" : "Enter your PIN again to confirm")
-    : "Create a password";
-  const loginTitle = authType === "pin" ? "Enter your PIN" : "Enter your password";
-
-  return React.createElement("div", { className: "lock-screen", role: "main", "aria-label": mode === "setup" ? "Account setup" : "Login" },
-    React.createElement("div", { className: "lock-card" },
-      React.createElement("div", { style: { fontSize: 40, marginBottom: 12 }, "aria-hidden": "true" }, "📋"),
-      React.createElement("h1", null, "Business Quotes"),
-      React.createElement("p", { className: "subtitle", "aria-live": "polite" }, mode === "setup" ? setupTitle : loginTitle),
-
-      /* Auth type toggle (only on setup) */
-      mode === "setup" && React.createElement("div", { className: "auth-mode-toggle", role: "tablist", "aria-label": "Authentication method" },
-        React.createElement("button", { className: authType === "pin" ? "active" : "", onClick: () => { setAuthType("pin"); setError(""); setPin(""); setConfirmPin(""); setPinPhase("first"); }, role: "tab", "aria-selected": authType === "pin", "aria-label": "Use PIN" }, "🔢", " PIN"),
-        React.createElement("button", { className: authType === "password" ? "active" : "", onClick: () => { setAuthType("password"); setError(""); setPassword(""); setConfirmPassword(""); }, role: "tab", "aria-selected": authType === "password", "aria-label": "Use password" }, "🔤", " Password")
-      ),
-
-      /* PIN mode */
-      authType === "pin" && React.createElement("div", null,
-        renderPinDots(),
-        React.createElement("div", { className: "lock-error", role: "alert" }, error),
-        renderPinPad(),
-        busy && React.createElement("p", { style: { fontSize: 13, color: "var(--text-light)" }, "aria-live": "polite" }, mode === "setup" ? "Setting up..." : "Unlocking...")
-      ),
-
-      /* Password mode */
-      authType === "password" && React.createElement("div", null,
-        renderPasswordInput(password, setPassword, mode === "setup" ? "Choose a password (6+ chars)" : "Password", mode === "login" ? handlePasswordLogin : null),
-        mode === "setup" && renderPasswordInput(confirmPassword, setConfirmPassword, "Confirm password", handlePasswordSetup),
-        React.createElement("div", { className: "lock-error", role: "alert" }, error),
-        React.createElement("button", { className: "lock-btn", onClick: mode === "setup" ? handlePasswordSetup : handlePasswordLogin, disabled: isLockedOut || busy, "aria-label": mode === "setup" ? "Create account" : "Unlock" }, busy ? "Please wait..." : mode === "setup" ? "Create Account" : "Unlock")
-      ),
-
-      /* Footer */
-      mode === "login" && React.createElement("div", { className: "lock-footer" },
-        React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); setMode("recovery"); setError(""); }, "aria-label": "Reset password using recovery key" }, "Forgot? Reset Password"),
-        localStorage.getItem(STORAGE_PREFIX + "rverify") ? null : React.createElement("span", null, " | ", React.createElement("a", { href: "#", onClick: e => { e.preventDefault(); handleEmergencyReset(); }, style: { color: "var(--btn-danger)" } }, "Emergency reset"))
-      ),
-      React.createElement("p", { style: { fontSize: 11, color: "var(--text-light)", marginTop: 16 } }, `Dev Build v${APP_VERSION}`)
-    )
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   MAIN APP
-   ═══════════════════════════════════════════════════════════════ */
-
-function App() {
-  const [unlocked, setUnlocked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState("dashboard");
-  const [dyslexicMode, setDyslexicMode] = useState(false);
-  const lastActivity = useRef(Date.now());
-
-  /* State */
-  const [quotes, setQuotes] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [catalog, setCatalog] = useState([]);
-  const [settings, setSettings] = useState({
-    businessName: "", email: "", phone: "", taxNumber: "", website: "",
-    defaultCurrency: "ZAR", address: "", defaultTerms: "Payment due within 30 days.",
-    tier: "free", logo: null, letterhead: null,
-    invoiceSettings: { font: "lexend", accentColor: "#3b6b8a", logoPosition: "left", fontSize: 14, showBorder: true }
-  });
-
-  const [editingQuote, setEditingQuote] = useState(null);
-  const [editingClient, setEditingClient] = useState(null);
-  const [editingCatalogItem, setEditingCatalogItem] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showWalkthrough, setShowWalkthrough] = useState(false);
-  const [screenReaderMode, setScreenReaderMode] = useState(() => localStorage.getItem("bqd_srmode") === "true");
-
-  const tier = DEV_ALL_ACCESS ? TIERS.unlimited : (TIERS[settings.tier] || TIERS.free);
-
-  /* Auto-lock */
-  useEffect(() => {
-    if (!unlocked) return;
-    function resetTimer() { lastActivity.current = Date.now(); }
-    const events = ["mousedown","keydown","touchstart","scroll"];
-    events.forEach(e => window.addEventListener(e, resetTimer));
-    const interval = setInterval(() => {
-      if (Date.now() - lastActivity.current > LOCK_TIMEOUT) {
-        clearSessionKey();
-        setUnlocked(false);
-      }
-    }, 10000);
-    return () => {
-      events.forEach(e => window.removeEventListener(e, resetTimer));
-      clearInterval(interval);
-    };
-  }, [unlocked]);
-
-  /* Dyslexic mode toggle */
-  useEffect(() => {
-    document.body.classList.toggle("dyslexic-mode", dyslexicMode);
-  }, [dyslexicMode]);
-
-  /* Screen reader mode toggle */
-  useEffect(() => {
-    document.body.classList.toggle("screen-reader-mode", screenReaderMode);
-  }, [screenReaderMode]);
-
-  function toggleScreenReaderMode() {
-    const next = !screenReaderMode;
-    setScreenReaderMode(next);
-    localStorage.setItem("bqd_srmode", String(next));
-    announce(next ? "Screen reader mode enabled. Enhanced focus indicators and labels are now active." : "Screen reader mode disabled.", "assertive");
-  }
-
-  /* Load data on unlock */
-  useEffect(() => {
-    if (!unlocked) return;
-    (async () => {
-      const [q,cl,cat,s,dm,wtDone] = await Promise.all([
-        loadFromStorage("quotes",[]),
-        loadFromStorage("clients",[]),
-        loadFromStorage("catalog",[]),
-        loadFromStorage("settings",null),
-        loadFromStorage("dyslexicMode",false),
-        loadFromStorage("walkthroughDone",false)
-      ]);
-      setQuotes(q); setClients(cl); setCatalog(cat);
-      if (s) setSettings(prev => ({ ...prev, ...s }));
-      setDyslexicMode(dm);
-      if (!wtDone) setShowWalkthrough(true);
-      setLoading(false);
-    })();
-  }, [unlocked]);
-
-  const saveQuotes = useCallback(async d => { setQuotes(d); await saveToStorage("quotes",d); }, []);
-  const saveClients = useCallback(async d => { setClients(d); await saveToStorage("clients",d); }, []);
-  const saveCatalog = useCallback(async d => { setCatalog(d); await saveToStorage("catalog",d); }, []);
-  const saveSettings = useCallback(async d => { setSettings(d); await saveToStorage("settings",d); }, []);
-
-  async function toggleDyslexicMode() {
-    const next = !dyslexicMode;
-    setDyslexicMode(next);
-    await saveToStorage("dyslexicMode", next);
-  }
-
-  async function dismissWalkthrough() {
-    setShowWalkthrough(false);
-    await saveToStorage("walkthroughDone", true);
-  }
-
-  const currentMonth = getCurrentMonth();
-  const quotesThisMonth = useMemo(() => quotes.filter(q => q.createdAt?.startsWith(currentMonth)).length, [quotes, currentMonth]);
-  const canCreateQuote = tier.quotesPerMonth === Infinity || quotesThisMonth < tier.quotesPerMonth;
-  const canAddClient = tier.maxClients === Infinity || clients.length < tier.maxClients;
-  const canAddCatalog = tier.maxCatalog === Infinity || catalog.length < tier.maxCatalog;
-
-  function getUpgradeUrl() { if (settings.tier==="free") return PAY_URLS.starter; if (settings.tier==="starter") return PAY_URLS.pro; if (settings.tier==="pro") return PAY_URLS.unlimited; return null; }
-  function getNextTierName() { if (settings.tier==="free") return "Starter"; if (settings.tier==="starter") return "Pro"; if (settings.tier==="pro") return "Unlimited"; return null; }
-
-  function calcQuoteTotals(quote) {
-    const lineItems = quote.lineItems || [];
-    const subtotal = lineItems.reduce((s,i) => s + (Number(i.quantity)||0)*(Number(i.unitPrice)||0), 0);
-    const discountPercent = Number(quote.discountPercent)||0;
-    const discountAmount = subtotal * (discountPercent/100);
-    const afterDiscount = subtotal - discountAmount;
-    const taxPercent = Number(quote.taxPercent)||0;
-    const taxAmount = afterDiscount * (taxPercent/100);
-    const total = afterDiscount + taxAmount;
-    return { ...quote, subtotal, discountAmount, taxAmount, total };
-  }
-
-  function makeNewQuote() {
-    return { id: generateId(), title: "", quoteNumber: "", clientId: "", clientName: "", clientCompany: "", clientWebsite: "", status: "Draft", currency: "", taxPercent: 0, discountPercent: 0, validityDays: 30, notes: "", lineItems: [{ id: generateId(), description: "", quantity: 1, unitPrice: 0 }], subtotal: 0, discountAmount: 0, taxAmount: 0, total: 0, signature: null, createdAt: new Date().toISOString() };
-  }
-
-  if (!unlocked) return React.createElement(LockScreen, { onUnlock: () => setUnlocked(true) });
-  if (loading) return React.createElement("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "var(--text-secondary)", fontSize: 15 } }, "Decrypting your data...");
-
-  return React.createElement("div", null,
-    /* Header */
-    React.createElement("header", { className: "app-header", role: "banner" },
-      React.createElement("div", { style: { display: "flex", alignItems: "center" } },
-        React.createElement("h1", null, "Business Quotes"),
-        DEV_ALL_ACCESS
-          ? React.createElement("span", { className: "header-tier", style: { background: "#16a34a", color: "white" }, "aria-label": "All Access tier" }, "✦ All Access")
-          : React.createElement("span", { className: "header-tier", style: { background: `var(--${tier.color})`, color: `var(--${tier.color}-text)` }, "aria-label": `${tier.name} tier` }, tier.name)
-      ),
-      React.createElement("div", { className: "header-actions" },
-        React.createElement("button", { className: "lock-icon-btn", onClick: toggleScreenReaderMode, title: "Toggle screen reader mode", "aria-label": screenReaderMode ? "Disable screen reader mode" : "Enable screen reader mode", "aria-pressed": screenReaderMode, style: screenReaderMode ? { background: "var(--btn-primary)", color: "white", borderColor: "var(--btn-primary)" } : {} }, "♿"),
-        React.createElement("button", { className: "lock-icon-btn", onClick: toggleDyslexicMode, title: "Toggle dyslexia-friendly mode", "aria-label": dyslexicMode ? "Switch to standard font" : "Switch to dyslexia-friendly font", "aria-pressed": dyslexicMode }, dyslexicMode ? "Aa" : "Dy"),
-        React.createElement("button", { className: "lock-icon-btn", onClick: () => { clearSessionKey(); setUnlocked(false); announce("App locked", "assertive"); }, title: "Lock", "aria-label": "Lock the app" }, "🔒")
-      )
-    ),
-
-    /* Nav */
-    React.createElement("nav", { className: "nav-bar", role: "navigation", "aria-label": "Main navigation" },
-      [
-        { id: "dashboard", icon: "📊", label: "Home" },
-        { id: "quotes", icon: "📋", label: "Quotes" },
-        { id: "clients", icon: "👥", label: "Clients" },
-        { id: "catalog", icon: "📦", label: "Catalog" },
-        { id: "settings", icon: "⚙️", label: "Settings" }
-      ].map(p => React.createElement("button", {
-        key: p.id, className: page === p.id ? "active" : "",
-        onClick: () => { setPage(p.id); setEditingQuote(null); setEditingClient(null); setEditingCatalogItem(null); setSearchTerm(""); announce(`Navigated to ${p.label}`, "polite"); },
-        "aria-label": `${p.label}${page === p.id ? " (current page)" : ""}`,
-        "aria-current": page === p.id ? "page" : undefined
-      },
-        React.createElement("span", { className: "nav-icon", "aria-hidden": "true" }, p.icon),
-        p.label
-      ))
-    ),
-
-    /* Page content */
-    React.createElement("main", { className: "page-container", role: "main", "aria-label": `${page.charAt(0).toUpperCase() + page.slice(1)} page` },
-      page === "dashboard" && React.createElement(Dashboard, { quotes, quotesThisMonth, tier, clients, catalog, settings, canCreateQuote, currentMonth, onNewQuote: () => { setPage("quotes"); setEditingQuote(makeNewQuote()); }, upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() }),
-
-      page === "quotes" && (editingQuote
-        ? React.createElement(QuoteEditor, { quote: editingQuote, setQuote: setEditingQuote, tier, settings, clients, catalog, onSave: async q => { const c = calcQuoteTotals(q); const i = quotes.findIndex(x => x.id === c.id); await saveQuotes(i >= 0 ? quotes.map(x => x.id===c.id?c:x) : [c,...quotes]); setEditingQuote(null); }, onCancel: () => setEditingQuote(null), onDelete: async id => { await saveQuotes(quotes.filter(q => q.id !== id)); setEditingQuote(null); }, onSign: async q => { setEditingQuote({ ...q, signature: await generateSignature(q, settings.businessName) }); }, onExportCsv: q => exportQuoteCsv(calcQuoteTotals(q), settings.businessName, q.currency||settings.defaultCurrency), onPrint: q => printQuote(calcQuoteTotals(q), settings, q.currency||settings.defaultCurrency), onDuplicate: q => setEditingQuote({ ...calcQuoteTotals(q), id: generateId(), quoteNumber: "", signature: null, createdAt: new Date().toISOString(), status: "Draft" }), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
-        : React.createElement(QuoteList, { quotes, searchTerm, setSearchTerm, canCreateQuote, tier, settings, onNew: () => setEditingQuote(makeNewQuote()), onEdit: q => setEditingQuote({...q}), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
-      ),
-
-      page === "clients" && (editingClient
-        ? React.createElement(ClientEditor, { client: editingClient, setClient: setEditingClient, tier, onSave: async c => { const i = clients.findIndex(x => x.id===c.id); await saveClients(i>=0?clients.map(x => x.id===c.id?c:x):[c,...clients]); setEditingClient(null); }, onCancel: () => setEditingClient(null), onDelete: async id => { await saveClients(clients.filter(c => c.id!==id)); setEditingClient(null); }, upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
-        : React.createElement(ClientList, { clients, searchTerm, setSearchTerm, canAddClient, tier, onNew: () => setEditingClient({ id: generateId(), name: "", company: "", email: "", phone: "", website: "", address: "", notes: "" }), onEdit: c => setEditingClient({...c}), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
-      ),
-
-      page === "catalog" && (editingCatalogItem
-        ? React.createElement(CatalogEditor, { item: editingCatalogItem, setItem: setEditingCatalogItem, onSave: async item => { const i = catalog.findIndex(x => x.id===item.id); await saveCatalog(i>=0?catalog.map(x => x.id===item.id?item:x):[item,...catalog]); setEditingCatalogItem(null); }, onCancel: () => setEditingCatalogItem(null), onDelete: async id => { await saveCatalog(catalog.filter(i => i.id!==id)); setEditingCatalogItem(null); } })
-        : React.createElement(CatalogList, { catalog, searchTerm, setSearchTerm, canAddCatalog, tier, settings, onNew: () => setEditingCatalogItem({ id: generateId(), name: "", category: "", description: "", defaultPrice: "", pricingUnit: "each" }), onEdit: item => setEditingCatalogItem({...item}), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName() })
-      ),
-
-      page === "settings" && React.createElement(SettingsPage, { settings, saveSettings, tier, onDeleteAll: () => setShowDeleteConfirm(true), upgradeUrl: getUpgradeUrl(), nextTierName: getNextTierName(), onReplayWalkthrough: async () => { await saveToStorage("walkthroughDone", false); setShowWalkthrough(true); } })
-    ),
-
-    showDeleteConfirm && React.createElement("div", { className: "modal-overlay", onClick: () => setShowDeleteConfirm(false) },
-      React.createElement("div", { className: "modal-content", onClick: e => e.stopPropagation() },
-        React.createElement("h2", { className: "modal-title", style: { color: "var(--btn-danger)" } }, "Delete All Data?"),
-        React.createElement("p", { style: { fontSize: 15, marginBottom: 20, lineHeight: 1.7 } }, "This will permanently erase everything — all quotes, clients, catalog, and settings. This cannot be undone."),
-        React.createElement("div", { style: { display: "flex", gap: 10 } },
-          React.createElement("button", { className: "btn btn-outline", style: { flex: 1 }, onClick: () => setShowDeleteConfirm(false) }, "Cancel"),
-          React.createElement("button", { className: "btn btn-danger", style: { flex: 1 }, onClick: () => { clearAllStorage(); window.location.reload(); } }, "Delete Everything")
-        )
-      )
-    ),
-
-    showWalkthrough && React.createElement(Walkthrough, {
-      onDone: dismissWalkthrough,
-      onNavigate: (p) => { setPage(p); },
-      tierName: tier.name
-    })
-  );
-}
-
-/* ════ DASHBOARD ════ */
-function Dashboard({ quotes, quotesThisMonth, tier, clients, catalog, settings, canCreateQuote, currentMonth, onNewQuote, upgradeUrl, nextTierName }) {
-  const accepted = quotes.filter(q => q.createdAt?.startsWith(currentMonth) && q.status==="Accepted");
-  const revenue = accepted.reduce((s,q) => s+(q.total||0), 0);
-  const sentOrLater = quotes.filter(q => q.createdAt?.startsWith(currentMonth) && q.status!=="Draft");
-  const winRate = sentOrLater.length > 0 ? Math.round((accepted.length/sentOrLater.length)*100) : 0;
-  const pending = quotes.filter(q => q.status==="Sent").length;
-  const qLimit = tier.quotesPerMonth === Infinity ? "∞" : tier.quotesPerMonth;
-  const qUsage = tier.quotesPerMonth === Infinity ? 0 : (quotesThisMonth/tier.quotesPerMonth)*100;
-  function meterColor(p) { return p>=90?"var(--btn-danger)":p>=70?"#b8860b":"var(--btn-primary)"; }
-
-  return React.createElement("div", null,
-    !canCreateQuote && React.createElement("div", { className: "upgrade-banner" },
-      React.createElement("p", null, `You've used all ${tier.quotesPerMonth} quotes this month`),
-      upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", rel: "noopener", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)
-    ),
-    React.createElement("div", { className: "stats-grid" },
-      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Quotes This Month"), React.createElement("div", { className: "stat-value" }, `${quotesThisMonth}/${qLimit}`), tier.quotesPerMonth !== Infinity && React.createElement("div", { className: "usage-meter" }, React.createElement("div", { className: "usage-meter-fill", style: { width: `${Math.min(qUsage,100)}%`, background: meterColor(qUsage) } }))),
-      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Pending"), React.createElement("div", { className: "stat-value" }, pending)),
-      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Revenue"), React.createElement("div", { className: "stat-value", style: { fontSize: 20 } }, formatCurrency(revenue, settings.defaultCurrency))),
-      React.createElement("div", { className: "stat-card" }, React.createElement("div", { className: "stat-label" }, "Win Rate"), React.createElement("div", { className: "stat-value" }, `${winRate}%`))
-    ),
-    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canCreateQuote, onClick: onNewQuote, style: { marginBottom: 20, padding: "14px" } }, canCreateQuote ? "＋  Create New Quote" : `Quote limit reached (${tier.quotesPerMonth}/mo)`),
-    React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📋"), "Recent Quotes"),
-    quotes.slice(0,5).map(q => React.createElement("div", { key: q.id, className: "quote-list-item" },
-      React.createElement("div", { className: "quote-item-left" }, React.createElement("div", { className: "quote-item-title" }, sanitize(q.title||"Untitled"), q.signature && React.createElement("span", { className: "signed-badge" }, "✓")), React.createElement("div", { className: "quote-item-sub" }, [sanitize(q.clientName||"No client"), q.quoteNumber?sanitize(q.quoteNumber):null, new Date(q.createdAt).toLocaleDateString()].filter(Boolean).join(" · "))),
-      React.createElement("div", { className: "quote-item-right" }, React.createElement("div", { className: "quote-item-amount" }, formatCurrency(q.total||0, q.currency||settings.defaultCurrency)), React.createElement("span", { className: `status-badge status-${q.status.toLowerCase()}` }, q.status))
-    )),
-    quotes.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "📋"), React.createElement("p", null, "No quotes yet — create your first one above"))
-  );
-}
-
-/* ════ QUOTE LIST ════ */
-function QuoteList({ quotes, searchTerm, setSearchTerm, canCreateQuote, tier, settings, onNew, onEdit, upgradeUrl, nextTierName }) {
-  const filtered = quotes.filter(q => { const s = searchTerm.toLowerCase(); return !s || (q.title||"").toLowerCase().includes(s) || (q.clientName||"").toLowerCase().includes(s) || (q.quoteNumber||"").toLowerCase().includes(s); });
-  return React.createElement("div", null,
-    !canCreateQuote && React.createElement("div", { className: "upgrade-banner" }, React.createElement("p", null, `Monthly quote limit reached (${tier.quotesPerMonth})`), upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)),
-    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canCreateQuote, onClick: onNew, style: { marginBottom: 14 } }, canCreateQuote ? "＋  New Quote" : "Limit reached"),
-    React.createElement("input", { className: "search-input", placeholder: "Search by title, client, or number...", value: searchTerm, onChange: e => setSearchTerm(e.target.value) }),
-    filtered.map(q => React.createElement("div", { key: q.id, className: "quote-list-item", onClick: () => onEdit(q) },
-      React.createElement("div", { className: "quote-item-left" }, React.createElement("div", { className: "quote-item-title" }, sanitize(q.title||"Untitled"), q.signature && React.createElement("span", { className: "signed-badge" }, "✓")), React.createElement("div", { className: "quote-item-sub" }, [sanitize(q.clientName||""), q.quoteNumber?sanitize(q.quoteNumber):null, new Date(q.createdAt).toLocaleDateString()].filter(Boolean).join(" · "))),
-      React.createElement("div", { className: "quote-item-right" }, React.createElement("div", { className: "quote-item-amount" }, formatCurrency(q.total||0, q.currency||settings.defaultCurrency)), React.createElement("span", { className: `status-badge status-${q.status.toLowerCase()}` }, q.status))
-    )),
-    filtered.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "🔍"), React.createElement("p", null, searchTerm ? "No quotes match" : "No quotes yet"))
-  );
-}
-
-/* ════ SIGNATURE PAD (Canvas) ════ */
-function SignaturePad({ onSave, onCancel, existingSignature }) {
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [hasDrawn, setHasDrawn] = useState(false);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = 180;
-    ctx.strokeStyle = "#2d3748";
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    /* Draw a subtle guide line */
-    ctx.save();
-    ctx.strokeStyle = "#e8e2da";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    ctx.moveTo(20, 140);
-    ctx.lineTo(canvas.width - 20, 140);
-    ctx.stroke();
-    ctx.restore();
-  }, []);
-
-  function getPos(e) {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    if (e.touches) {
-      return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
-    }
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-  }
-
-  function startDraw(e) {
-    e.preventDefault();
-    const ctx = canvasRef.current.getContext("2d");
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    setIsDrawing(true);
-  }
-
-  function draw(e) {
-    if (!isDrawing) return;
-    e.preventDefault();
-    const ctx = canvasRef.current.getContext("2d");
-    const pos = getPos(e);
-    ctx.strokeStyle = "#2d3748";
-    ctx.lineWidth = 2.5;
-    ctx.setLineDash([]);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    setHasDrawn(true);
-  }
-
-  function endDraw() { setIsDrawing(false); }
-
-  function clearCanvas() {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    /* Redraw guide line */
-    ctx.save();
-    ctx.strokeStyle = "#e8e2da";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    ctx.moveTo(20, 140);
-    ctx.lineTo(canvas.width - 20, 140);
-    ctx.stroke();
-    ctx.restore();
-    setHasDrawn(false);
-  }
-
-  function saveSignature() {
-    if (!hasDrawn) return;
-    const dataUrl = canvasRef.current.toDataURL("image/png");
-    onSave(dataUrl);
-    announce("Signature saved.", "polite");
-  }
-
-  return React.createElement("div", { role: "region", "aria-label": "Signature pad" },
-    React.createElement("p", { style: { fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 } }, "Draw your signature below:"),
-    React.createElement("div", { className: "signature-canvas-wrap" },
-      React.createElement("canvas", {
-        ref: canvasRef,
-        onMouseDown: startDraw,
-        onMouseMove: draw,
-        onMouseUp: endDraw,
-        onMouseLeave: endDraw,
-        onTouchStart: startDraw,
-        onTouchMove: draw,
-        onTouchEnd: endDraw,
-        "aria-label": "Signature drawing area. Use mouse or touch to draw your signature.",
-        role: "img"
-      })
-    ),
-    React.createElement("div", { className: "signature-canvas-actions" },
-      React.createElement("button", { className: "btn btn-dark btn-sm", onClick: saveSignature, disabled: !hasDrawn, "aria-label": "Save signature" }, "Save Signature"),
-      React.createElement("button", { className: "btn btn-outline btn-sm", onClick: clearCanvas, "aria-label": "Clear signature" }, "Clear"),
-      React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: onCancel, "aria-label": "Cancel signature" }, "Cancel")
-    ),
-    existingSignature && React.createElement("div", { className: "signature-preview" },
-      React.createElement("p", { style: { fontSize: 12, color: "var(--text-light)", marginBottom: 4 } }, "Current signature:"),
-      React.createElement("img", { src: existingSignature, alt: "Saved handwritten signature", style: { maxHeight: 60 } })
-    )
-  );
-}
-
-/* ════ QUOTE EDITOR ════ */
-function QuoteEditor({ quote, setQuote, tier, settings, clients, catalog, onSave, onCancel, onDelete, onSign, onExportCsv, onPrint, onDuplicate, upgradeUrl, nextTierName }) {
-  const currency = quote.currency || settings.defaultCurrency;
-  const items = quote.lineItems || [];
-  const subtotal = items.reduce((s,i) => s+(Number(i.quantity)||0)*(Number(i.unitPrice)||0), 0);
-  const dp = Number(quote.discountPercent)||0;
-  const da = subtotal*(dp/100);
-  const ad = subtotal-da;
-  const tp = Number(quote.taxPercent)||0;
-  const ta = ad*(tp/100);
-  const total = ad+ta;
-
-  function u(f,v) { setQuote({...quote,[f]:v}); }
-  function ul(id,f,v) { setQuote({...quote, lineItems: items.map(i => i.id===id?{...i,[f]:v}:i)}); }
-  function addLine() { setQuote({...quote, lineItems: [...items, {id:generateId(), description:"", quantity:1, unitPrice:0}]}); }
-  function rmLine(id) { if (items.length<=1) return; setQuote({...quote, lineItems: items.filter(i => i.id!==id)}); }
-  function addFromCatalog(item) { setQuote({...quote, lineItems: [...items, {id:generateId(), description: item.name+(item.description?` — ${item.description}`:""), quantity:1, unitPrice: Number(item.defaultPrice)||0}]}); }
-  function selectClient(cid) { const c = clients.find(x => x.id===cid); if (c) u("clientId",c.id), setQuote(prev => ({...prev, clientId:c.id, clientName:c.name, clientCompany:c.company||"", clientWebsite:c.website||""})); }
-
-  const [showSignaturePad, setShowSignaturePad] = useState(false);
-
-  function handleSaveQuote() {
-    onSave({...quote, subtotal, discountAmount:da, taxAmount:ta, total});
-    announce("Quote saved.", "polite");
-  }
-
-  function handleSaveHandwrittenSignature(dataUrl) {
-    setQuote({...quote, handwrittenSignature: dataUrl, handwrittenSignedAt: new Date().toISOString()});
-    setShowSignaturePad(false);
-    announce("Handwritten signature saved.", "polite");
-  }
-
-  function buildEmailBody(q) {
-    const c = q.currency || settings.defaultCurrency;
-    let body = `Quote: ${q.title || "Untitled"}\n`;
-    if (q.quoteNumber) body += `Quote #: ${q.quoteNumber}\n`;
-    body += `Date: ${new Date(q.createdAt).toLocaleDateString()}\n`;
-    body += `Status: ${q.status}\n\n`;
-    body += "--- Line Items ---\n";
-    (q.lineItems || []).forEach(i => {
-      body += `${i.description}: ${i.quantity} x ${formatCurrency(i.unitPrice, c)} = ${formatCurrency(i.quantity * i.unitPrice, c)}\n`;
-    });
-    body += `\nSubtotal: ${formatCurrency(subtotal, c)}\n`;
-    if (dp > 0) body += `Discount (${dp}%): -${formatCurrency(da, c)}\n`;
-    if (tp > 0) body += `Tax (${tp}%): ${formatCurrency(ta, c)}\n`;
-    body += `Grand Total: ${formatCurrency(total, c)}\n`;
-    if (q.notes) body += `\nNotes: ${q.notes}\n`;
-    body += `\n---\n${settings.businessName || "Business Quotes App"}\n${settings.email || ""}\n${settings.phone || ""}`;
-    return body;
-  }
-
-  function emailQuote() {
-    const client = clients.find(c => c.id === quote.clientId);
-    const to = client?.email || "";
-    const subject = encodeURIComponent(`Quote: ${quote.title || "Untitled"}${quote.quoteNumber ? ` (#${quote.quoteNumber})` : ""}`);
-    const body = encodeURIComponent(buildEmailBody(quote));
-    window.open(`mailto:${to}?subject=${subject}&body=${body}`, "_self");
-    announce("Opening email client.", "polite");
-  }
-
-  /* Save bar (reusable for top and bottom) */
-  function renderSaveBar() {
-    return React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
-      React.createElement("button", { className: "btn btn-ghost", onClick: onCancel, "aria-label": "Go back to quote list" }, "← Back"),
-      React.createElement("div", { style: { display: "flex", gap: 8 } },
-        React.createElement("button", { className: "btn btn-dark btn-sm", onClick: handleSaveQuote, "aria-label": "Save quote" }, "Save"),
-        React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete this quote?")) onDelete(quote.id); }, "aria-label": "Delete quote" }, "Delete")
-      )
-    );
-  }
-
-  return React.createElement("div", { role: "form", "aria-label": "Quote editor" },
-    renderSaveBar(),
-    React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📝"), "Quote Details"),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Title"), React.createElement("input", { className: "form-input", value: quote.title, onChange: e => u("title",e.target.value), placeholder: "e.g. Website Redesign" })),
-      React.createElement("div", { className: "form-row" },
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Quote Number"), React.createElement("input", { className: "form-input", value: quote.quoteNumber, onChange: e => u("quoteNumber",e.target.value), placeholder: "e.g. QT-001" })),
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Status"), React.createElement("select", { className: "form-select", value: quote.status, onChange: e => u("status",e.target.value) }, STATUSES.map(s => React.createElement("option", { key: s, value: s }, s))))
-      ),
-      React.createElement("div", { className: "form-row" },
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Client"), React.createElement("select", { className: "form-select", value: quote.clientId||"", onChange: e => selectClient(e.target.value) }, React.createElement("option", { value: "" }, "Select client..."), clients.map(c => React.createElement("option", { key: c.id, value: c.id }, c.name+(c.company?` (${c.company})`:"")  )))),
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Currency"), React.createElement("select", { className: "form-select", value: currency, onChange: e => u("currency",e.target.value) }, CURRENCIES.map(c => React.createElement("option", { key: c.code, value: c.code }, `${c.code} (${c.symbol})`))))
-      ),
-      React.createElement("div", { className: "form-row-3" },
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Tax %"), React.createElement("input", { className: "form-input", type: "number", min: 0, step: 0.5, value: quote.taxPercent, onChange: e => u("taxPercent",e.target.value) })),
-        tier.discounts ? React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Discount %"), React.createElement("input", { className: "form-input", type: "number", min: 0, max: 100, step: 0.5, value: quote.discountPercent||0, onChange: e => u("discountPercent",e.target.value) })) : React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Discount %"), React.createElement("p", { className: "locked-feature" }, React.createElement("a", { href: upgradeUrl, target: "_blank" }, `${nextTierName}`))),
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Valid (days)"), React.createElement("input", { className: "form-input", type: "number", min: 1, value: quote.validityDays||30, onChange: e => u("validityDays",e.target.value) }))
-      )
-    ),
-    React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📦"), "Line Items"),
-      React.createElement("div", { style: { overflowX: "auto" } },
-        React.createElement("div", { style: { minWidth: 520 } },
-          React.createElement("div", { className: "line-item-row", style: { fontSize: 12, fontWeight: 600, color: "var(--text-light)" } }, React.createElement("span",null,"Description"), React.createElement("span",null,"Qty"), React.createElement("span",null,"Unit Price"), React.createElement("span",null,"Total"), React.createElement("span",null,"")),
-          items.map(item => React.createElement("div", { key: item.id, className: "line-item-row" },
-            React.createElement("input", { className: "form-input", value: item.description, onChange: e => ul(item.id,"description",e.target.value), placeholder: "Item description" }),
-            React.createElement("input", { className: "form-input", type: "number", min: 0, value: item.quantity, onChange: e => ul(item.id,"quantity",e.target.value) }),
-            React.createElement("input", { className: "form-input", type: "number", min: 0, step: 0.01, value: item.unitPrice, onChange: e => ul(item.id,"unitPrice",e.target.value) }),
-            React.createElement("span", { style: { fontSize: 14, fontWeight: 600, textAlign: "right" } }, formatCurrency((Number(item.quantity)||0)*(Number(item.unitPrice)||0), currency)),
-            React.createElement("button", { className: "btn-ghost", onClick: () => rmLine(item.id), disabled: items.length<=1 }, "✕")
-          ))
-        )
-      ),
-      React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 12 } },
-        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: addLine }, "＋ Add Line"),
-        catalog.length > 0 && React.createElement("select", { className: "form-select", style: { width: "auto", fontSize: 13, padding: "8px 12px" }, value: "", onChange: e => { const it = catalog.find(i => i.id===e.target.value); if (it) addFromCatalog(it); } }, React.createElement("option", { value: "" }, "＋ From Catalog"), catalog.map(i => React.createElement("option", { key: i.id, value: i.id }, `${i.name} — ${formatCurrency(i.defaultPrice, currency)}`)))
-      ),
-      React.createElement("div", { className: "totals-section" },
-        React.createElement("div", { className: "totals-row" }, React.createElement("span",null,"Subtotal"), React.createElement("span",null,formatCurrency(subtotal,currency))),
-        dp > 0 && React.createElement("div", { className: "totals-row", style: { color: "var(--btn-danger)" } }, React.createElement("span",null,`Discount (${dp}%)`), React.createElement("span",null,`-${formatCurrency(da,currency)}`)),
-        tp > 0 && React.createElement("div", { className: "totals-row" }, React.createElement("span",null,`Tax (${tp}%)`), React.createElement("span",null,formatCurrency(ta,currency))),
-        React.createElement("div", { className: "totals-row grand" }, React.createElement("span",null,"Grand Total"), React.createElement("span",null,formatCurrency(total,currency)))
-      )
-    ),
-    React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Notes / Terms"), React.createElement("textarea", { className: "form-textarea", rows: 3, value: quote.notes||"", onChange: e => u("notes",e.target.value), placeholder: settings.defaultTerms }))
-    ),
-    React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon", "aria-hidden": "true" }, "📤"), "Actions"),
-      React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
-        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onExportCsv({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": "Export quote as CSV" }, "Export CSV"),
-        tier.printPdf ? React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onPrint({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": "Print or save as PDF" }, "Print / PDF") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Print (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
-        tier.duplicateQuote ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onDuplicate({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": "Duplicate this quote" }, "Duplicate") : React.createElement("button", { className: "btn btn-outline btn-sm", disabled: true }, "Duplicate (", React.createElement("a", { href: upgradeUrl, target: "_blank", style: { color: "var(--btn-accent)", textDecoration: "none" } }, nextTierName), ")"),
-        tier.signatures ? React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => onSign({...quote,subtotal,discountAmount:da,taxAmount:ta,total}), "aria-label": quote.signature ? "Re-sign with SHA-256" : "Sign with SHA-256" }, quote.signature ? "Re-sign" : "Sign SHA-256") : React.createElement("span", { className: "locked-feature", style: { padding: "8px 0" } }, "Signatures — ", React.createElement("a", { href: PAY_URLS.pro, target: "_blank" }, "Pro")),
-        React.createElement("button", { className: "btn btn-primary btn-sm", onClick: emailQuote, "aria-label": "Email this quote to client" }, "✉ Email to Client")
-      ),
-      quote.signature && React.createElement("div", { className: "signature-box", role: "region", "aria-label": "SHA-256 digital signature" }, quote.signature)
-    ),
-
-    /* ── Handwritten Signature Card ── */
-    React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon", "aria-hidden": "true" }, "✍️"), "Handwritten Signature"),
-      quote.handwrittenSignature && !showSignaturePad && React.createElement("div", { className: "signature-preview", style: { marginBottom: 12 } },
-        React.createElement("img", { src: quote.handwrittenSignature, alt: "Saved handwritten signature" }),
-        React.createElement("p", { style: { fontSize: 12, color: "var(--text-light)", marginTop: 4 } }, "Signed: ", new Date(quote.handwrittenSignedAt).toLocaleString())
-      ),
-      showSignaturePad
-        ? React.createElement(SignaturePad, { onSave: handleSaveHandwrittenSignature, onCancel: () => setShowSignaturePad(false), existingSignature: quote.handwrittenSignature })
-        : React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => setShowSignaturePad(true), "aria-label": quote.handwrittenSignature ? "Re-sign with handwritten signature" : "Add handwritten signature" }, quote.handwrittenSignature ? "Re-sign" : "Add Signature")
-    ),
-
-    /* ── Bottom Save Bar ── */
-    renderSaveBar()
-  );
-}
-
-/* ════ CLIENT LIST ════ */
-function ClientList({ clients, searchTerm, setSearchTerm, canAddClient, tier, onNew, onEdit, upgradeUrl, nextTierName }) {
-  const filtered = clients.filter(c => { const s = searchTerm.toLowerCase(); return !s || (c.name||"").toLowerCase().includes(s) || (c.company||"").toLowerCase().includes(s); });
-  return React.createElement("div", null,
-    !canAddClient && React.createElement("div", { className: "upgrade-banner" }, React.createElement("p", null, `Client limit reached (${tier.maxClients})`), upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)),
-    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canAddClient, onClick: onNew, style: { marginBottom: 14 } }, canAddClient ? "＋  New Client" : "Limit reached"),
-    React.createElement("input", { className: "search-input", placeholder: "Search clients...", value: searchTerm, onChange: e => setSearchTerm(e.target.value) }),
-    filtered.map(c => React.createElement("div", { key: c.id, className: "client-item", onClick: () => onEdit(c) }, React.createElement("div", { className: "client-item-name" }, sanitize(c.name)), React.createElement("div", { className: "client-item-detail" }, [c.company,c.email,c.phone].filter(Boolean).map(sanitize).join(" · ") || "No details"))),
-    filtered.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "👥"), React.createElement("p", null, searchTerm ? "No match" : "No clients yet"))
-  );
-}
-
-/* ════ CLIENT EDITOR ════ */
-function ClientEditor({ client, setClient, tier, onSave, onCancel, onDelete, upgradeUrl, nextTierName }) {
-  function u(f,v) { setClient({...client,[f]:v}); }
-  return React.createElement("div", null,
-    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 16 } }, React.createElement("button", { className: "btn btn-ghost", onClick: onCancel }, "← Back"), React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onSave(client) }, "Save"), React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete?")) onDelete(client.id); } }, "Delete"))),
-    React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "👤"), "Client Details"),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Name"), React.createElement("input", { className: "form-input", value: client.name, onChange: e => u("name",e.target.value) })),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Company"), React.createElement("input", { className: "form-input", value: client.company||"", onChange: e => u("company",e.target.value) })),
-      React.createElement("div", { className: "form-row" },
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Email"), React.createElement("input", { className: "form-input", type: "email", value: client.email||"", onChange: e => u("email",e.target.value) })),
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Phone"), React.createElement("input", { className: "form-input", value: client.phone||"", onChange: e => u("phone",e.target.value) }))
-      ),
-      tier.clientWebsite ? React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Website"), React.createElement("input", { className: "form-input", value: client.website||"", onChange: e => u("website",e.target.value), placeholder: "https://..." })) : React.createElement("p", { className: "locked-feature", style: { margin: "12px 0" } }, "Client website — ", React.createElement("a", { href: upgradeUrl, target: "_blank" }, `${nextTierName}`)),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Address"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: client.address||"", onChange: e => u("address",e.target.value) })),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Notes"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: client.notes||"", onChange: e => u("notes",e.target.value) }))
-    )
-  );
-}
-
-/* ════ CATALOG LIST ════ */
-function CatalogList({ catalog, searchTerm, setSearchTerm, canAddCatalog, tier, settings, onNew, onEdit, upgradeUrl, nextTierName }) {
-  const filtered = catalog.filter(i => { const s = searchTerm.toLowerCase(); return !s || (i.name||"").toLowerCase().includes(s) || (i.category||"").toLowerCase().includes(s); });
-  return React.createElement("div", null,
-    !canAddCatalog && React.createElement("div", { className: "upgrade-banner" }, React.createElement("p", null, `Catalog limit reached (${tier.maxCatalog})`), upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent btn-sm" }, `Upgrade to ${nextTierName}`)),
-    React.createElement("button", { className: "btn btn-dark btn-block", disabled: !canAddCatalog, onClick: onNew, style: { marginBottom: 14 } }, canAddCatalog ? "＋  New Item" : "Limit reached"),
-    React.createElement("input", { className: "search-input", placeholder: "Search catalog...", value: searchTerm, onChange: e => setSearchTerm(e.target.value) }),
-    filtered.map(item => React.createElement("div", { key: item.id, className: "catalog-item", onClick: () => onEdit(item) }, React.createElement("div", { className: "catalog-item-info" }, React.createElement("div", { className: "catalog-item-name" }, sanitize(item.name)), React.createElement("div", { className: "catalog-item-detail" }, [item.category, item.pricingUnit?`per ${item.pricingUnit}`:null].filter(Boolean).join(" · "))), React.createElement("div", { style: { fontWeight: 600, fontSize: 15 } }, formatCurrency(item.defaultPrice||0, settings.defaultCurrency)))),
-    filtered.length === 0 && React.createElement("div", { className: "empty-state" }, React.createElement("div", { className: "empty-icon" }, "📦"), React.createElement("p", null, searchTerm ? "No match" : "No items yet"))
-  );
-}
-
-/* ════ CATALOG EDITOR ════ */
-function CatalogEditor({ item, setItem, onSave, onCancel, onDelete }) {
-  function u(f,v) { setItem({...item,[f]:v}); }
-  return React.createElement("div", null,
-    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 16 } }, React.createElement("button", { className: "btn btn-ghost", onClick: onCancel }, "← Back"), React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("button", { className: "btn btn-dark btn-sm", onClick: () => onSave(item) }, "Save"), React.createElement("button", { className: "btn btn-outline btn-sm", style: { color: "var(--btn-danger)" }, onClick: () => { if(confirm("Delete?")) onDelete(item.id); } }, "Delete"))),
-    React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📦"), "Catalog Item"),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Name"), React.createElement("input", { className: "form-input", value: item.name, onChange: e => u("name",e.target.value) })),
-      React.createElement("div", { className: "form-row" },
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Category"), React.createElement("input", { className: "form-input", value: item.category||"", onChange: e => u("category",e.target.value), placeholder: "e.g. Design, Plumbing" })),
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Pricing Unit"), React.createElement("select", { className: "form-select", value: item.pricingUnit||"each", onChange: e => u("pricingUnit",e.target.value) }, PRICING_UNITS.map(pu => React.createElement("option", { key: pu, value: pu }, pu))))
-      ),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Default Price"), React.createElement("input", { className: "form-input", type: "number", min: 0, step: 0.01, value: item.defaultPrice||"", onChange: e => u("defaultPrice",e.target.value) })),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Description"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: item.description||"", onChange: e => u("description",e.target.value) }))
-    )
-  );
-}
-
-/* ════ SETTINGS ════ */
-function SettingsPage({ settings, saveSettings, tier, onDeleteAll, upgradeUrl, nextTierName, onReplayWalkthrough }) {
-  const [activeTab, setActiveTab] = useState("business");
-  const [logoErr, setLogoErr] = useState("");
-  const [lhErr, setLhErr] = useState("");
-
-  function uf(f,v) { saveSettings({...settings,[f]:v}); }
-  function uInv(f,v) { saveSettings({...settings, invoiceSettings: {...(settings.invoiceSettings||{}), [f]:v}}); }
-
-  async function handleImageUpload(field, file, setErr) {
-    setErr("");
-    const v = validateImageFile(file);
-    if (!v.valid) { setErr(v.error); return; }
-    try {
-      const dataUrl = await fileToBase64(file);
-      if (file.type === "image/svg+xml") { const safe = sanitizeSvgDataUrl(dataUrl); if (!safe) { setErr("SVG contains unsafe content."); return; } uf(field, safe); }
-      else uf(field, dataUrl);
-    } catch { setErr("Failed to process image."); }
-  }
-
-  const inv = settings.invoiceSettings || {};
-
-  return React.createElement("div", null,
-    React.createElement("div", { className: "tab-group" },
-      ["business","invoice","plan","security"].map(t => React.createElement("button", { key: t, className: activeTab===t?"active":"", onClick: () => setActiveTab(t) }, t==="invoice" ? "Invoice Style" : t.charAt(0).toUpperCase()+t.slice(1)))
-    ),
-
-    /* ── BUSINESS TAB ── */
-    activeTab === "business" && React.createElement("div", { className: "card" },
-      React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🏢"), "Business Information"),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Business Name"), React.createElement("input", { className: "form-input", value: settings.businessName, onChange: e => uf("businessName",e.target.value) })),
-      React.createElement("div", { className: "form-row" },
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Email"), React.createElement("input", { className: "form-input", type: "email", value: settings.email, onChange: e => uf("email",e.target.value) })),
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Phone"), React.createElement("input", { className: "form-input", value: settings.phone, onChange: e => uf("phone",e.target.value) }))
-      ),
-      React.createElement("div", { className: "form-row" },
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Tax / VAT Number"), React.createElement("input", { className: "form-input", value: settings.taxNumber||"", onChange: e => uf("taxNumber",e.target.value) })),
-        React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Default Currency"), React.createElement("select", { className: "form-select", value: settings.defaultCurrency, onChange: e => uf("defaultCurrency",e.target.value) }, CURRENCIES.map(c => React.createElement("option", { key: c.code, value: c.code }, `${c.code} — ${c.name}`))))
-      ),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Address"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: settings.address||"", onChange: e => uf("address",e.target.value) })),
-      React.createElement("div", { className: "form-group" }, React.createElement("label", { className: "form-label" }, "Default Terms"), React.createElement("textarea", { className: "form-textarea", rows: 2, value: settings.defaultTerms||"", onChange: e => uf("defaultTerms",e.target.value) }))
-    ),
-
-    /* ── INVOICE STYLE TAB ── */
-    activeTab === "invoice" && React.createElement("div", null,
-      tier.invoiceCustom ? React.createElement("div", null,
-        /* Logo */
-        React.createElement("div", { className: "card" },
-          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🖼️"), "Logo & Letterhead"),
-          React.createElement("div", { className: "form-group" },
-            React.createElement("label", { className: "form-label" }, "Company Logo"),
-            React.createElement("p", { className: "form-hint" }, "PNG, JPEG, WebP, or SVG. Max 512KB."),
-            settings.logo && React.createElement("div", { style: { marginBottom: 10, display: "flex", alignItems: "center", gap: 12 } }, React.createElement("img", { src: settings.logo, style: { maxHeight: 60, maxWidth: 150, objectFit: "contain", border: "1px solid var(--border)", borderRadius: 8, padding: 6, background: "var(--bg)" } }), React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => uf("logo",null) }, "Remove")),
-            React.createElement("input", { type: "file", accept: "image/png,image/jpeg,image/webp,image/svg+xml", style: { fontSize: 14 }, onChange: e => { if (e.target.files[0]) handleImageUpload("logo",e.target.files[0],setLogoErr); } }),
-            logoErr && React.createElement("p", { style: { color: "var(--btn-danger)", fontSize: 13, marginTop: 4 } }, logoErr)
-          ),
-          React.createElement("div", { className: "form-group" },
-            React.createElement("label", { className: "form-label" }, "Letterhead Background"),
-            React.createElement("p", { className: "form-hint" }, "Full-page background for printed quotes."),
-            settings.letterhead && React.createElement("div", { style: { marginBottom: 10, display: "flex", alignItems: "center", gap: 12 } }, React.createElement("img", { src: settings.letterhead, style: { maxHeight: 80, maxWidth: 120, objectFit: "contain", border: "1px solid var(--border)", borderRadius: 8, padding: 6, background: "var(--bg)" } }), React.createElement("button", { className: "btn btn-outline btn-sm", onClick: () => uf("letterhead",null) }, "Remove")),
-            React.createElement("input", { type: "file", accept: "image/png,image/jpeg,image/webp,image/svg+xml", style: { fontSize: 14 }, onChange: e => { if (e.target.files[0]) handleImageUpload("letterhead",e.target.files[0],setLhErr); } }),
-            lhErr && React.createElement("p", { style: { color: "var(--btn-danger)", fontSize: 13, marginTop: 4 } }, lhErr)
-          ),
-          React.createElement("div", { className: "form-group" },
-            React.createElement("label", { className: "form-label" }, "Logo Position"),
-            React.createElement("div", { style: { display: "flex", gap: 8 } }, LOGO_POSITIONS.map(p => React.createElement("button", { key: p.id, className: `btn btn-sm ${(inv.logoPosition||"left")===p.id ? "btn-dark" : "btn-outline"}`, onClick: () => uInv("logoPosition",p.id) }, p.name)))
-          )
-        ),
-
-        /* Typography */
-        React.createElement("div", { className: "card" },
-          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🔤"), "Typography"),
-          React.createElement("div", { className: "form-group" },
-            React.createElement("label", { className: "form-label" }, "Invoice Font"),
-            React.createElement("select", { className: "form-select", value: inv.font||"lexend", onChange: e => uInv("font",e.target.value) }, INVOICE_FONTS.map(f => React.createElement("option", { key: f.id, value: f.id }, f.name)))
-          ),
-          React.createElement("div", { className: "form-group" },
-            React.createElement("label", { className: "form-label" }, `Font Size: ${inv.fontSize||14}px`),
-            React.createElement("input", { type: "range", min: 11, max: 18, value: inv.fontSize||14, onChange: e => uInv("fontSize",Number(e.target.value)), style: { width: "100%", accentColor: "var(--btn-primary)" } })
-          )
-        ),
-
-        /* Accent Color */
-        React.createElement("div", { className: "card" },
-          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🎨"), "Accent Color"),
-          React.createElement("p", { className: "form-hint", style: { marginBottom: 10 } }, "Used for headings, borders, and totals on your printed quotes."),
-          React.createElement("div", { className: "color-picker-row" },
-            INVOICE_ACCENTS.map(c => React.createElement("button", { key: c, className: `color-swatch ${(inv.accentColor||"#3b6b8a")===c ? "selected" : ""}`, style: { background: c }, onClick: () => uInv("accentColor",c) }))
-          )
-        ),
-
-        /* Layout Options */
-        React.createElement("div", { className: "card" },
-          React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "📐"), "Layout"),
-          React.createElement("div", { className: "toggle-row" },
-            React.createElement("label", null, "Show border around invoice"),
-            React.createElement("button", { className: `toggle-switch ${inv.showBorder !== false ? "on" : ""}`, onClick: () => uInv("showBorder", !(inv.showBorder !== false)) })
-          )
-        )
-      ) : React.createElement("div", { className: "card", style: { textAlign: "center", padding: 40 } },
-        React.createElement("div", { style: { fontSize: 40, marginBottom: 12, opacity: 0.4 } }, "🎨"),
-        React.createElement("p", { style: { fontSize: 15, marginBottom: 16 } }, "Invoice customisation is available from Starter"),
-        upgradeUrl && React.createElement("a", { href: upgradeUrl, target: "_blank", className: "btn btn-accent" }, `Upgrade to ${nextTierName}`)
-      )
-    ),
-
-    /* ── PLAN TAB ── */
-    activeTab === "plan" && React.createElement("div", null,
-      React.createElement("div", { className: "card", style: { textAlign: "center", padding: 40 } },
-        React.createElement("div", { style: { fontSize: 48, marginBottom: 12 } }, "✦"),
-        React.createElement("h2", { style: { fontSize: 20, fontWeight: 700, marginBottom: 8, color: "var(--btn-success)" } }, "Dev — All Access Mode"),
-        React.createElement("p", { style: { fontSize: 15, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.7 } }, "Every feature is unlocked. No limits on quotes, clients, or catalog items. This build is for development and testing only."),
-        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, textAlign: "left", maxWidth: 360, margin: "0 auto" } },
-          ["Unlimited quotes", "Print / PDF", "Logo & letterhead", "Invoice styling", "SHA-256 signatures", "Discounts", "Client websites", "Duplicate quotes"].map((f, i) =>
-            React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 8, fontSize: 14, padding: "6px 0" } },
-              React.createElement("span", { style: { color: "var(--btn-success)", fontWeight: 700 } }, "✓"),
-              f
-            )
-          )
-        )
-      ),
-      React.createElement("div", { className: "card", style: { fontSize: 13, color: "var(--text-secondary)" } },
-        React.createElement("p", null, "The tiered production build enforces subscription limits. This dev build bypasses all gates so you can test every feature without restrictions.")
-      )
-    ),
-
-    /* ── SECURITY TAB ── */
-    activeTab === "security" && React.createElement("div", null,
-      React.createElement("div", { className: "card" },
-        React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "🔒"), "Security"),
-        React.createElement("ul", { className: "security-list" },
-          React.createElement("li", null, "PBKDF2 key derivation (600,000 iterations)"),
-          React.createElement("li", null, "AES-256-GCM encryption on all stored data"),
-          React.createElement("li", null, "Password never stored — only verification hash"),
-          React.createElement("li", null, "Auto-lock after 15 minutes of inactivity"),
-          React.createElement("li", null, "Rate-limited login (5 attempts, 30s lockout)"),
-          React.createElement("li", null, "Recovery key for password reset without data loss"),
-          React.createElement("li", null, "XSS sanitisation on all inputs"),
-          React.createElement("li", null, "SVG sanitisation (blocks scripts, event handlers)"),
-          React.createElement("li", null, "Image upload validation (type, size, dimensions)"),
-          React.createElement("li", null, "Zero server — data never leaves your device"),
-          React.createElement("li", null, "Separate storage namespace (bqd_)")
-        )
-      ),
-      React.createElement("div", { className: "card" },
-        React.createElement("div", { className: "card-title" }, "Legal"),
-        React.createElement("div", { style: { display: "flex", gap: 20, fontSize: 14 } },
-          React.createElement("a", { href: "/terms-of-service.html", target: "_blank", style: { color: "var(--btn-primary)" } }, "Terms of Service"),
-          React.createElement("a", { href: "/privacy-policy.html", target: "_blank", style: { color: "var(--btn-primary)" } }, "Privacy Policy")
-        )
-      ),
-      React.createElement("div", { className: "card" },
-        React.createElement("div", { className: "card-title" }, React.createElement("span", { className: "icon" }, "👋"), "Walkthrough"),
-        React.createElement("p", { style: { fontSize: 14, color: "var(--text-secondary)", marginBottom: 12 } }, "New to the app or want a refresher? Replay the guided tour."),
-        React.createElement("button", { className: "btn btn-outline btn-sm", onClick: onReplayWalkthrough }, "Replay Walkthrough")
-      ),
-      React.createElement("div", { className: "danger-zone" },
-        React.createElement("h3", null, "Danger Zone"),
-        React.createElement("p", { style: { fontSize: 14, marginBottom: 14 } }, "Permanently delete all data. This cannot be undone."),
-        React.createElement("button", { className: "btn btn-danger btn-sm", onClick: onDeleteAll }, "Delete All Data")
-      )
-    )
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   WALKTHROUGH — visual, icon-driven, child-friendly
-   ═══════════════════════════════════════════════════════════════ */
-
-function Walkthrough({ onDone, onNavigate, tierName }) {
-  const [step, setStep] = useState(0);
-
-  const steps = [
-    { icon: "👋", title: "Welcome!", nav: null,
-      visual: React.createElement("div", { style: { fontSize: 64, margin: "8px 0 16px" } }, "📋"),
-      body: "Make price quotes for your business — fast, easy, and private.",
-      actions: [
-        { icon: "📊", label: "See your numbers" },
-        { icon: "📋", label: "Create quotes" },
-        { icon: "👥", label: "Save clients" },
-        { icon: "🔒", label: "100% private" }
-      ]
-    },
-    { icon: "📊", title: "Dashboard", nav: "dashboard",
-      visual: React.createElement("div", { style: { display: "flex", gap: 10, justifyContent: "center", margin: "8px 0 16px" } },
-        React.createElement("div", { style: { background: "var(--success-bg)", borderRadius: 12, padding: "12px 16px", textAlign: "center" } },
-          React.createElement("div", { style: { fontSize: 22, fontWeight: 700 } }, "12"),
-          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Quotes")
-        ),
-        React.createElement("div", { style: { background: "var(--accent-bg)", borderRadius: 12, padding: "12px 16px", textAlign: "center" } },
-          React.createElement("div", { style: { fontSize: 22, fontWeight: 700 } }, "R4,200"),
-          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Revenue")
-        ),
-        React.createElement("div", { style: { background: "var(--warning-bg)", borderRadius: 12, padding: "12px 16px", textAlign: "center" } },
-          React.createElement("div", { style: { fontSize: 22, fontWeight: 700 } }, "83%"),
-          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Win Rate")
-        )
-      ),
-      body: "Your home page. See this month's quotes, revenue, and win rate at a glance.",
-      actions: null
-    },
-    { icon: "📋", title: "Create a Quote", nav: "quotes",
-      visual: React.createElement("div", { style: { background: "var(--bg)", borderRadius: 12, padding: 16, margin: "8px 0 16px", textAlign: "left" } },
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 10 } },
-          React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: "var(--btn-primary)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 16 } }, "1"),
-          React.createElement("span", { style: { fontWeight: 600 } }, "Add a title & pick your client")
-        ),
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 10 } },
-          React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: "var(--btn-success)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 16 } }, "2"),
-          React.createElement("span", { style: { fontWeight: 600 } }, "Add items — type or pick from catalog")
-        ),
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-          React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: "var(--btn-accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 16 } }, "3"),
-          React.createElement("span", { style: { fontWeight: 600 } }, "Save, print, or export as CSV")
-        )
-      ),
-      body: "Three steps. Totals calculate automatically.",
-      actions: null
-    },
-    { icon: "👥", title: "Clients", nav: "clients",
-      visual: React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 10, margin: "8px 0 16px" } },
-        ["Alex M.", "Sara K.", "Thabo N."].map(name =>
-          React.createElement("div", { key: name, style: { background: "var(--bg)", borderRadius: 12, padding: "14px 16px", textAlign: "center", flex: 1 } },
-            React.createElement("div", { style: { fontSize: 28, marginBottom: 4 } }, "👤"),
-            React.createElement("div", { style: { fontSize: 13, fontWeight: 600 } }, name)
-          )
-        )
-      ),
-      body: "Add a client once — their details auto-fill on every quote.",
-      actions: null
-    },
-    { icon: "📦", title: "Catalog", nav: "catalog",
-      visual: React.createElement("div", { style: { background: "var(--bg)", borderRadius: 12, padding: 14, margin: "8px 0 16px" } },
-        [{ name: "Website Design", price: "R 8,500", unit: "project" }, { name: "Hourly Consulting", price: "R 450", unit: "hour" }, { name: "Logo Design", price: "R 2,000", unit: "each" }].map((item, i) =>
-          React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? "1px solid var(--border)" : "none" } },
-            React.createElement("div", null, React.createElement("div", { style: { fontWeight: 600, fontSize: 14 } }, item.name), React.createElement("div", { style: { fontSize: 12, color: "var(--text-light)" } }, `per ${item.unit}`)),
-            React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "var(--btn-primary)" } }, item.price)
-          )
-        )
-      ),
-      body: "Save your services with prices. Pick them when building quotes.",
-      actions: null
-    },
-    { icon: "🎨", title: "Make It Yours", nav: "settings",
-      visual: React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "8px 0 16px" } },
-        [{ icon: "🖼️", label: "Add your logo" }, { icon: "🔤", label: "Pick a font" }, { icon: "🎨", label: "Choose colours" }, { icon: "📐", label: "Layout options" }].map((f, i) =>
-          React.createElement("div", { key: i, style: { background: "var(--bg)", borderRadius: 10, padding: "12px 14px", display: "flex", alignItems: "center", gap: 8 } },
-            React.createElement("span", { style: { fontSize: 20 } }, f.icon),
-            React.createElement("span", { style: { fontSize: 13, fontWeight: 600 } }, f.label)
-          )
-        )
-      ),
-      body: "Upload a logo, pick fonts and colours. Your quotes, your brand.",
-      actions: null
-    },
-    { icon: "♿", title: "Easy to Read", nav: null,
-      visual: React.createElement("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", gap: 12, margin: "8px 0 16px", flexWrap: "wrap" } },
-        React.createElement("div", { style: { background: "var(--bg-warm)", borderRadius: 14, padding: "16px 20px", textAlign: "center" } },
-          React.createElement("div", { style: { fontSize: 28, marginBottom: 4 } }, "Aa"),
-          React.createElement("div", { style: { fontSize: 11, color: "var(--text-secondary)" } }, "Normal")
-        ),
-        React.createElement("div", { style: { fontSize: 24 } }, "→"),
-        React.createElement("div", { style: { background: "var(--btn-primary)", borderRadius: 14, padding: "16px 20px", textAlign: "center", color: "white" } },
-          React.createElement("div", { style: { fontSize: 28, marginBottom: 4, fontFamily: "Atkinson Hyperlegible, sans-serif", letterSpacing: "0.05em" } }, "Dy"),
-          React.createElement("div", { style: { fontSize: 11 } }, "Dyslexia mode")
-        ),
-        React.createElement("div", { style: { fontSize: 24 } }, "|"),
-        React.createElement("div", { style: { background: "var(--btn-success)", borderRadius: 14, padding: "16px 20px", textAlign: "center", color: "white" } },
-          React.createElement("div", { style: { fontSize: 28, marginBottom: 4 } }, "♿"),
-          React.createElement("div", { style: { fontSize: 11 } }, "Talk Back")
-        )
-      ),
-      body: "Tap \"Dy\" for a dyslexia-friendly font, or \"♿\" for screen reader mode with enhanced focus and ARIA labels.",
-      actions: null
-    },
-    { icon: "🚀", title: "You're Ready!", nav: "dashboard",
-      visual: React.createElement("div", { style: { fontSize: 72, margin: "8px 0 16px" } }, "✨"),
-      body: "Start by adding your business info in Settings, then create your first quote!",
-      actions: [
-        { icon: "⚙️", label: "Add business info" },
-        { icon: "📋", label: "Create first quote" },
-        { icon: "👥", label: "Add a client" },
-        { icon: "📦", label: "Build your catalog" }
-      ]
-    }
-  ];
-
-  const current = steps[step];
-  const isLast = step === steps.length - 1;
-  const isFirst = step === 0;
-
-  function next() {
-    if (isLast) { onDone(); return; }
-    const n = step + 1;
-    setStep(n);
-    if (steps[n].nav) onNavigate(steps[n].nav);
-  }
-  function prev() {
-    if (isFirst) return;
-    const n = step - 1;
-    setStep(n);
-    if (steps[n].nav) onNavigate(steps[n].nav);
-  }
-
-  return React.createElement("div", { className: "wt-overlay" },
-    React.createElement("div", { className: "wt-backdrop" }),
-    React.createElement("div", { key: step, className: "wt-card" },
-      /* Visual hero area */
-      current.visual,
-
-      React.createElement("h2", null, current.title),
-      React.createElement("p", { style: { fontSize: 15, marginBottom: 4 } }, current.body),
-
-      /* Action grid (first & last slides) */
-      current.actions && React.createElement("div", { className: "wt-feature-grid", style: { marginTop: 14 } },
-        current.actions.map((a, i) =>
-          React.createElement("div", { key: i, className: "wt-feature-item" },
-            React.createElement("span", { className: "wt-feat-icon" }, a.icon),
-            React.createElement("span", null, a.label)
-          )
-        )
-      ),
-
-      /* Progress dots */
-      React.createElement("div", { className: "wt-steps" },
-        steps.map((_, i) => React.createElement("div", { key: i, className: `wt-dot ${i===step?"active":""} ${i<step?"done":""}` }))
-      ),
-
-      /* Navigation buttons */
-      React.createElement("div", { className: "wt-actions" },
-        !isFirst && React.createElement("button", { className: "btn btn-outline", onClick: prev }, "Back"),
-        React.createElement("button", { className: "btn btn-dark", onClick: next }, isLast ? "Let's Go!" : isFirst ? "Show Me" : "Next")
-      ),
-
-      !isLast && React.createElement("button", { className: "wt-skip", onClick: onDone }, "Skip tour")
-    )
-  );
-}
-
-/* ──────── MOUNT ──────── */
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-</script>
-<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});</script>
+<script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
