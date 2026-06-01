@@ -1,11 +1,12 @@
 import { Hono } from 'hono';
+import type { AppEnv } from '../lib/hono-env';
 import type Stripe from 'stripe';
 import { stripe } from '../lib/stripe';
 import { db } from '../db';
 import { subscriptions } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
-export const billingRouter = new Hono();
+export const billingRouter = new Hono<AppEnv>();
 
 // POST /api/billing/checkout — create Stripe checkout session
 billingRouter.post('/checkout', async (c) => {

@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
+import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { businessProfiles, subscriptions } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { TIER_LIMITS } from '../lib/tier';
 
-export const profileRouter = new Hono();
+export const profileRouter = new Hono<AppEnv>();
 
 profileRouter.get('/', async (c) => {
   const userId = c.get('userId') as string;

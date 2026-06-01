@@ -1,4 +1,4 @@
-import type { Context, Next } from 'hono';
+import type { Context, Next, MiddlewareHandler } from 'hono';
 import { db } from '../db';
 import { subscriptions } from '../db/schema';
 import { eq } from 'drizzle-orm';
@@ -26,7 +26,7 @@ export const TIER_LIMITS = {
 
 export type Tier = keyof typeof TIER_LIMITS;
 
-export async function withTier(c: Context, next: Next) {
+export const withTier: MiddlewareHandler<any> = async (c, next) => {
   const userId = c.get('userId') as string;
   const sub = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.userId, userId),
@@ -35,10 +35,10 @@ export async function withTier(c: Context, next: Next) {
   c.set('tier', tier);
   c.set('tierLimits', TIER_LIMITS[tier]);
   await next();
-}
+};
 
-export function requireFeature(feature: keyof typeof TIER_LIMITS.free.features) {
-  return async (c: Context, next: Next) => {
+export function requireFeature(feature: keyof typeof TIER_LIMITS.free.features): MiddlewareHandler<any> {
+  return async (c, next) => {
     const limits = c.get('tierLimits') as typeof TIER_LIMITS.free;
     if (!limits.features[feature]) {
       return c.json({ error: 'This feature requires a paid plan.' }, 403);

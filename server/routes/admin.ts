@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
+import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { users, subscriptions } from '../db/schema';
 import { eq, desc, count } from 'drizzle-orm';
 
-export const adminRouter = new Hono();
+export const adminRouter = new Hono<AppEnv>();
 
 adminRouter.use('*', async (c, next) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Forbidden' }, 403);

@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
+import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { quotes } from '../db/schema';
 import { eq, and, gte, count } from 'drizzle-orm';
 import { withTier, TIER_LIMITS, type Tier } from '../lib/tier';
 
-export const quotesRouter = new Hono();
+export const quotesRouter = new Hono<AppEnv>();
 quotesRouter.use('*', withTier);
 
 quotesRouter.get('/', async (c) => {

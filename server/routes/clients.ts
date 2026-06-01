@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
+import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { clients } from '../db/schema';
 import { eq, and, count } from 'drizzle-orm';
 import { withTier, TIER_LIMITS, type Tier } from '../lib/tier';
 
-export const clientsRouter = new Hono();
+export const clientsRouter = new Hono<AppEnv>();
 clientsRouter.use('*', withTier);
 
 clientsRouter.get('/', async (c) => {

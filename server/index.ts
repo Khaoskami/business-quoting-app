@@ -9,8 +9,9 @@ import { catalogRouter } from './routes/catalog';
 import { profileRouter } from './routes/profile';
 import { billingRouter } from './routes/billing';
 import { adminRouter } from './routes/admin';
+import type { AppEnv } from './lib/hono-env';
 
-const app = new Hono();
+const app = new Hono<AppEnv>();
 
 app.use('*', logger());
 app.use('/api/*', cors({
@@ -32,9 +33,9 @@ app.use('/api/*', async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: 'Unauthorized' }, 401);
 
-  c.set('userId', session.user.id);
-  c.set('userEmail', session.user.email);
-  c.set('isAdmin', (session.user as any).isAdmin ?? false);
+  c.set('userId', session.user.id as string);
+  c.set('userEmail', session.user.email as string);
+  c.set('isAdmin', Boolean((session.user as any).isAdmin));
   await next();
 });
 
