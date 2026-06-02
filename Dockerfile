@@ -5,6 +5,7 @@ COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
 COPY . .
+RUN DATABASE_URL=postgres://placeholder/db bun run db:generate
 RUN bun run build
 
 FROM oven/bun:1
