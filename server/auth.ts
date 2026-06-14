@@ -34,7 +34,7 @@ export const auth = betterAuth({
       }
 
       await resend.emails.send({
-        from: process.env.RESET_FROM_EMAIL ?? 'no-reply@example.com',
+        from: process.env.RESET_FROM_EMAIL ?? 'Khaosinc24@gmail.com',
         to: user.email,
         subject: 'Reset your Business Quotes password',
         html: `
