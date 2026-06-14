@@ -1,6 +1,6 @@
 import {
   pgTable, text, boolean, timestamp,
-  uuid, jsonb, pgEnum
+  uuid, jsonb, pgEnum, integer
 } from 'drizzle-orm/pg-core';
 
 // ── Enums ────────────────────────────────────────────────
@@ -88,6 +88,12 @@ export const quotes = pgTable('quotes', {
   data:      jsonb('data').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ── Per-user gapless quote sequence counters ─────────────
+export const quoteCounters = pgTable('quote_counters', {
+  userId:  text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  nextSeq: integer('next_seq').notNull().default(1),
 });
 
 // ── Clients ──────────────────────────────────────────────

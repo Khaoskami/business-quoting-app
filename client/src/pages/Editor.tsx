@@ -108,7 +108,7 @@ export default function Editor() {
               </div>
               <div className="field-group">
                 <label className="field-label" htmlFor="qnum">Quote Number</label>
-                <input id="qnum" className="field-input" value={q.quoteNumber} onChange={(e) => set('quoteNumber', e.target.value)} placeholder="QT-001" />
+                <input id="qnum" className="field-input" value={q.quoteNumber || (isNew ? 'Assigned on save' : '—')} readOnly disabled />
               </div>
               <div className="field-group">
                 <label className="field-label" htmlFor="client">Client</label>

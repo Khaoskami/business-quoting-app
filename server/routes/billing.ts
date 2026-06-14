@@ -24,8 +24,14 @@ billingRouter.post('/checkout', async (c) => {
   if (!customerId) {
     const customer = await stripe.customers.create({ email: userEmail, metadata: { userId } });
     customerId = customer.id;
-    await db.update(subscriptions).set({ stripeCustomerId: customerId })
-      .where(eq(subscriptions.userId, userId));
+    if (sub) {
+      await db.update(subscriptions).set({ stripeCustomerId: customerId })
+        .where(eq(subscriptions.userId, userId));
+    } else {
+      // No subscription row yet — create it instead of orphaning the customer.
+      await db.insert(subscriptions).values({ userId, stripeCustomerId: customerId })
+        .onConflictDoUpdate({ target: subscriptions.userId, set: { stripeCustomerId: customerId } });
+    }
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -89,6 +95,23 @@ billingRouter.post('/webhook', async (c) => {
   };
 
   switch (event.type) {
+    case 'checkout.session.completed': {
+      // Reconcile the Stripe customer id back onto the subscription row using
+      // the userId we stashed in checkout metadata. Guards against a missing
+      // or stale stripeCustomerId (e.g. customer created but update lost).
+      const session = event.data.object as Stripe.Checkout.Session;
+      const uid = session.metadata?.userId;
+      const customerId = session.customer as string | null;
+      if (uid && customerId) {
+        await db.insert(subscriptions)
+          .values({ userId: uid, stripeCustomerId: customerId })
+          .onConflictDoUpdate({
+            target: subscriptions.userId,
+            set: { stripeCustomerId: customerId, updatedAt: new Date() },
+          });
+      }
+      break;
+    }
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
       await handleSub(event.data.object as Stripe.Subscription, 'active');

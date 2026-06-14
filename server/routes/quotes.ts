@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
-import { quotes } from '../db/schema';
-import { eq, and, gte, count } from 'drizzle-orm';
+import { quotes, quoteCounters } from '../db/schema';
+import { eq, and, gte, count, sql } from 'drizzle-orm';
 import { withTier, TIER_LIMITS, type Tier } from '../lib/tier';
+import { quoteSchema } from '../lib/schemas';
 
 export const quotesRouter = new Hono<AppEnv>();
 quotesRouter.use('*', withTier);
@@ -22,24 +23,66 @@ quotesRouter.post('/', async (c) => {
   const tier = c.get('tier') as Tier;
   const limits = TIER_LIMITS[tier];
 
-  if (limits.quotesPerMonth !== Infinity) {
-    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
-    const [{ value }] = await db.select({ value: count() }).from(quotes)
-      .where(and(eq(quotes.userId, userId), gte(quotes.createdAt, monthStart)));
-    if (value >= limits.quotesPerMonth) {
+  const parsed = quoteSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ error: 'Invalid quote', details: parsed.error.format() }, 400);
+  const data = parsed.data;
+
+  try {
+    const result = await db.transaction(async (tx) => {
+      // Tier monthly-limit check lives inside the tx so concurrent inserts
+      // can't race past the cap.
+      if (limits.quotesPerMonth !== Infinity) {
+        const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+        const [{ value }] = await tx.select({ value: count() }).from(quotes)
+          .where(and(eq(quotes.userId, userId), gte(quotes.createdAt, monthStart)));
+        if (value >= limits.quotesPerMonth) {
+          return { limit: true as const };
+        }
+      }
+
+      // Ensure the counter row exists, then lock it FOR UPDATE so the sequence
+      // stays gapless under concurrency.
+      await tx.insert(quoteCounters).values({ userId, nextSeq: 1 }).onConflictDoNothing();
+      const [counter] = await tx.execute(
+        sql`select next_seq from quote_counters where user_id = ${userId} for update`
+      ) as unknown as Array<{ next_seq: number }>;
+      const seq = Number(counter.next_seq);
+
+      // Server-authoritative quote number; ignore any client-sent value.
+      data.quoteNumber = `QT-${String(seq).padStart(4, '0')}`;
+
+      await tx.update(quoteCounters)
+        .set({ nextSeq: seq + 1 })
+        .where(eq(quoteCounters.userId, userId));
+
+      const [row] = await tx.insert(quotes).values({ userId, data }).returning();
+      return { row };
+    });
+
+    if ('limit' in result) {
       return c.json({ error: 'Monthly quote limit reached. Upgrade to create more.' }, 403);
     }
+    return c.json({ id: result.row.id, ...(result.row.data as object) }, 201);
+  } catch {
+    return c.json({ error: 'Failed to create quote' }, 500);
   }
-
-  const data = await c.req.json();
-  const [row] = await db.insert(quotes).values({ userId, data }).returning();
-  return c.json({ id: row.id, ...(row.data as object) }, 201);
 });
 
 quotesRouter.put('/:id', async (c) => {
   const userId = c.get('userId') as string;
   const { id } = c.req.param();
-  const data = await c.req.json();
+
+  const parsed = quoteSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ error: 'Invalid quote', details: parsed.error.format() }, 400);
+  const data = parsed.data;
+
+  // Preserve the server-assigned quote number; never trust a client override.
+  const existing = await db.query.quotes.findFirst({
+    where: and(eq(quotes.id, id), eq(quotes.userId, userId)),
+  });
+  if (!existing) return c.json({ error: 'Not found' }, 404);
+  data.quoteNumber = (existing.data as any)?.quoteNumber ?? data.quoteNumber;
+
   const [row] = await db.update(quotes)
     .set({ data, updatedAt: new Date() })
     .where(and(eq(quotes.id, id), eq(quotes.userId, userId)))

@@ -6,7 +6,7 @@ Multi-user SaaS for creating professional business quotes. Server-side auth, Pos
 
 - **Runtime:** Bun
 - **API:** Hono
-- **Auth:** Better Auth (email/password, 30-day sessions, httpOnly cookies)
+- **Auth:** Better Auth (email/password, 30-day sessions, httpOnly cookies, rate-limited auth routes)
 - **Database:** PostgreSQL + Drizzle ORM
 - **Payments:** Stripe (subscriptions + billing portal + webhooks)
 - **Frontend:** React 18 + Vite + TanStack Query + React Router
@@ -42,11 +42,12 @@ bun start       # serves the API + static SPA on $PORT
    - `BETTER_AUTH_URL` and `CLIENT_URL` (your Railway domain)
    - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
    - `STRIPE_PRO_PRICE_ID`, `STRIPE_BUSINESS_PRICE_ID`
-   - `ADMIN_EMAIL` — the account that registers with this email is auto-promoted to admin
+   - `ADMIN_EMAIL` — default email to promote with the admin script (see [Admin](#admin))
 4. Stripe → Developers → Webhooks → endpoint:
    `https://your-app.up.railway.app/api/billing/webhook`
-   Events: `customer.subscription.created`, `customer.subscription.updated`,
-   `customer.subscription.deleted`, `invoice.payment_failed`.
+   Events: `checkout.session.completed`, `customer.subscription.created`,
+   `customer.subscription.updated`, `customer.subscription.deleted`,
+   `invoice.payment_failed`.
 5. Push to deploy. Railway runs `bun run db:migrate && bun start`.
 
 Health check: `GET /api/health` → `{"ok": true}`.
@@ -64,10 +65,30 @@ Admins can **comp** any user to Pro or Business from the Admin panel.
 
 ## Admin
 
-The user with `email == ADMIN_EMAIL` is auto-promoted on registration. Admin panel at `/admin`:
+Admins are **not** auto-promoted on registration. Email-verification infra isn't
+wired up yet, so rather than trusting a sign-up email we promote admins
+explicitly with a one-off script:
+
+```bash
+# Promote a specific user
+bun run scripts/make-admin.ts someone@example.com
+
+# Or fall back to ADMIN_EMAIL from the environment
+bun run scripts/make-admin.ts
+```
+
+Once promoted, the admin panel is at `/admin`:
 
 - Stats: total users, pro, business, comped
 - User table with: Grant Pro, Grant Business, Revoke, Make/Remove Admin
+
+### Auth hardening
+
+- Email/password sign-up does **not** require email verification yet
+  (`requireEmailVerification: false`) — flip it on once an email sender is wired
+  into `server/auth.ts`.
+- Better Auth's built-in rate limiting is enabled on the auth routes
+  (100 requests / 60s window per IP).
 
 ## Migrating from the previous local-only build
 

@@ -4,6 +4,7 @@ import { db } from '../db';
 import { businessProfiles, subscriptions } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { TIER_LIMITS } from '../lib/tier';
+import { profileSchema } from '../lib/schemas';
 
 export const profileRouter = new Hono<AppEnv>();
 
@@ -26,7 +27,9 @@ profileRouter.get('/', async (c) => {
 
 profileRouter.put('/', async (c) => {
   const userId = c.get('userId') as string;
-  const data = await c.req.json();
+  const parsed = profileSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ error: 'Invalid profile', details: parsed.error.format() }, 400);
+  const data = parsed.data;
   await db.insert(businessProfiles).values({ userId, data })
     .onConflictDoUpdate({ target: businessProfiles.userId, set: { data, updatedAt: new Date() } });
   return c.json({ ok: true });

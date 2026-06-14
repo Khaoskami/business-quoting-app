@@ -14,6 +14,19 @@ import type { AppEnv } from './lib/hono-env';
 const app = new Hono<AppEnv>();
 
 app.use('*', logger());
+
+// Reject oversized request bodies before they hit any handler.
+const MAX_BODY_BYTES = 256 * 1024; // 256KB
+app.use('*', async (c, next) => {
+  if (c.req.method === 'POST' || c.req.method === 'PUT' || c.req.method === 'PATCH') {
+    const len = Number(c.req.header('content-length') ?? 0);
+    if (len > MAX_BODY_BYTES) {
+      return c.json({ error: 'Request body too large' }, 413);
+    }
+  }
+  await next();
+});
+
 app.use('/api/*', cors({
   origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
   credentials: true,
