@@ -48,27 +48,29 @@ adminRouter.post('/users/:id/comp', async (c) => {
   const adminId = c.get('userId') as string;
   const { id } = c.req.param();
   const { tier, note } = await c.req.json() as { tier: 'pro' | 'business'; note?: string };
-  await db.update(subscriptions).set({
+  const updated = await db.update(subscriptions).set({
     tier,
     status:    'comped',
     comped:    true,
     compedBy:  adminId,
     compedNote: note ?? '',
     updatedAt: new Date(),
-  }).where(eq(subscriptions.userId, id));
+  }).where(eq(subscriptions.userId, id)).returning({ userId: subscriptions.userId });
+  if (updated.length === 0) return c.json({ error: 'Not found' }, 404);
   return c.json({ ok: true });
 });
 
 adminRouter.post('/users/:id/revoke', async (c) => {
   const { id } = c.req.param();
-  await db.update(subscriptions).set({
+  const updated = await db.update(subscriptions).set({
     tier:       'free',
     status:     'active',
     comped:     false,
     compedBy:   null,
     compedNote: null,
     updatedAt:  new Date(),
-  }).where(eq(subscriptions.userId, id));
+  }).where(eq(subscriptions.userId, id)).returning({ userId: subscriptions.userId });
+  if (updated.length === 0) return c.json({ error: 'Not found' }, 404);
   return c.json({ ok: true });
 });
 

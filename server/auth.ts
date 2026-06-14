@@ -2,7 +2,6 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from './db';
 import * as schema from './db/schema';
-import { eq } from 'drizzle-orm';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -27,6 +26,13 @@ export const auth = betterAuth({
     cookieCache: { enabled: true, maxAge: 60 * 5 },
   },
 
+  // Built-in rate limiting on auth routes. 100 requests per 60s window per IP.
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+  },
+
   trustedOrigins: [
     process.env.CLIENT_URL ?? 'http://localhost:5173',
     process.env.BETTER_AUTH_URL ?? 'http://localhost:3000',
@@ -37,13 +43,10 @@ export const auth = betterAuth({
       create: {
         after: async (user) => {
           // Everyone starts on free; seed the subscription row.
+          // NOTE: admin promotion is intentionally NOT done here. Email infra
+          // for verification isn't wired up yet, so we avoid auto-admin by
+          // email and instead promote explicitly via scripts/make-admin.ts.
           await db.insert(schema.subscriptions).values({ userId: user.id });
-          // Auto-admin the designated admin email.
-          if (user.email === process.env.ADMIN_EMAIL) {
-            await db.update(schema.users)
-              .set({ isAdmin: true })
-              .where(eq(schema.users.id, user.id));
-          }
         },
       },
     },
