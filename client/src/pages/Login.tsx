@@ -38,6 +38,9 @@ export default function Login() {
           <label className="field-label" htmlFor="password">Password</label>
           <input id="password" type="password" autoComplete="current-password" className="field-input" required
                  value={password} onChange={(e) => setPassword(e.target.value)} />
+          <div style={{ marginTop: 6, textAlign: 'right' }}>
+            <Link to="/forgot-password" className="field-hint">Forgot password?</Link>
+          </div>
         </div>
 
         {err && <div role="alert" className="field-error" style={{ marginBottom: 12 }}>{err}</div>}
