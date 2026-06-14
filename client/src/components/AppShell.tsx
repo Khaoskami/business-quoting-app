@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { MobileBar } from './MobileBar';
-import { ToastProvider } from './Toast';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api';
 
@@ -12,17 +11,15 @@ export function AppShell() {
   const tier = profile?.subscription?.tier ?? 'free';
 
   return (
-    <ToastProvider>
-      <div className="app-shell">
-        <Sidebar biz={biz} tier={tier} />
-        <div style={{ display: 'contents' }}>
-          <MobileBar biz={biz} />
-          <main className="main-content">
-            <Outlet />
-          </main>
-          <BottomNav />
-        </div>
+    <div className="app-shell">
+      <Sidebar biz={biz} tier={tier} />
+      <div style={{ display: 'contents' }}>
+        <MobileBar biz={biz} />
+        <main className="main-content">
+          <Outlet />
+        </main>
+        <BottomNav />
       </div>
-    </ToastProvider>
+    </div>
   );
 }
