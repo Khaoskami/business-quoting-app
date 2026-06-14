@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
+import { authClient } from '../auth-client';
 import { useToast } from '../components/Toast';
 import { CURRENCIES, fmtDate } from '../lib/quote';
 
@@ -23,6 +24,38 @@ export default function Settings() {
 
   const [form, setForm] = useState<any>(profile?.profile ?? {});
   useEffect(() => { if (profile?.profile) setForm(profile.profile); }, [profile?.profile]);
+
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const [pwBusy, setPwBusy] = useState(false);
+
+  async function changePassword() {
+    if (pw.next.length < 8) {
+      notify('New password must be at least 8 characters.', 'error');
+      return;
+    }
+    if (pw.next !== pw.confirm) {
+      notify('New passwords do not match.', 'error');
+      return;
+    }
+    setPwBusy(true);
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword: pw.current,
+        newPassword: pw.next,
+        revokeOtherSessions: true,
+      });
+      if (error) {
+        notify(error.message ?? 'Could not change password.', 'error');
+        return;
+      }
+      setPw({ current: '', next: '', confirm: '' });
+      notify('Password changed.');
+    } catch (e: any) {
+      notify(e?.message ?? 'Could not change password.', 'error');
+    } finally {
+      setPwBusy(false);
+    }
+  }
 
   // Handle billing return banner
   useEffect(() => {
@@ -141,6 +174,26 @@ export default function Settings() {
         </div>
         <button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}
                 className={`btn btn--primary ${saveProfile.isPending ? 'btn--loading' : ''}`} style={{ marginTop: 14 }}>Save</button>
+      </div>
+
+      <h2 className="section-title">Change Password</h2>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="form-grid">
+          <div className="field-group field-group--span"><label className="field-label">Current Password</label>
+            <input className="field-input" type="password" autoComplete="current-password"
+                   value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>
+          <div className="field-group"><label className="field-label">New Password</label>
+            <input className="field-input" type="password" autoComplete="new-password"
+                   value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
+          <div className="field-group"><label className="field-label">Confirm New Password</label>
+            <input className="field-input" type="password" autoComplete="new-password"
+                   value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></div>
+        </div>
+        <div className="field-hint" style={{ marginTop: 10 }}>
+          Must be at least 8 characters. Changing it signs out your other sessions.
+        </div>
+        <button onClick={changePassword} disabled={pwBusy}
+                className={`btn btn--primary ${pwBusy ? 'btn--loading' : ''}`} style={{ marginTop: 14 }}>Update password</button>
       </div>
 
       {hasOldLocalStorage() && (
