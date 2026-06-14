@@ -35,13 +35,14 @@ app.use('/api/*', cors({
 app.get('/api/health', (c) => c.json({ ok: true }));
 
 // Better Auth handler
-app.on(['GET', 'POST'], '/auth/*', (c) => auth.handler(c.req.raw));
+app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
 
 // Auth middleware for /api routes
 app.use('/api/*', async (c, next) => {
   // Public endpoints that bypass session auth.
   if (c.req.path === '/api/health') return next();
   if (c.req.path === '/api/billing/webhook') return next(); // Verified by Stripe signature instead.
+  if (c.req.path.startsWith('/api/auth/')) return next(); // Better Auth handles its own auth flow.
 
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: 'Unauthorized' }, 401);
