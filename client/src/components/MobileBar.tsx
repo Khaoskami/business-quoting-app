@@ -4,7 +4,7 @@ import { useAuth } from '../auth-context';
 
 export function MobileBar({ biz }: { biz: any }) {
   const nav = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   return (
     <header className="mobile-bar">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -12,6 +12,11 @@ export function MobileBar({ biz }: { biz: any }) {
         <span className="brand-name">{biz.name || 'Business Quotes'}</span>
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
+        {user?.isAdmin && (
+          <button aria-label="Admin" className="btn btn--ghost btn--sm" style={{ padding: 8 }} onClick={() => nav('/admin')}>
+            <Icon.admin />
+          </button>
+        )}
         <button aria-label="Settings" className="btn btn--ghost btn--sm" style={{ padding: 8 }} onClick={() => nav('/settings')}>
           <Icon.settings />
         </button>

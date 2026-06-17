@@ -113,7 +113,7 @@ a:hover { text-decoration: underline; }
   background: var(--surface); border-top: 1px solid var(--border);
   padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 50;
 }
-.bottom-nav-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+.bottom-nav-inner { display: grid; grid-template-columns: repeat(5, 1fr); }
 .bottom-nav-item {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 6px 4px; border: none; background: none;
