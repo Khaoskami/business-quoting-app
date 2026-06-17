@@ -27,6 +27,10 @@ export default function Editor() {
   const existing = !isNew ? quotes.find((q: any) => q.id === id) : null;
   const [q, setQ] = useState<any>(() => isNew ? newQuote(biz.defaultCurrency) : { ...existing });
   const [showCat, setShowCat] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // Once accepted, the quote is invoiced and its pricing is frozen.
+  const locked = q.status === 'accepted';
 
   // Once existing loads, populate state
   useEffect(() => {
@@ -44,6 +48,19 @@ export default function Editor() {
       if (isNew && saved?.id) nav(`/quotes/${saved.id}/edit`, { replace: true });
     },
     onError: (e: any) => notify(e.message ?? 'Save failed', 'error'),
+  });
+
+  const accept = useMutation({
+    mutationFn: () => api.quotes.accept(q.id),
+    onSuccess: (res) => {
+      setConfirmOpen(false);
+      notify(res.alreadyAccepted
+        ? `Already invoiced (${res.invoice?.invoiceNumber ?? '—'}).`
+        : `Client acceptance confirmed. Invoice ${res.invoice?.invoiceNumber} issued.`);
+      qc.invalidateQueries({ queryKey: ['quotes'] });
+      qc.invalidateQueries({ queryKey: ['invoices'] });
+    },
+    onError: (e: any) => notify(e.message ?? 'Accept failed', 'error'),
   });
 
   const del = useMutation({
@@ -125,25 +142,27 @@ export default function Editor() {
               </div>
               <div className="field-group">
                 <label className="field-label" htmlFor="status">Status</label>
-                <select id="status" className="field-select" value={q.status} onChange={(e) => set('status', e.target.value)}>
-                  {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                <select id="status" className="field-select" value={q.status} disabled={locked} onChange={(e) => set('status', e.target.value)}>
+                  {Object.entries(STATUSES)
+                    .filter(([k]) => k !== 'accepted' || q.status === 'accepted')
+                    .map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
               <div className="field-group">
                 <label className="field-label" htmlFor="currency">Currency</label>
-                <select id="currency" className="field-select" value={q.currency} onChange={(e) => set('currency', e.target.value)}>
+                <select id="currency" className="field-select" value={q.currency} disabled={locked} onChange={(e) => set('currency', e.target.value)}>
                   {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>)}
                 </select>
               </div>
               <div className="field-group">
                 <label className="field-label" htmlFor="tax">Tax %</label>
-                <input id="tax" type="number" min={0} max={100} className="field-input"
+                <input id="tax" type="number" min={0} max={100} className="field-input" disabled={locked}
                        value={q.taxPercent} onChange={(e) => set('taxPercent', Math.min(100, Math.max(0, Number(e.target.value) || 0)))} />
               </div>
               {tf.discount ? (
                 <div className="field-group">
                   <label className="field-label" htmlFor="disc">Discount %</label>
-                  <input id="disc" type="number" min={0} max={100} className="field-input"
+                  <input id="disc" type="number" min={0} max={100} className="field-input" disabled={locked}
                          value={q.discountPercent} onChange={(e) => set('discountPercent', Math.min(100, Math.max(0, Number(e.target.value) || 0)))} />
                 </div>
               ) : (
@@ -169,8 +188,8 @@ export default function Editor() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span className="field-label">Line Items</span>
               <div style={{ display: 'flex', gap: 6 }}>
-                {catalog.length > 0 && <button onClick={() => setShowCat(!showCat)} className="btn btn--ghost btn--sm">{showCat ? 'Close' : 'From catalog'}</button>}
-                <button onClick={addBlank} className="btn btn--secondary btn--sm"><Icon.plus /> Item</button>
+                {catalog.length > 0 && <button onClick={() => setShowCat(!showCat)} disabled={locked} className="btn btn--ghost btn--sm">{showCat ? 'Close' : 'From catalog'}</button>}
+                <button onClick={addBlank} disabled={locked} className="btn btn--secondary btn--sm"><Icon.plus /> Item</button>
               </div>
             </div>
 
@@ -200,11 +219,11 @@ export default function Editor() {
               </div>
               {q.items.map((item: any, idx: number) => (
                 <div key={item.id} className="line-items-row">
-                  <input className="li-input" value={item.description} onChange={(e) => setI(idx, 'description', e.target.value)} placeholder="Description" aria-label="Description" />
-                  <input className="li-input li-input--num" type="number" min={0} value={item.quantity} onChange={(e) => setI(idx, 'quantity', e.target.value)} aria-label="Quantity" />
-                  <input className="li-input li-input--num" type="number" min={0} step={0.01} value={item.unitPrice} onChange={(e) => setI(idx, 'unitPrice', e.target.value)} aria-label="Unit price" />
+                  <input className="li-input" value={item.description} disabled={locked} onChange={(e) => setI(idx, 'description', e.target.value)} placeholder="Description" aria-label="Description" />
+                  <input className="li-input li-input--num" type="number" min={0} disabled={locked} value={item.quantity} onChange={(e) => setI(idx, 'quantity', e.target.value)} aria-label="Quantity" />
+                  <input className="li-input li-input--num" type="number" min={0} step={0.01} disabled={locked} value={item.unitPrice} onChange={(e) => setI(idx, 'unitPrice', e.target.value)} aria-label="Unit price" />
                   <div className="li-total">{money(item.quantity * item.unitPrice, q.currency)}</div>
-                  <button className="li-remove" onClick={() => rmI(idx)} disabled={q.items.length <= 1} aria-label="Remove item">×</button>
+                  <button className="li-remove" onClick={() => rmI(idx)} disabled={locked || q.items.length <= 1} aria-label="Remove item">×</button>
                 </div>
               ))}
             </div>
@@ -245,6 +264,12 @@ export default function Editor() {
                     disabled={save.isPending}
                     className={`btn btn--primary btn--full ${save.isPending ? 'btn--loading' : ''}`}>Save</button>
 
+            {!isNew && q.status !== 'accepted' && (
+              <button onClick={() => setConfirmOpen(true)} className="btn btn--primary btn--full">
+                Accept &amp; Invoice
+              </button>
+            )}
+
             <div className="action-bar">
               {tf.print
                 ? <button onClick={handlePrint} className="btn btn--secondary">Print / PDF</button>
@@ -260,6 +285,25 @@ export default function Editor() {
           </div>
         </aside>
       </div>
+
+      {confirmOpen && (
+        <div className="modal-overlay" onClick={() => setConfirmOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header"><h2>Confirm client acceptance</h2></div>
+            <div className="modal-body">
+              <p>Confirm that your client has accepted this quote. This issues a sequential invoice
+                 and locks the quote's pricing. This can't be undone without voiding the invoice.</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn--ghost" onClick={() => setConfirmOpen(false)}>Cancel</button>
+              <button className="btn btn--primary" disabled={accept.isPending}
+                      onClick={() => accept.mutate()}>
+                {accept.isPending ? 'Issuing…' : 'Yes, client accepted'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

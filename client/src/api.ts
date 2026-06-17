@@ -29,6 +29,13 @@ export const api = {
     create: (data: any) => request<any>('/quotes', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/quotes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => request<{ ok: true }>(`/quotes/${id}`, { method: 'DELETE' }),
+    accept: (id: string) =>
+      request<any>(`/quotes/${id}/accept`, { method: 'POST', body: JSON.stringify({ confirmedByClient: true }) }),
+  },
+  invoices: {
+    list:      () => request<any[]>('/invoices'),
+    setStatus: (id: string, status: 'unpaid' | 'paid' | 'void') =>
+      request<{ ok: true }>(`/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   },
   clients: {
     list:   () => request<any[]>('/clients'),

@@ -15,6 +15,13 @@
       "when": 1781442552871,
       "tag": "0001_third_puma",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781699737465,
+      "tag": "0002_lean_living_lightning",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@ export const tierEnum = pgEnum('tier', ['free', 'pro', 'business']);
 export const subStatusEnum = pgEnum('sub_status', [
   'active', 'trialing', 'past_due', 'canceled', 'comped'
 ]);
+export const invoiceStatusEnum = pgEnum('invoice_status', ['unpaid', 'paid', 'void']);
 
 // ── Users (owned by Better Auth, extended here) ──────────
 export const users = pgTable('users', {
@@ -92,6 +93,24 @@ export const quotes = pgTable('quotes', {
 
 // ── Per-user gapless quote sequence counters ─────────────
 export const quoteCounters = pgTable('quote_counters', {
+  userId:  text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  nextSeq: integer('next_seq').notNull().default(1),
+});
+
+// ── Invoices (issued only when client acceptance is confirmed) ──
+export const invoices = pgTable('invoices', {
+  id:            uuid('id').primaryKey().defaultRandom(),
+  userId:        text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  quoteId:       uuid('quote_id').notNull().unique().references(() => quotes.id, { onDelete: 'restrict' }),
+  invoiceNumber: text('invoice_number').notNull(),
+  status:        invoiceStatusEnum('status').notNull().default('unpaid'),
+  data:          jsonb('data').notNull(), // frozen snapshot of the quote at acceptance time
+  createdAt:     timestamp('created_at').notNull().defaultNow(),
+  updatedAt:     timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ── Per-user gapless invoice sequence counters ──
+export const invoiceCounters = pgTable('invoice_counters', {
   userId:  text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
   nextSeq: integer('next_seq').notNull().default(1),
 });
