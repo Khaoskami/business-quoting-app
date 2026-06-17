@@ -130,6 +130,15 @@ a:hover { text-decoration: underline; }
   .sidebar { display: none; }
   .bottom-nav { display: block; }
   .mobile-bar { display: flex; }
+  .mobile-bar-brand { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+  .mobile-bar-brand .brand-name {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mobile-bar-actions { flex-shrink: 0; display: flex; gap: 6px; }
+  /* Deterministically size the icons inside the action buttons */
+  .mobile-bar-actions button svg { width: 22px; height: 22px; }
+  /* Adequate touch targets for primary controls */
+  .mobile-bar-actions .btn { min-height: 44px; min-width: 44px; }
   .main-content { padding: 16px; padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
   .page-title { font-size: var(--font-size-xl); }
 }
