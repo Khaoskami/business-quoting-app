@@ -7,6 +7,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Quotes    from './pages/Quotes';
+import Invoices  from './pages/Invoices';
 import Editor    from './pages/Editor';
 import Clients   from './pages/Clients';
 import Catalog   from './pages/Catalog';
@@ -36,6 +37,7 @@ export default function App() {
       <Route element={<RequireAuth><AppShell /></RequireAuth>}>
         <Route index element={<Dashboard />} />
         <Route path="quotes"          element={<Quotes />} />
+        <Route path="invoices"        element={<Invoices />} />
         <Route path="quotes/new"      element={<Editor />} />
         <Route path="quotes/:id/edit" element={<Editor />} />
         <Route path="clients"         element={<Clients />} />

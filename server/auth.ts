@@ -17,6 +17,17 @@ export const auth = betterAuth({
     },
   }),
 
+  user: {
+    additionalFields: {
+      isAdmin: {
+        type: 'boolean',
+        required: false,
+        defaultValue: false,
+        input: false, // never accept isAdmin from client signup/update payloads
+      },
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,

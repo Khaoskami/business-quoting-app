@@ -9,6 +9,7 @@ import { catalogRouter } from './routes/catalog';
 import { profileRouter } from './routes/profile';
 import { billingRouter } from './routes/billing';
 import { adminRouter } from './routes/admin';
+import { invoicesRouter } from './routes/invoices';
 import type { AppEnv } from './lib/hono-env';
 
 const app = new Hono<AppEnv>();
@@ -59,6 +60,7 @@ app.route('/api/catalog', catalogRouter);
 app.route('/api/profile', profileRouter);
 app.route('/api/billing', billingRouter);
 app.route('/api/admin',   adminRouter);
+app.route('/api/invoices', invoicesRouter);
 
 // Serve built client. SPA fallback to index.html for unmatched routes.
 app.use('/*', serveStatic({ root: './dist/public' }));
