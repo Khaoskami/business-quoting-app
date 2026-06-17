@@ -59,4 +59,7 @@ export const profileSchema = z.object({
   address:         z.string().max(2000).optional(),
   website:         z.string().max(2000).optional(),
   defaultCurrency: z.string().max(8).optional(),
+  // Logo is injected into an <img src> unescaped on print, so the regex is
+  // required (not optional) — reject anything that isn't a png/jpeg data URL.
+  logo:            z.string().max(200_000).regex(/^data:image\/(png|jpeg);base64,/).optional(),
 }).passthrough();

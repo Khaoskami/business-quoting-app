@@ -94,6 +94,9 @@ quotesRouter.post('/:id/accept', async (c) => {
       }
 
       const acceptedAt = new Date().toISOString();
+      // Pricing is frozen into the invoice snapshot here, but branding (the
+      // business logo) is intentionally NOT snapshotted — it renders live from
+      // the current profile on every reprint.
       const newData = { ...qdata, status: 'accepted', clientAcceptedAt: acceptedAt };
       const [row] = await tx.update(quotes)
         .set({ data: newData, updatedAt: new Date() })
