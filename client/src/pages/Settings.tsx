@@ -28,6 +28,42 @@ export default function Settings() {
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
   const [pwBusy, setPwBusy] = useState(false);
 
+  async function handleLogoFile(file: File) {
+    if (!file.type.startsWith('image/')) {
+      notify('Please choose an image file.', 'error');
+      return;
+    }
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      const img = new Image();
+      img.src = dataUrl;
+      await img.decode();
+      const scale = Math.min(1, 480 / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        notify('Could not process image.', 'error');
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const out = canvas.toDataURL('image/png');
+      if (out.length > 180_000) {
+        notify('Logo is too large after resizing. Please use a simpler image.', 'error');
+        return;
+      }
+      setForm({ ...form, logo: out });
+    } catch {
+      notify('Could not read that image.', 'error');
+    }
+  }
+
   async function changePassword() {
     if (pw.next.length < 8) {
       notify('New password must be at least 8 characters.', 'error');
@@ -171,6 +207,16 @@ export default function Settings() {
             <input className="field-input" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
           <div className="field-group field-group--span"><label className="field-label">Default Terms</label>
             <textarea className="field-textarea" rows={3} value={form.terms ?? ''} onChange={(e) => setForm({ ...form, terms: e.target.value })} /></div>
+          <div className="field-group field-group--span"><label className="field-label">Logo</label>
+            {form.logo && <img src={form.logo} alt="Business logo" style={{ maxHeight: 64, marginBottom: 8, display: 'block' }} />}
+            <input className="field-input" type="file" accept="image/png,image/jpeg"
+                   onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoFile(f); e.target.value = ''; }} />
+            {form.logo && (
+              <button type="button" className="btn btn--ghost btn--sm" style={{ marginTop: 8 }}
+                      onClick={() => setForm({ ...form, logo: '' })}>Remove logo</button>
+            )}
+            <div className="field-hint">Shown on quote and invoice printouts. PNG or JPEG, resized to 480px wide.</div>
+          </div>
         </div>
         <button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}
                 className={`btn btn--primary ${saveProfile.isPending ? 'btn--loading' : ''}`} style={{ marginTop: 14 }}>Save</button>
