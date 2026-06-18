@@ -54,7 +54,7 @@ export default function Settings() {
       }
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       const out = canvas.toDataURL('image/png');
-      if (out.length > 180_000) {
+      if (out.length > 1_400_000) {
         notify('Logo is too large after resizing. Please use a simpler image.', 'error');
         return;
       }

@@ -18,10 +18,12 @@ app.use('*', logger());
 
 // Reject oversized request bodies before they hit any handler.
 const MAX_BODY_BYTES = 256 * 1024; // 256KB
+const MAX_PROFILE_BYTES = 1_600 * 1024; // 1.6MB — profile carries a base64 logo
 app.use('*', async (c, next) => {
   if (c.req.method === 'POST' || c.req.method === 'PUT' || c.req.method === 'PATCH') {
+    const limit = c.req.path === '/api/profile' ? MAX_PROFILE_BYTES : MAX_BODY_BYTES;
     const len = Number(c.req.header('content-length') ?? 0);
-    if (len > MAX_BODY_BYTES) {
+    if (len > limit) {
       return c.json({ error: 'Request body too large' }, 413);
     }
   }
