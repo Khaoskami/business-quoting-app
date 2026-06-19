@@ -1,133 +1,130 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../lib/hono-env';
-import type Stripe from 'stripe';
-import { stripe } from '../lib/stripe';
 import { db } from '../db';
 import { subscriptions } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { buildSubscriptionRedirect, validateItn, cancelSubscription } from '../lib/payfast';
 
 export const billingRouter = new Hono<AppEnv>();
 
-// POST /api/billing/checkout — create Stripe checkout session
+const PRICES = { pro: 299, business: 599 } as const;
+const FAILED_PAYMENT_LIMIT = 2; // downgrade to free on the 2nd failed renewal
+
+// POST /api/billing/checkout — signed PayFast redirect URL.
 billingRouter.post('/checkout', async (c) => {
   const userId = c.get('userId') as string;
   const userEmail = c.get('userEmail') as string;
-  const { tier } = await c.req.json() as { tier: 'pro' | 'business' };
+  const { tier } = (await c.req.json()) as { tier: 'pro' | 'business' };
+  if (tier !== 'pro' && tier !== 'business') return c.json({ error: 'Invalid tier' }, 400);
 
-  const priceId = tier === 'pro'
-    ? process.env.STRIPE_PRO_PRICE_ID!
-    : process.env.STRIPE_BUSINESS_PRICE_ID!;
+  await db.insert(subscriptions).values({ userId }).onConflictDoNothing();
 
-  let sub = await db.query.subscriptions.findFirst({ where: eq(subscriptions.userId, userId) });
-  let customerId = sub?.stripeCustomerId;
+  const clientBase = process.env.CLIENT_URL ?? 'http://localhost:5173';
+  const apiBase    = process.env.BETTER_AUTH_URL ?? 'http://localhost:3000';
 
-  if (!customerId) {
-    const customer = await stripe.customers.create({ email: userEmail, metadata: { userId } });
-    customerId = customer.id;
-    if (sub) {
-      await db.update(subscriptions).set({ stripeCustomerId: customerId })
-        .where(eq(subscriptions.userId, userId));
-    } else {
-      // No subscription row yet — create it instead of orphaning the customer.
-      await db.insert(subscriptions).values({ userId, stripeCustomerId: customerId })
-        .onConflictDoUpdate({ target: subscriptions.userId, set: { stripeCustomerId: customerId } });
-    }
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${process.env.CLIENT_URL}/settings?billing=success`,
-    cancel_url:  `${process.env.CLIENT_URL}/settings?billing=cancelled`,
-    metadata: { userId },
+  const url = buildSubscriptionRedirect({
+    amount:     PRICES[tier].toFixed(2),
+    itemName:   `Business Quotes ${tier === 'pro' ? 'Pro' : 'Business'}`,
+    email:      userEmail,
+    mPaymentId: `${userId}:${Date.now()}`,
+    userId,
+    tier,
+    returnUrl:  `${clientBase}/settings?billing=success`,
+    cancelUrl:  `${clientBase}/settings?billing=cancelled`,
+    notifyUrl:  `${apiBase}/api/billing/notify`,
   });
 
-  return c.json({ url: session.url });
+  return c.json({ url });
 });
 
-// POST /api/billing/portal — Stripe billing portal
-billingRouter.post('/portal', async (c) => {
+// POST /api/billing/notify — PayFast ITN (bypasses session auth; see index.ts).
+// Always reply 200 fast; only mutate on a fully validated call.
+billingRouter.post('/notify', async (c) => {
+  const rawBody = await c.req.text();
+  const data = await validateItn(rawBody);
+
+  if (!data) {
+    console.warn('[payfast] ITN validation FAILED');
+    return c.text('', 200);
+  }
+
+  const status = (data.payment_status ?? '').toUpperCase(); // COMPLETE | FAILED | CANCELLED | PENDING
+  const userId = data.custom_str1 || undefined;
+  const tier   = data.custom_str2 as 'pro' | 'business' | undefined;
+  const token  = data.token || null;
+  const gross  = Number(data.amount_gross ?? 0);
+
+  console.log('[payfast] ITN ok', {
+    status, m_payment_id: data.m_payment_id, pf_payment_id: data.pf_payment_id, hasToken: !!token,
+  });
+
+  // Resolve the subscription: prefer userId, else match by stored token.
+  let sub = userId
+    ? await db.query.subscriptions.findFirst({ where: eq(subscriptions.userId, userId) })
+    : undefined;
+  if (!sub && token) {
+    sub = await db.query.subscriptions.findFirst({ where: eq(subscriptions.stripeSubscriptionId, token) });
+  }
+  if (!sub) {
+    console.warn('[payfast] ITN could not resolve a subscription');
+    return c.text('', 200);
+  }
+
+  if (status === 'COMPLETE') {
+    // Amount-tamper guard: gross must meet the expected price for the tier.
+    const resolvedTier = tier ?? (sub.tier as 'pro' | 'business');
+    const expected = resolvedTier === 'pro' ? PRICES.pro : resolvedTier === 'business' ? PRICES.business : null;
+    if (expected == null || gross + 0.001 < expected) {
+      console.warn('[payfast] ITN amount below expected; ignoring', { gross, expected, resolvedTier });
+      return c.text('', 200);
+    }
+    await db.update(subscriptions).set({
+      tier: resolvedTier,
+      status: 'active',
+      stripeSubscriptionId: token ?? sub.stripeSubscriptionId, // repurposed: PayFast token
+      failedPayments: 0,
+      updatedAt: new Date(),
+    }).where(eq(subscriptions.userId, sub.userId));
+    return c.text('', 200);
+  }
+
+  if (status === 'FAILED') {
+    const failed = (sub.failedPayments ?? 0) + 1;
+    if (failed >= FAILED_PAYMENT_LIMIT) {
+      await db.update(subscriptions).set({
+        tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
+      }).where(eq(subscriptions.userId, sub.userId));
+      console.warn('[payfast] subscription downgraded to free after failed renewals', { userId: sub.userId });
+    } else {
+      await db.update(subscriptions).set({
+        status: 'past_due', failedPayments: failed, updatedAt: new Date(),
+      }).where(eq(subscriptions.userId, sub.userId));
+    }
+    return c.text('', 200);
+  }
+
+  if (status === 'CANCELLED') {
+    await db.update(subscriptions).set({
+      tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
+    }).where(eq(subscriptions.userId, sub.userId));
+    return c.text('', 200);
+  }
+
+  return c.text('', 200); // PENDING or unknown — ignore
+});
+
+// POST /api/billing/cancel — cancel via PayFast recurring API using the token.
+billingRouter.post('/cancel', async (c) => {
   const userId = c.get('userId') as string;
   const sub = await db.query.subscriptions.findFirst({ where: eq(subscriptions.userId, userId) });
-  if (!sub?.stripeCustomerId) return c.json({ error: 'No billing account found.' }, 400);
+  const token = sub?.stripeSubscriptionId;
+  if (!token) return c.json({ error: 'No active subscription found.' }, 400);
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer:   sub.stripeCustomerId,
-    return_url: `${process.env.CLIENT_URL}/settings`,
-  });
-  return c.json({ url: session.url });
-});
+  const ok = await cancelSubscription(token);
+  if (!ok) return c.json({ error: 'Could not cancel automatically. Cancel from your PayFast account or contact support.' }, 502);
 
-// POST /api/billing/webhook — bypasses session auth; verified by Stripe signature.
-billingRouter.post('/webhook', async (c) => {
-  const sig  = c.req.header('stripe-signature');
-  const body = await c.req.text();
-
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
-  } catch {
-    return c.text('Webhook signature verification failed', 400);
-  }
-
-  const handleSub = async (stripeSub: Stripe.Subscription, status: 'active' | 'past_due' | 'canceled') => {
-    const customerId = stripeSub.customer as string;
-    const existingSub = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.stripeCustomerId, customerId),
-    });
-    if (!existingSub) return;
-
-    const priceId = stripeSub.items?.data[0]?.price?.id;
-    const tier = priceId === process.env.STRIPE_PRO_PRICE_ID ? 'pro'
-               : priceId === process.env.STRIPE_BUSINESS_PRICE_ID ? 'business'
-               : 'free';
-
-    await db.update(subscriptions).set({
-      tier: status === 'canceled' ? 'free' : tier,
-      status,
-      stripeSubscriptionId: stripeSub.id,
-      currentPeriodEnd: status !== 'canceled' && (stripeSub as any).current_period_end
-        ? new Date((stripeSub as any).current_period_end * 1000)
-        : null,
-      updatedAt: new Date(),
-    }).where(eq(subscriptions.stripeCustomerId, customerId));
-  };
-
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      // Reconcile the Stripe customer id back onto the subscription row using
-      // the userId we stashed in checkout metadata. Guards against a missing
-      // or stale stripeCustomerId (e.g. customer created but update lost).
-      const session = event.data.object as Stripe.Checkout.Session;
-      const uid = session.metadata?.userId;
-      const customerId = session.customer as string | null;
-      if (uid && customerId) {
-        await db.insert(subscriptions)
-          .values({ userId: uid, stripeCustomerId: customerId })
-          .onConflictDoUpdate({
-            target: subscriptions.userId,
-            set: { stripeCustomerId: customerId, updatedAt: new Date() },
-          });
-      }
-      break;
-    }
-    case 'customer.subscription.created':
-    case 'customer.subscription.updated':
-      await handleSub(event.data.object as Stripe.Subscription, 'active');
-      break;
-    case 'customer.subscription.deleted':
-      await handleSub(event.data.object as Stripe.Subscription, 'canceled');
-      break;
-    case 'invoice.payment_failed': {
-      const inv = event.data.object as Stripe.Invoice;
-      if (inv.customer) {
-        await db.update(subscriptions).set({ status: 'past_due', updatedAt: new Date() })
-          .where(eq(subscriptions.stripeCustomerId, inv.customer as string));
-      }
-      break;
-    }
-  }
-
-  return c.json({ received: true });
+  await db.update(subscriptions).set({
+    tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
+  }).where(eq(subscriptions.userId, userId));
+  return c.json({ ok: true });
 });

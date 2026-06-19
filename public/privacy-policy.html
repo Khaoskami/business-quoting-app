@@ -28,7 +28,7 @@
   <p>To provide the service, we collect and store:</p>
   <p><strong>Account information</strong> — your name, email address, and password. Passwords are stored only as a salted hash; we never see your plaintext password.</p>
   <p><strong>Business and quoting data</strong> — the business profile, clients, catalog items, and quotes you create in the app.</p>
-  <p><strong>Subscription information</strong> — your current plan (free / pro / business), subscription status, and a Stripe customer reference linking your account to its billing record.</p>
+  <p><strong>Subscription information</strong> — your current plan (free / pro / business), subscription status, and a PayFast billing reference linking your account to its billing record.</p>
   <p><strong>Session information</strong> — a session token stored in an httpOnly cookie on your browser so you stay signed in for up to 30 days.</p>
   <p>We do not collect tracking analytics, crash reports, location data, or device fingerprints.</p>
 
@@ -37,12 +37,12 @@
   <p>Data is transmitted between your browser and our server over HTTPS (TLS). Authentication is handled by <a href="https://better-auth.com">Better Auth</a> using signed, httpOnly, secure session cookies — these cookies cannot be read by JavaScript and are sent only to our domain.</p>
 
   <h2>Payments</h2>
-  <p>Payments are processed entirely by <a href="https://stripe.com">Stripe</a>. When you upgrade, you are redirected to Stripe's hosted checkout. Card numbers and other payment details are entered on Stripe's pages and never reach our servers. We receive only a Stripe customer ID and subscription status (active, past due, canceled), used to determine which plan you have access to. Stripe's privacy policy applies to your payment interactions with them.</p>
+  <p>Payments are processed entirely by <a href="https://www.payfast.co.za">PayFast</a> (operated by Network International). When you upgrade, you are redirected to PayFast's hosted checkout. Card numbers and other payment details are entered on PayFast's pages and never reach our servers. We receive only a billing token and subscription status (active, past due, canceled), used to determine which plan you have access to. PayFast's privacy policy applies to your payment interactions with them.</p>
 
   <h2>Third Parties</h2>
   <p>The third-party services that handle your data on our behalf are limited to:</p>
   <p><strong>Railway</strong> — application and database hosting.</p>
-  <p><strong>Stripe</strong> — payment processing (only if you subscribe to a paid plan).</p>
+  <p><strong>PayFast</strong> (Network International) — payment processing (only if you subscribe to a paid plan).</p>
   <p>We do not sell, rent, or share your data with advertisers, data brokers, or any other third parties.</p>
 
   <h2>Data Security</h2>
@@ -53,7 +53,7 @@
 
   <h2>Your Rights</h2>
   <p>You can view and edit your business profile, quotes, clients, and catalog at any time from within the app.</p>
-  <p>You can delete your account and all associated data (quotes, clients, catalog items, business profile, subscription record) at any time. Deleting your account permanently removes this data from our database. If you have an active paid subscription, cancel it from Settings → Manage billing before deleting your account.</p>
+  <p>You can delete your account and all associated data (quotes, clients, catalog items, business profile, subscription record) at any time. Deleting your account permanently removes this data from our database. If you have an active paid subscription, cancel it from Settings → Cancel subscription before deleting your account.</p>
   <p>To request a copy of your data, or to ask questions about how we handle it, contact us at the address below.</p>
 
   <h2>Changes to This Policy</h2>
