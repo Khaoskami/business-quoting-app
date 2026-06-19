@@ -12,6 +12,10 @@ import { adminRouter } from './routes/admin';
 import { invoicesRouter } from './routes/invoices';
 import type { AppEnv } from './lib/hono-env';
 
+if (!process.env.BETTER_AUTH_URL) {
+  console.warn('[payfast] BETTER_AUTH_URL is not set — PayFast ITNs will not reach this server.');
+}
+
 const app = new Hono<AppEnv>();
 
 app.use('*', logger());
@@ -44,7 +48,7 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
 app.use('/api/*', async (c, next) => {
   // Public endpoints that bypass session auth.
   if (c.req.path === '/api/health') return next();
-  if (c.req.path === '/api/billing/webhook') return next(); // Verified by Stripe signature instead.
+  if (c.req.path === '/api/billing/notify') return next(); // PayFast ITN; verified by signature + post-back
   if (c.req.path.startsWith('/api/auth/')) return next(); // Better Auth handles its own auth flow.
 
   const session = await auth.api.getSession({ headers: c.req.raw.headers });

@@ -51,7 +51,7 @@ export const api = {
   },
   billing: {
     checkout: (tier: string) => request<{ url: string }>('/billing/checkout', { method: 'POST', body: JSON.stringify({ tier }) }),
-    portal:   () => request<{ url: string }>('/billing/portal', { method: 'POST' }),
+    cancel:   () => request<{ ok: true }>('/billing/cancel', { method: 'POST' }),
   },
   admin: {
     users:  () => request<any[]>('/admin/users'),

@@ -7,8 +7,8 @@ import { CURRENCIES, fmtDate } from '../lib/quote';
 
 const TIERS = [
   { key: 'free',     name: 'Free',     price: 'Free forever', features: ['5 quotes/month', '3 clients', '10 catalog items', 'CSV export'] },
-  { key: 'pro',      name: 'Pro',      price: '$9.99/mo',     features: ['50 quotes/month', '999 clients', 'Print/PDF', 'Discounts', 'Signatures'] },
-  { key: 'business', name: 'Business', price: '$24.99/mo',    features: ['Unlimited quotes', 'Unlimited clients', 'All Pro features'] },
+  { key: 'pro',      name: 'Pro',      price: 'R299/mo',      features: ['50 quotes/month', '999 clients', 'Print/PDF', 'Discounts', 'Signatures'] },
+  { key: 'business', name: 'Business', price: 'R599/mo',      features: ['Unlimited quotes', 'Unlimited clients', 'All Pro features'] },
 ];
 
 function hasOldLocalStorage() {
@@ -116,10 +116,10 @@ export default function Settings() {
     onError: (e: any) => notify(e.message ?? 'Checkout failed', 'error'),
   });
 
-  const portal = useMutation({
-    mutationFn: () => api.billing.portal(),
-    onSuccess: ({ url }) => { if (url) window.location.href = url; },
-    onError: (e: any) => notify(e.message ?? 'Could not open portal', 'error'),
+  const cancel = useMutation({
+    mutationFn: () => api.billing.cancel(),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['profile'] }); notify('Subscription cancelled.'); },
+    onError: (e: any) => notify(e.message ?? 'Could not cancel subscription', 'error'),
   });
 
   async function importFromLocalStorage() {
@@ -180,8 +180,9 @@ export default function Settings() {
           </div>
         )}
         {tier !== 'free' && !profile?.subscription?.comped && (
-          <button onClick={() => portal.mutate()} disabled={portal.isPending}
-                  className="btn btn--secondary" style={{ marginTop: 12 }}>Manage billing</button>
+          <button onClick={() => { if (confirm('Cancel your subscription? Your plan will revert to Free.')) cancel.mutate(); }}
+                  disabled={cancel.isPending}
+                  className="btn btn--secondary" style={{ marginTop: 12 }}>Cancel subscription</button>
         )}
       </div>
 

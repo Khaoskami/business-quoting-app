@@ -65,9 +65,12 @@ export const subscriptions = pgTable('subscriptions', {
   userId:               text('user_id').notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
   tier:                 tierEnum('tier').notNull().default('free'),
   status:               subStatusEnum('status').notNull().default('active'),
-  stripeCustomerId:     text('stripe_customer_id'),
+  stripeCustomerId:     text('stripe_customer_id'), // legacy Stripe column — unused under PayFast
+  // Repurposed: stores the PayFast recurring-billing token (the only handle for
+  // cancelling later). Column kept under its old name to avoid a rename migration.
   stripeSubscriptionId: text('stripe_subscription_id'),
   currentPeriodEnd:     timestamp('current_period_end'),
+  failedPayments:       integer('failed_payments').notNull().default(0),
   comped:               boolean('comped').notNull().default(false),
   compedBy:             text('comped_by').references(() => users.id),
   compedNote:           text('comped_note'),

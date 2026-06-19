@@ -1,6 +1,6 @@
 # Business Quotes App
 
-Multi-user SaaS for creating professional business quotes. Server-side auth, PostgreSQL storage, Stripe billing, admin panel.
+Multi-user SaaS for creating professional business quotes. Server-side auth, PostgreSQL storage, PayFast billing, admin panel.
 
 ## Stack
 
@@ -8,7 +8,7 @@ Multi-user SaaS for creating professional business quotes. Server-side auth, Pos
 - **API:** Hono
 - **Auth:** Better Auth (email/password, 30-day sessions, httpOnly cookies, rate-limited auth routes)
 - **Database:** PostgreSQL + Drizzle ORM
-- **Payments:** Stripe (subscriptions + billing portal + webhooks)
+- **Payments:** PayFast (ZAR recurring subscriptions + ITN webhooks)
 - **Frontend:** React 18 + Vite + TanStack Query + React Router
 - **Deploy:** Railway (single service, Postgres plugin)
 
@@ -40,25 +40,33 @@ bun start       # serves the API + static SPA on $PORT
 3. Set the remaining env vars from `.env.example`:
    - `BETTER_AUTH_SECRET` (`openssl rand -base64 32`)
    - `BETTER_AUTH_URL` and `CLIENT_URL` (your Railway domain)
-   - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
-   - `STRIPE_PRO_PRICE_ID`, `STRIPE_BUSINESS_PRICE_ID`
+   - `PAYFAST_MERCHANT_ID`, `PAYFAST_MERCHANT_KEY`
+   - `PAYFAST_PASSPHRASE` (required for recurring billing; must match your PayFast account)
+   - `PAYFAST_SANDBOX` (`true` for sandbox; set to `false` in production)
    - `ADMIN_EMAIL` — default email to promote with the admin script (see [Admin](#admin))
-4. Stripe → Developers → Webhooks → endpoint:
-   `https://your-app.up.railway.app/api/billing/webhook`
-   Events: `checkout.session.completed`, `customer.subscription.created`,
-   `customer.subscription.updated`, `customer.subscription.deleted`,
-   `invoice.payment_failed`.
+4. PayFast dashboard → Settings:
+   - Set the ITN (notify) URL to `https://your-app.up.railway.app/api/billing/notify`.
+   - Enable **recurring billing** and set a **passphrase** (the same value as `PAYFAST_PASSPHRASE`).
 5. Push to deploy. Railway runs `bun run db:migrate && bun start`.
+
+> **Known follow-up:** the 2-strike failed-renewal downgrade depends on PayFast
+> delivering a `FAILED` ITN per attempt. PayFast also runs its own internal
+> retries and then "locks" a subscription, which may not map 1:1 to the ITNs we
+> receive. The durable backstop is a scheduled reconciliation job that polls
+> subscription state via the recurring API and downgrades locked subscriptions —
+> not built in this pass.
 
 Health check: `GET /api/health` → `{"ok": true}`.
 
 ## Tiers
 
-| Tier      | Quotes/mo | Clients   | Catalog   | Features                                         |
-|-----------|-----------|-----------|-----------|--------------------------------------------------|
-| Free      | 5         | 3         | 10        | CSV export                                       |
-| Pro       | 50        | 999       | 999       | + Print/PDF, discounts, signatures, client URLs  |
-| Business  | ∞         | ∞         | ∞         | All Pro features                                 |
+| Tier      | Price     | Quotes/mo | Clients   | Catalog   | Features                                         |
+|-----------|-----------|-----------|-----------|-----------|--------------------------------------------------|
+| Free      | —         | 5         | 3         | 10        | CSV export                                       |
+| Pro       | R299/mo   | 50        | 999       | 999       | + Print/PDF, discounts, signatures, client URLs  |
+| Business  | R599/mo   | ∞         | ∞         | ∞         | All Pro features                                 |
+
+Prices are in ZAR — PayFast processes ZAR only.
 
 Tiers are server-side truth. Limits enforced in `server/lib/tier.ts` and per-route counts.
 Admins can **comp** any user to Pro or Business from the Admin panel.
