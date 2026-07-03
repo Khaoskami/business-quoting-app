@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
-import { subscriptions } from '../db/schema';
+import { subscriptions, processedItns } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { buildSubscriptionRedirect, validateItn, cancelSubscription } from '../lib/payfast';
 
@@ -70,6 +70,26 @@ billingRouter.post('/notify', async (c) => {
     return c.text('', 200);
   }
 
+  // Replay guard: PayFast re-delivers an ITN until acknowledged, and a
+  // re-delivered FAILED ITN must not double-increment failedPayments (it could
+  // wrongly trip the two-strike downgrade). Claim the (pf_payment_id, status)
+  // pair inside the same transaction as the mutation so a crash between the
+  // two can't strand a processed-marker without its effect. Returns false when
+  // this exact ITN was already processed.
+  const pfPaymentId = (data.pf_payment_id ?? '').trim();
+  const claimItn = async (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]): Promise<boolean> => {
+    if (!pfPaymentId) return true; // nothing to dedupe on — process as before
+    const inserted = await tx.insert(processedItns)
+      .values({ pfPaymentId, paymentStatus: status })
+      .onConflictDoNothing()
+      .returning();
+    if (inserted.length === 0) {
+      console.log('[payfast] ITN replay ignored', { pf_payment_id: pfPaymentId, status });
+      return false;
+    }
+    return true;
+  };
+
   if (status === 'COMPLETE') {
     // Amount-tamper guard: gross must meet the expected price for the tier.
     const resolvedTier = tier ?? (sub.tier as 'pro' | 'business');
@@ -78,35 +98,50 @@ billingRouter.post('/notify', async (c) => {
       console.warn('[payfast] ITN amount below expected; ignoring', { gross, expected, resolvedTier });
       return c.text('', 200);
     }
-    await db.update(subscriptions).set({
-      tier: resolvedTier,
-      status: 'active',
-      stripeSubscriptionId: token ?? sub.stripeSubscriptionId, // repurposed: PayFast token
-      failedPayments: 0,
-      updatedAt: new Date(),
-    }).where(eq(subscriptions.userId, sub.userId));
+    // Monthly frequency: this charge pays for one month from now. Cancel paths
+    // intentionally leave currentPeriodEnd untouched so the paid-through date
+    // remains visible.
+    const periodEnd = new Date();
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+    await db.transaction(async (tx) => {
+      if (!(await claimItn(tx))) return;
+      await tx.update(subscriptions).set({
+        tier: resolvedTier,
+        status: 'active',
+        stripeSubscriptionId: token ?? sub.stripeSubscriptionId, // repurposed: PayFast token
+        failedPayments: 0,
+        currentPeriodEnd: periodEnd,
+        updatedAt: new Date(),
+      }).where(eq(subscriptions.userId, sub.userId));
+    });
     return c.text('', 200);
   }
 
   if (status === 'FAILED') {
     const failed = (sub.failedPayments ?? 0) + 1;
-    if (failed >= FAILED_PAYMENT_LIMIT) {
-      await db.update(subscriptions).set({
-        tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
-      }).where(eq(subscriptions.userId, sub.userId));
-      console.warn('[payfast] subscription downgraded to free after failed renewals', { userId: sub.userId });
-    } else {
-      await db.update(subscriptions).set({
-        status: 'past_due', failedPayments: failed, updatedAt: new Date(),
-      }).where(eq(subscriptions.userId, sub.userId));
-    }
+    await db.transaction(async (tx) => {
+      if (!(await claimItn(tx))) return;
+      if (failed >= FAILED_PAYMENT_LIMIT) {
+        await tx.update(subscriptions).set({
+          tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
+        }).where(eq(subscriptions.userId, sub.userId));
+        console.warn('[payfast] subscription downgraded to free after failed renewals', { userId: sub.userId });
+      } else {
+        await tx.update(subscriptions).set({
+          status: 'past_due', failedPayments: failed, updatedAt: new Date(),
+        }).where(eq(subscriptions.userId, sub.userId));
+      }
+    });
     return c.text('', 200);
   }
 
   if (status === 'CANCELLED') {
-    await db.update(subscriptions).set({
-      tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
-    }).where(eq(subscriptions.userId, sub.userId));
+    await db.transaction(async (tx) => {
+      if (!(await claimItn(tx))) return;
+      await tx.update(subscriptions).set({
+        tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
+      }).where(eq(subscriptions.userId, sub.userId));
+    });
     return c.text('', 200);
   }
 

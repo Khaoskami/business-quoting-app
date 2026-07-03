@@ -59,7 +59,8 @@ export const profileSchema = z.object({
   address:         z.string().max(2000).optional(),
   website:         z.string().max(2000).optional(),
   defaultCurrency: z.string().max(8).optional(),
-  // Logo is injected into an <img src> unescaped on print, so the regex is
-  // required (not optional) — reject anything that isn't a png/jpeg data URL.
-  logo:            z.string().max(1_400_000).regex(/^data:image\/(png|jpeg);base64,/).optional(),
+  // Fully-anchored: the payload after the data-URL prefix must be base64
+  // characters only, so values like `...;base64,x" onerror="..."` are rejected.
+  // The print page also escapes the logo at the injection site (defence in depth).
+  logo:            z.string().max(1_400_000).regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/).optional(),
 }).passthrough();

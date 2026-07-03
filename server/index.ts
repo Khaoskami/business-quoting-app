@@ -10,6 +10,7 @@ import { profileRouter } from './routes/profile';
 import { billingRouter } from './routes/billing';
 import { adminRouter } from './routes/admin';
 import { invoicesRouter } from './routes/invoices';
+import { rateLimit } from './lib/rate-limit';
 import type { AppEnv } from './lib/hono-env';
 
 if (!process.env.BETTER_AUTH_URL) {
@@ -59,6 +60,11 @@ app.use('/api/*', async (c, next) => {
   c.set('isAdmin', Boolean((session.user as any).isAdmin));
   await next();
 });
+
+// General-route rate limiting. Runs after the session middleware so authed
+// traffic is keyed per-user (unauthed passthroughs like the ITN fall back to
+// per-IP). better-auth's own limiter already covers /api/auth/*.
+app.use('/api/*', rateLimit);
 
 app.route('/api/quotes',  quotesRouter);
 app.route('/api/clients', clientsRouter);
