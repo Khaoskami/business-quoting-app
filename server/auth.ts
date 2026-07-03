@@ -6,6 +6,14 @@ import * as schema from './db/schema';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+if (!process.env.RESET_FROM_EMAIL) {
+  console.warn(
+    '[email] RESET_FROM_EMAIL is not set — password-reset emails will use a ' +
+    'non-deliverable placeholder sender and will likely be rejected. Set ' +
+    'RESET_FROM_EMAIL to a sender on a verified Resend domain.'
+  );
+}
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
@@ -45,7 +53,7 @@ export const auth = betterAuth({
       }
 
       await resend.emails.send({
-        from: process.env.RESET_FROM_EMAIL ?? 'Khaosinc24@gmail.com',
+        from: process.env.RESET_FROM_EMAIL ?? 'no-reply@invalid.example',
         to: user.email,
         subject: 'Reset your Business Quotes password',
         html: `
