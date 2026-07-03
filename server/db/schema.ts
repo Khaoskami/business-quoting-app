@@ -1,6 +1,6 @@
 import {
   pgTable, text, boolean, timestamp,
-  uuid, jsonb, pgEnum, integer
+  uuid, jsonb, pgEnum, integer, index, primaryKey
 } from 'drizzle-orm/pg-core';
 
 // ── Enums ────────────────────────────────────────────────
@@ -78,6 +78,20 @@ export const subscriptions = pgTable('subscriptions', {
   updatedAt:            timestamp('updated_at').notNull().defaultNow(),
 });
 
+// ── Processed PayFast ITNs (replay guard) ────────────────
+// PayFast re-delivers an ITN until it gets a 200, and a re-delivered FAILED
+// ITN must not double-increment failedPayments. Keyed on
+// (pf_payment_id, payment_status) rather than pf_payment_id alone so a
+// legitimate status transition for the same payment (e.g. PENDING→COMPLETE)
+// is never mistaken for a replay.
+export const processedItns = pgTable('processed_itns', {
+  pfPaymentId:   text('pf_payment_id').notNull(),
+  paymentStatus: text('payment_status').notNull(),
+  processedAt:   timestamp('processed_at').notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.pfPaymentId, t.paymentStatus] }),
+]);
+
 // ── Business profiles ────────────────────────────────────
 export const businessProfiles = pgTable('business_profiles', {
   userId:    text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
@@ -92,7 +106,11 @@ export const quotes = pgTable('quotes', {
   data:      jsonb('data').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (t) => [
+  // Composite: serves both the per-user listing and the monthly-cap count
+  // (user_id equality + created_at range) inside the quote-creation tx.
+  index('quotes_user_id_created_at_idx').on(t.userId, t.createdAt),
+]);
 
 // ── Per-user gapless quote sequence counters ─────────────
 export const quoteCounters = pgTable('quote_counters', {
@@ -110,7 +128,9 @@ export const invoices = pgTable('invoices', {
   data:          jsonb('data').notNull(), // frozen snapshot of the quote at acceptance time
   createdAt:     timestamp('created_at').notNull().defaultNow(),
   updatedAt:     timestamp('updated_at').notNull().defaultNow(),
-});
+}, (t) => [
+  index('invoices_user_id_idx').on(t.userId),
+]);
 
 // ── Per-user gapless invoice sequence counters ──
 export const invoiceCounters = pgTable('invoice_counters', {
@@ -125,7 +145,9 @@ export const clients = pgTable('clients', {
   data:      jsonb('data').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (t) => [
+  index('clients_user_id_idx').on(t.userId),
+]);
 
 // ── Catalog items ────────────────────────────────────────
 export const catalogItems = pgTable('catalog_items', {
@@ -134,4 +156,6 @@ export const catalogItems = pgTable('catalog_items', {
   data:      jsonb('data').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (t) => [
+  index('catalog_items_user_id_idx').on(t.userId),
+]);
