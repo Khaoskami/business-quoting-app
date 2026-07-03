@@ -3,7 +3,7 @@ import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { quotes, quoteCounters, invoices, invoiceCounters } from '../db/schema';
 import { eq, and, gte, count, sql } from 'drizzle-orm';
-import { withTier, TIER_LIMITS, type Tier } from '../lib/tier';
+import { withTier, TIER_LIMITS, quoteLimitReached, type Tier } from '../lib/tier';
 import { quoteSchema } from '../lib/schemas';
 
 export const quotesRouter = new Hono<AppEnv>();
@@ -35,7 +35,7 @@ quotesRouter.post('/', async (c) => {
         const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
         const [{ value }] = await tx.select({ value: count() }).from(quotes)
           .where(and(eq(quotes.userId, userId), gte(quotes.createdAt, monthStart)));
-        if (value >= limits.quotesPerMonth) {
+        if (quoteLimitReached(tier, value)) {
           return { limit: true as const };
         }
       }

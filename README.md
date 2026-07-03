@@ -62,8 +62,8 @@ Health check: `GET /api/health` → `{"ok": true}`.
 
 | Tier      | Price     | Quotes/mo | Clients   | Catalog   | Features                                         |
 |-----------|-----------|-----------|-----------|-----------|--------------------------------------------------|
-| Free      | —         | 5         | 3         | 10        | CSV export                                       |
-| Pro       | R299/mo   | 50        | 999       | 999       | + Print/PDF, discounts, signatures, client URLs  |
+| Free      | —         | 50        | 3         | 10        | CSV export                                       |
+| Pro       | R299/mo   | 100       | 999       | 999       | + Print/PDF, discounts, signatures, client URLs  |
 | Business  | R599/mo   | ∞         | ∞         | ∞         | All Pro features                                 |
 
 Prices are in ZAR — PayFast processes ZAR only.

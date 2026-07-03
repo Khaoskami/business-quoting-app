@@ -5,13 +5,13 @@ import { eq } from 'drizzle-orm';
 
 export const TIER_LIMITS = {
   free: {
-    quotesPerMonth: 5,
+    quotesPerMonth: 50,
     maxClients:     3,
     maxCatalog:     10,
     features: { discount: false, print: false, csv: true, signature: false, clientUrl: false, duplicate: false },
   },
   pro: {
-    quotesPerMonth: 50,
+    quotesPerMonth: 100,
     maxClients:     999,
     maxCatalog:     999,
     features: { discount: true, print: true, csv: true, signature: true, clientUrl: true, duplicate: true },
@@ -25,6 +25,11 @@ export const TIER_LIMITS = {
 } as const;
 
 export type Tier = keyof typeof TIER_LIMITS;
+
+export function quoteLimitReached(tier: Tier, quotesThisMonth: number): boolean {
+  const cap = TIER_LIMITS[tier].quotesPerMonth;
+  return cap !== Infinity && quotesThisMonth >= cap;
+}
 
 export const withTier: MiddlewareHandler<any> = async (c, next) => {
   const userId = c.get('userId') as string;
