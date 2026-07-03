@@ -6,8 +6,8 @@ import { useToast } from '../components/Toast';
 import { CURRENCIES, fmtDate } from '../lib/quote';
 
 const TIERS = [
-  { key: 'free',     name: 'Free',     price: 'Free forever', features: ['5 quotes/month', '3 clients', '10 catalog items', 'CSV export'] },
-  { key: 'pro',      name: 'Pro',      price: 'R299/mo',      features: ['50 quotes/month', '999 clients', 'Print/PDF', 'Discounts', 'Signatures'] },
+  { key: 'free',     name: 'Free',     price: 'Free forever', features: ['50 quotes/month', '3 clients', '10 catalog items', 'CSV export'] },
+  { key: 'pro',      name: 'Pro',      price: 'R299/mo',      features: ['100 quotes/month', '999 clients', 'Print/PDF', 'Discounts', 'Signatures'] },
   { key: 'business', name: 'Business', price: 'R599/mo',      features: ['Unlimited quotes', 'Unlimited clients', 'All Pro features'] },
 ];
 
