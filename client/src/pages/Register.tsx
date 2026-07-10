@@ -57,6 +57,12 @@ export default function Register() {
 
         {err && <div role="alert" className="field-error" style={{ marginBottom: 12 }}>{err}</div>}
 
+        <p className="consent-note">
+          By creating an account you agree to the{' '}
+          <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and{' '}
+          <a href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+        </p>
+
         <button type="submit" disabled={loading} className={`btn btn--primary btn--full btn--lg ${loading ? 'btn--loading' : ''}`}>
           Create account
         </button>

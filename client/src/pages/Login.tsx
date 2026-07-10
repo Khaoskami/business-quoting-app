@@ -52,6 +52,11 @@ export default function Login() {
         <div className="lock-footer">
           New here? <Link to="/register">Create an account</Link>
         </div>
+        <div className="legal-links">
+          <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>
+          {' · '}
+          <a href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>
+        </div>
       </form>
     </div>
   );

@@ -334,3 +334,11 @@ a:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Legal links (auth screens) + support */
+.legal-links { margin-top: 16px; text-align: center; font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.legal-links a { color: var(--text-secondary); }
+.consent-note { font-size: var(--font-size-xs); color: var(--text-tertiary); text-align: center; margin-bottom: 12px; line-height: 1.5; }
+.support-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.btn--whatsapp { background: #25d366; color: #fff; }
+.btn--whatsapp:hover { background: #1eb757; color: #fff; text-decoration: none; }

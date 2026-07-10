@@ -136,10 +136,13 @@ billingRouter.post('/notify', async (c) => {
   }
 
   if (status === 'CANCELLED') {
+    // Cancellation (from our /cancel call or from the user's PayFast account)
+    // keeps the paid tier; effectiveTier() downgrades it once currentPeriodEnd
+    // passes, so the user retains the month they already paid for.
     await db.transaction(async (tx) => {
       if (!(await claimItn(tx))) return;
       await tx.update(subscriptions).set({
-        tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
+        status: 'canceled', failedPayments: 0, updatedAt: new Date(),
       }).where(eq(subscriptions.userId, sub.userId));
     });
     return c.text('', 200);
@@ -158,8 +161,11 @@ billingRouter.post('/cancel', async (c) => {
   const ok = await cancelSubscription(token);
   if (!ok) return c.json({ error: 'Could not cancel automatically. Cancel from your PayFast account or contact support.' }, 502);
 
+  // Keep the paid tier: access continues until currentPeriodEnd (the month
+  // already paid for), after which effectiveTier() resolves the row to free.
+  // This matches the cancellation policy published in /terms.html.
   await db.update(subscriptions).set({
-    tier: 'free', status: 'canceled', failedPayments: 0, updatedAt: new Date(),
+    status: 'canceled', failedPayments: 0, updatedAt: new Date(),
   }).where(eq(subscriptions.userId, userId));
   return c.json({ ok: true });
 });

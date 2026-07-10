@@ -3,7 +3,7 @@ import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { businessProfiles, subscriptions } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { TIER_LIMITS } from '../lib/tier';
+import { TIER_LIMITS, effectiveTier } from '../lib/tier';
 import { profileSchema } from '../lib/schemas';
 
 export const profileRouter = new Hono<AppEnv>();
@@ -12,7 +12,7 @@ profileRouter.get('/', async (c) => {
   const userId = c.get('userId') as string;
   const profile = await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) });
   const sub = await db.query.subscriptions.findFirst({ where: eq(subscriptions.userId, userId) });
-  const tier = (sub?.tier as keyof typeof TIER_LIMITS) ?? 'free';
+  const tier = effectiveTier(sub);
   return c.json({
     profile: profile?.data ?? {},
     subscription: {

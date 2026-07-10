@@ -31,12 +31,29 @@ export function quoteLimitReached(tier: Tier, quotesThisMonth: number): boolean 
   return cap !== Infinity && quotesThisMonth >= cap;
 }
 
+/**
+ * Resolve the tier a subscription row actually grants right now.
+ * A user-cancelled subscription keeps its paid tier until the end of the
+ * period it already paid for (currentPeriodEnd), then falls back to free.
+ * Rows downgraded for non-payment have tier already set to 'free', so they
+ * are unaffected by this grace logic.
+ */
+export function effectiveTier(sub?: { tier?: string | null; status?: string | null; currentPeriodEnd?: Date | null } | null): Tier {
+  const tier = (sub?.tier as Tier) ?? 'free';
+  if (tier === 'free') return 'free';
+  if (sub?.status === 'canceled') {
+    const end = sub.currentPeriodEnd;
+    if (!end || new Date(end).getTime() <= Date.now()) return 'free';
+  }
+  return tier;
+}
+
 export const withTier: MiddlewareHandler<any> = async (c, next) => {
   const userId = c.get('userId') as string;
   const sub = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.userId, userId),
   });
-  const tier: Tier = (sub?.tier as Tier) ?? 'free';
+  const tier: Tier = effectiveTier(sub);
   c.set('tier', tier);
   c.set('tierLimits', TIER_LIMITS[tier]);
   await next();

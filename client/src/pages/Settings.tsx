@@ -180,9 +180,14 @@ export default function Settings() {
           </div>
         )}
         {tier !== 'free' && !profile?.subscription?.comped && (
-          <button onClick={() => { if (confirm('Cancel your subscription? Your plan will revert to Free.')) cancel.mutate(); }}
-                  disabled={cancel.isPending}
-                  className="btn btn--secondary" style={{ marginTop: 12 }}>Cancel subscription</button>
+          <>
+            <button onClick={() => { if (confirm('Cancel your subscription? You keep your paid plan until the end of the period you have already paid for, then revert to Free.')) cancel.mutate(); }}
+                    disabled={cancel.isPending}
+                    className="btn btn--secondary" style={{ marginTop: 12 }}>Cancel subscription</button>
+            <div className="field-hint" style={{ marginTop: 6 }}>
+              Cancelling stops future billing. Your paid features stay active until the end of the current billing period.
+            </div>
+          </>
         )}
       </div>
 
@@ -241,6 +246,28 @@ export default function Settings() {
         </div>
         <button onClick={changePassword} disabled={pwBusy}
                 className={`btn btn--primary ${pwBusy ? 'btn--loading' : ''}`} style={{ marginTop: 14 }}>Update password</button>
+      </div>
+
+      <h2 className="section-title">Support &amp; Legal</h2>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="support-row">
+          <div>
+            <div style={{ fontWeight: 500 }}>Need help?</div>
+            <div className="field-hint" style={{ marginTop: 2 }}>
+              Billing questions, refunds, or anything not working — message us on WhatsApp.
+            </div>
+          </div>
+          <a className="btn btn--whatsapp" href="https://wa.me/27832001798" target="_blank" rel="noopener"
+             aria-label="Contact support on WhatsApp at +27 83 200 1798">
+            WhatsApp support
+          </a>
+        </div>
+        <div className="field-hint" style={{ marginTop: 14 }}>
+          <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>
+          {' · '}
+          <a href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>
+          {' · '}Payments processed by PayFast
+        </div>
       </div>
 
       {hasOldLocalStorage() && (
