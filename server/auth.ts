@@ -38,21 +38,20 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: process.env.NODE_ENV === 'production',
     minPasswordLength: 8,
     // Better Auth calls this with ({ user, url, token }, request). We build our
     // own link pointing at the SPA reset page rather than using the default
     // server `url`, then email it via Resend.
-    sendResetPassword: async ({ user, token }) => {
-      const baseUrl = process.env.BETTER_AUTH_URL ?? 'http://localhost:3000';
-      const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+    sendResetPassword: async ({ user, url }) => {
+      const resetUrl = url;
 
       if (!resend) {
         console.error('RESEND_API_KEY is not set; cannot send password reset email.');
         throw new Error('Email service is not configured.');
       }
 
-      await resend.emails.send({
+      void resend.emails.send({
         from: process.env.RESET_FROM_EMAIL ?? 'no-reply@invalid.example',
         to: user.email,
         subject: 'Reset your Business Quotes password',
@@ -61,7 +60,25 @@ export const auth = betterAuth({
           <p><a href="${resetUrl}">Click here to choose a new password</a>. This link expires in 1 hour.</p>
           <p>If you didn't request this, you can safely ignore this email.</p>
         `,
-      });
+      }).catch((error) => console.error('[email] password reset send failed', error));
+    },
+  },
+
+  emailVerification: {
+    sendOnSignUp: true,
+    sendOnSignIn: process.env.NODE_ENV === 'production',
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      if (!resend) {
+        console.error('RESEND_API_KEY is not set; cannot send verification email.');
+        return;
+      }
+      void resend.emails.send({
+        from: process.env.RESET_FROM_EMAIL ?? 'no-reply@invalid.example',
+        to: user.email,
+        subject: 'Verify your Business Quotes email',
+        html: `<p>Please verify your email address before signing in to Business Quotes.</p><p><a href=\"${url}\">Verify email address</a></p><p>This link expires according to your account verification settings.</p>`,
+      }).catch((error) => console.error('[email] verification send failed', error));
     },
   },
 

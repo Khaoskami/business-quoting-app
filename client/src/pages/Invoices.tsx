@@ -1,85 +1,20 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { Icon } from '../components/Icons';
 import { useToast } from '../components/Toast';
 import { calcTotals, money, fmtDate, buildPrintHtml } from '../lib/quote';
 
-// Invoice status → reuse existing badge palette (green / amber / grey).
-const INV_BADGE: Record<string, { label: string; cls: string }> = {
-  paid:   { label: 'Paid',   cls: 'badge--accepted' },
-  unpaid: { label: 'Unpaid', cls: 'badge--sent' },
-  void:   { label: 'Void',   cls: 'badge--expired' },
-};
+const badge: Record<string, { label: string; cls: string }> = { paid: { label: 'Paid', cls: 'badge--accepted' }, unpaid: { label: 'Unpaid', cls: 'badge--sent' }, partially_paid: { label: 'Partially paid', cls: 'badge--sent' }, overdue: { label: 'Overdue', cls: 'badge--expired' }, void: { label: 'Void', cls: 'badge--expired' } };
 
 export default function Invoices() {
-  const qc = useQueryClient();
-  const { notify } = useToast();
-  const { data: invoices = [] } = useQuery({ queryKey: ['invoices'], queryFn: api.invoices.list });
-  const { data: profile }       = useQuery({ queryKey: ['profile'], queryFn: api.profile.get });
-  const biz = profile?.profile ?? {};
-
-  const setStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'unpaid' | 'paid' | 'void' }) =>
-      api.invoices.setStatus(id, status),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['invoices'] }); notify('Invoice updated.'); },
-    onError: (e: any) => notify(e.message ?? 'Update failed', 'error'),
-  });
-
-  function handlePrint(inv: any) {
-    // The snapshot is quote-shaped; override the heading so it reads as an invoice.
-    const html = buildPrintHtml(
-      { ...inv, title: `Invoice ${inv.invoiceNumber}${inv.title ? ` — ${inv.title}` : ''}`, quoteNumber: inv.invoiceNumber },
-      biz,
-    );
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const w = window.open(url, '_blank');
-    if (w) w.addEventListener('load', () => URL.revokeObjectURL(url), { once: true });
-  }
-
-  return (
-    <div className="page-enter">
-      <div className="page-header">
-        <h1 className="page-title">Invoices</h1>
-      </div>
-
-      {invoices.length === 0 ? (
-        <div className="empty-state">
-          <Icon.emptyDoc />
-          <h3>No invoices yet</h3>
-          <p className="field-hint">Invoices are issued when you confirm a client has accepted a quote.</p>
-        </div>
-      ) : (
-        <div className="list">
-          <div className="list-header">
-            <span>Invoice #</span><span>Client</span><span>Date</span><span>Value</span><span>Status</span><span>Actions</span>
-          </div>
-          {invoices.map((inv: any) => {
-            const { total } = calcTotals(inv.items ?? [], inv.taxPercent ?? 0, inv.discountPercent ?? 0);
-            const b = INV_BADGE[inv.status] ?? INV_BADGE.unpaid;
-            return (
-              <div key={inv.id} className="list-row">
-                <span className="num">{inv.invoiceNumber || '—'}</span>
-                <span className="client">{inv.clientName || '—'}</span>
-                <span className="date">{fmtDate(inv.createdAt)}</span>
-                <span className="value">{money(total, inv.currency)}</span>
-                <span className="status-cell"><span className={`badge ${b.cls}`}>{b.label}</span></span>
-                <span className="invoice-actions" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                  <button className="btn btn--ghost btn--sm" onClick={() => handlePrint(inv)}>Print</button>
-                  {inv.status !== 'paid' && inv.status !== 'void' && (
-                    <button className="btn btn--secondary btn--sm" disabled={setStatus.isPending}
-                            onClick={() => setStatus.mutate({ id: inv.id, status: 'paid' })}>Mark paid</button>
-                  )}
-                  {inv.status !== 'void' && (
-                    <button className="btn btn--ghost btn--sm" disabled={setStatus.isPending}
-                            onClick={() => { if (confirm('Void this invoice?')) setStatus.mutate({ id: inv.id, status: 'void' }); }}>Void</button>
-                  )}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+  const qc = useQueryClient(); const { notify } = useToast(); const [showDeleted, setShowDeleted] = useState(false); const { data: invoices = [] } = useQuery({ queryKey: ['invoices', showDeleted], queryFn: () => api.invoices.list(showDeleted) }); const [historyFor, setHistoryFor] = useState<any>(null); const { data: history = [] } = useQuery({ queryKey: ['invoice-events', historyFor?.id], queryFn: () => api.invoices.events(historyFor.id), enabled: Boolean(historyFor) }); const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: api.profile.get }); const biz = profile?.profile ?? {};
+  const [paymentFor, setPaymentFor] = useState<any>(null); const [shareUrl, setShareUrl] = useState(''); const [amount, setAmount] = useState(''); const [method, setMethod] = useState('bank_transfer'); const [note, setNote] = useState('');
+  const payment = useMutation({ mutationFn: (input: any) => api.invoices.recordPayment(input.id, { amount: Number(input.amount), method: input.method, note: input.note }), onSuccess: () => { setPaymentFor(null); qc.invalidateQueries({ queryKey: ['invoices'] }); notify('Payment recorded.'); }, onError: (e: any) => notify(e.message ?? 'Payment failed', 'error') });
+  const share = useMutation({ mutationFn: (id: string) => api.invoices.share(id), onSuccess: (r) => { setShareUrl(r.url); navigator.clipboard?.writeText(r.url).catch(() => {}); notify('Invoice link copied.'); }, onError: (e: any) => notify(e.message ?? 'Could not create link', 'error') });
+  function print(inv: any) { const url = URL.createObjectURL(new Blob([buildPrintHtml({ ...inv, title: `Invoice ${inv.invoiceNumber}`, quoteNumber: inv.invoiceNumber }, biz)], { type: 'text/html' })); const w = window.open(url, '_blank', 'noopener,noreferrer'); if (w) setTimeout(() => URL.revokeObjectURL(url), 60_000); }
+  return <div className="page-enter"><div className="page-header"><div><h1 className="page-title">Invoices</h1><div className="field-hint">Deleted invoices are archived. Payments and invoice history are never erased.</div></div><button className="btn btn--ghost" onClick={() => setShowDeleted(v => !v)}>{showDeleted ? 'Hide archived' : 'Show archived'}</button></div>{shareUrl && <div className="field-hint" style={{ marginBottom: 16 }}>Client link: <a href={shareUrl} target="_blank" rel="noopener noreferrer">{shareUrl}</a></div>}{!invoices.length ? <div className="empty-state"><Icon.emptyDoc /><h3>No invoices yet</h3><p className="field-hint">Accept a quote to issue an invoice. Partial payments and due dates stay attached to the invoice.</p></div> : <div className="list"><div className="list-header"><span>Invoice #</span><span>Client</span><span>Due</span><span>Balance</span><span>Status</span><span>Actions</span></div>{invoices.map((inv: any) => { const b = badge[inv.status] || badge.unpaid; const balance = inv.balance ?? calcTotals(inv.items || [], inv.taxPercent || 0, inv.discountPercent || 0, inv.currency).total; return <div key={inv.id} className="list-row"><span className="num">{inv.invoiceNumber}</span><span className="client">{inv.clientName || 'Not specified'}</span><span className="date">{fmtDate(inv.dueAt)}</span><span className="value">{money(balance, inv.currency)}</span><span className="status-cell"><span className={`badge ${b.cls}`}>{b.label}</span></span><span className="invoice-actions" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}><button className="btn btn--ghost btn--sm" onClick={() => print(inv)}>Print</button><button className="btn btn--ghost btn--sm" onClick={() => setHistoryFor(inv)}>History</button>{!inv.deletedAt && <button className="btn btn--ghost btn--sm" onClick={() => share.mutate(inv.id)} disabled={share.isPending}>Client link</button>}{!inv.deletedAt && inv.status !== 'paid' && inv.status !== 'void' && <button className="btn btn--secondary btn--sm" onClick={() => { setPaymentFor(inv); setAmount(String(inv.balance ?? 0)); setNote(''); }}>Record payment</button>}{!inv.deletedAt && inv.status !== 'void' && <button className="btn btn--ghost btn--sm" onClick={() => { if (confirm('Void this invoice?')) api.invoices.setStatus(inv.id, 'void').then(() => { qc.invalidateQueries({ queryKey: ['invoices'] }); notify('Invoice voided.'); }).catch((e: any) => notify(e.message ?? 'Could not void invoice', 'error')); }}>Void</button>}{!inv.deletedAt ? <button className="btn btn--danger btn--sm" onClick={() => { if (confirm('Delete this invoice? It will be archived, not erased. Payments and history will remain.')) api.invoices.delete(inv.id).then(() => { qc.invalidateQueries({ queryKey: ['invoices'] }); notify('Invoice archived.'); }).catch((e: any) => notify(e.message ?? 'Could not archive invoice', 'error')); }}>Delete</button> : <button className="btn btn--secondary btn--sm" onClick={() => api.invoices.restore(inv.id).then(() => { qc.invalidateQueries({ queryKey: ['invoices'] }); notify('Invoice restored.'); }).catch((e: any) => notify(e.message ?? 'Could not restore invoice', 'error'))}>Restore</button>}</span></div>; })}</div>}
+  {paymentFor && <div className="modal-overlay"><div className="modal" role="dialog" aria-modal="true"><div className="modal-header"><h2>Record payment</h2><button className="btn btn--ghost btn--sm" onClick={() => setPaymentFor(null)}>Close</button></div><div className="modal-body"><p className="field-hint">Remaining balance: {money(paymentFor.balance ?? 0, paymentFor.currency)}</p><div className="field-group"><label className="field-label">Amount</label><input className="field-input" type="number" min="0.01" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} /></div><div className="field-group"><label className="field-label">Method</label><select className="field-select" value={method} onChange={e => setMethod(e.target.value)}><option value="bank_transfer">Bank transfer</option><option value="eft">EFT</option><option value="card">Card</option><option value="cash">Cash</option><option value="other">Other</option></select></div><div className="field-group"><label className="field-label">Note</label><input className="field-input" value={note} onChange={e => setNote(e.target.value)} placeholder="Payment reference" /></div></div><div className="modal-footer"><button className="btn btn--ghost" onClick={() => setPaymentFor(null)}>Cancel</button><button className="btn btn--primary" disabled={payment.isPending || Number(amount) <= 0} onClick={() => payment.mutate({ id: paymentFor.id, amount, method, note })}>Save payment</button></div></div></div>}
+  {historyFor && <div className="modal-overlay"><div className="modal" role="dialog" aria-modal="true"><div className="modal-header"><h2>Invoice history</h2><button className="btn btn--ghost btn--sm" onClick={() => setHistoryFor(null)}>Close</button></div><div className="modal-body"><div className="simple-list">{history.map((event: any) => <div key={event.id} className="simple-row"><span><strong>{String(event.eventType).replaceAll('_',' ')}</strong><span className="field-hint"> {new Date(event.createdAt).toLocaleString()}</span></span><span className="field-hint">{event.metadata ? JSON.stringify(event.metadata) : ''}</span></div>)}</div></div></div></div>}
+  </div>;
 }

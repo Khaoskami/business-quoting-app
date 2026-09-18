@@ -90,8 +90,8 @@ export default function Clients() {
           {filtered.map((c: any) => (
             <div key={c.id} className="simple-row">
               <div style={{ minWidth: 0 }}>
-                <div className="name">{c.name}{c.company && <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}> — {c.company}</span>}</div>
-                <div className="meta">{[c.email, c.phone, c.website].filter(Boolean).join(' · ') || '—'}</div>
+                <div className="name">{c.name}{c.company && <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}> · {c.company}</span>}</div>
+                <div className="meta">{[c.email, c.phone, c.website].filter(Boolean).join(' · ') || ''}</div>
               </div>
               <div className="simple-row-actions">
                 <button onClick={() => setForm({ ...c })} className="btn btn--ghost btn--sm">Edit</button>

@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy Policy — Business Quotes App</title>
+  <title>Privacy Policy | Business Quotes App</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a; line-height: 1.7; font-size: 15px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a; line-height: 1.7; font-size: 15px; }
     h1 { font-size: 28px; margin-bottom: 8px; }
     h2 { font-size: 20px; margin-top: 32px; margin-bottom: 8px; color: #333; }
     p { margin-bottom: 12px; }
@@ -15,52 +16,56 @@
 </head>
 <body>
   <h1>Privacy Policy</h1>
-  <p class="date">Last updated: June 2026</p>
+  <p class="date">Last updated: September 18, 2026</p>
 
   <div class="highlight">
-    <strong>Summary:</strong> Business Quotes App stores your account and business data on our servers so you can access it from any device. We do not sell or share your data, and you can delete your account and all associated data at any time.
+    <strong>Summary:</strong> Business Quotes App stores the information you enter so you can create, send, review, and manage business quotes and invoices. We do not sell customer data to advertisers or data brokers.
   </div>
 
   <h2>Who We Are</h2>
   <p>Business Quotes App is developed by Khaoskami. Contact: <a href="https://github.com/Khaoskami">github.com/Khaoskami</a></p>
 
   <h2>What We Collect</h2>
-  <p>To provide the service, we collect and store:</p>
-  <p><strong>Account information</strong> — your name, email address, and password. Passwords are stored only as a salted hash; we never see your plaintext password.</p>
-  <p><strong>Business and quoting data</strong> — the business profile, clients, catalog items, and quotes you create in the app.</p>
-  <p><strong>Subscription information</strong> — your current plan (free / pro / business), subscription status, and a PayFast billing reference linking your account to its billing record.</p>
-  <p><strong>Session information</strong> — a session token stored in an httpOnly cookie on your browser so you stay signed in for up to 30 days.</p>
-  <p>We do not collect tracking analytics, crash reports, location data, or device fingerprints.</p>
+  <p>We collect the information needed to provide the service:</p>
+  <p><strong>Account information:</strong> name, email address, and an authentication credential protected by Better Auth. Passwords are not stored in plaintext.</p>
+  <p><strong>Business data:</strong> business profile information, clients, catalog items, quotes, invoices, payment records, and related notes that you enter.</p>
+  <p><strong>Subscription data:</strong> selected plan, subscription status, billing period, and PayFast references used to activate the plan.</p>
+  <p><strong>Session and security data:</strong> authentication session information and limited request metadata used for abuse prevention and public-document audit events.</p>
+  <p>We do not intentionally collect precise location data, advertising identifiers, or a user-facing cross-site tracking profile.</p>
+
+  <h2>Public Quote and Invoice Links</h2>
+  <p>When you create a client link, anyone who possesses the link may be able to view the associated document. Quote links may record a view event and may allow the recipient to accept or decline the quote. Invoice links can expose the invoice, payment history, and the payment instructions you chose to publish. Share links are revocable, and quote links can expire with the quote validity date.</p>
+  <p>Do not put information into a quote or invoice that you do not intend to disclose to the recipient of that document link.</p>
 
   <h2>Where Your Data Is Stored</h2>
-  <p>All account and application data is stored server-side in a managed PostgreSQL database hosted on <a href="https://railway.app">Railway</a>. The database and the application server run in the same private network and are not directly accessible from the public internet.</p>
-  <p>Data is transmitted between your browser and our server over HTTPS (TLS). Authentication is handled by <a href="https://better-auth.com">Better Auth</a> using signed, httpOnly, secure session cookies — these cookies cannot be read by JavaScript and are sent only to our domain.</p>
+  <p>Application data is stored in PostgreSQL infrastructure hosted through Railway. Data is transmitted between your browser and the application over HTTPS in production.</p>
+
+  <h2>Email</h2>
+  <p>Transactional email is sent through Resend. This includes account verification, password-reset messages, quote delivery, invoice delivery, and payment reminders. Resend processes recipient addresses and message content as required to deliver those messages.</p>
 
   <h2>Payments</h2>
-  <p>Payments are processed entirely by <a href="https://www.payfast.co.za">PayFast</a> (operated by Network International). When you upgrade, you are redirected to PayFast's hosted checkout. Card numbers and other payment details are entered on PayFast's pages and never reach our servers. We receive only a billing token and subscription status (active, past due, canceled), used to determine which plan you have access to. PayFast's privacy policy applies to your payment interactions with them.</p>
-
-  <h2>Third Parties</h2>
-  <p>The third-party services that handle your data on our behalf are limited to:</p>
-  <p><strong>Railway</strong> — application and database hosting.</p>
-  <p><strong>PayFast</strong> (Network International) — payment processing (only if you subscribe to a paid plan).</p>
-  <p>We do not sell, rent, or share your data with advertisers, data brokers, or any other third parties.</p>
+  <p>Business Quotes App subscription payments are processed by PayFast. Payment card information is entered on PayFast's checkout pages and is not stored by this application. We receive the billing identifiers and payment status needed to manage your subscription.</p>
+  <p>The application may also store payment records that you manually enter against your own invoices. Those records are ordinary application data and are not a copy of card details.</p>
 
   <h2>Data Security</h2>
-  <p>Connections between your browser and the server are encrypted with TLS. Passwords are hashed before storage. Session cookies are httpOnly and Secure. The server enforces that you can only read or modify records belonging to your own account.</p>
+  <p>The service uses HTTPS in production, authenticated httpOnly session cookies, server-side authorization checks, strict input schemas, transactional database updates, idempotency controls for financial mutations, and hashed public share-link tokens. No security measure guarantees that a service can never be compromised.</p>
+
+  <h2>Retention</h2>
+  <p>We retain account and business records while your account remains active, subject to backup and operational retention requirements. Public share links can be revoked without deleting the underlying business document.</p>
+
+  <h2>Your Rights and Requests</h2>
+  <p>You can view and edit the business information and records available to your account through the application. You can export your account data from Settings.</p>
+  <p>To request account deletion, correction, or other privacy assistance, contact us using the support channels below. Deletion requests may be subject to legal, payment, dispute, fraud-prevention, backup, and operational retention requirements.</p>
 
   <h2>Children's Privacy</h2>
-  <p>This app is designed for business use by adults. We do not knowingly collect or store any data from children under the age of 13.</p>
-
-  <h2>Your Rights</h2>
-  <p>You can view and edit your business profile, quotes, clients, and catalog at any time from within the app.</p>
-  <p>You can delete your account and all associated data (quotes, clients, catalog items, business profile, subscription record) at any time. Deleting your account permanently removes this data from our database. If you have an active paid subscription, cancel it from Settings → Cancel subscription before deleting your account.</p>
-  <p>To request a copy of your data, or to ask questions about how we handle it, contact us at the address below.</p>
+  <p>The service is intended for business use and is not directed to children under 13.</p>
 
   <h2>Changes to This Policy</h2>
-  <p>If this privacy policy changes, the updated version will be published at this URL. The "Last updated" date at the top will reflect the most recent revision.</p>
+  <p>Changes will be published at this URL with a new revision date.</p>
 
   <h2>Contact</h2>
-  <p>If you have questions about this privacy policy, contact us on WhatsApp at <a href="https://wa.me/27832001798">+27&nbsp;83&nbsp;200&nbsp;1798</a> or via <a href="https://github.com/Khaoskami">github.com/Khaoskami</a>.</p>
+  <p>WhatsApp: <a href="https://wa.me/27832001798">+27 83 200 1798</a></p>
+  <p>Online: <a href="https://github.com/Khaoskami">github.com/Khaoskami</a></p>
 
   <footer style="margin-top:48px;padding-top:16px;border-top:1px solid #e5e5e5;font-size:13px;color:#666;">
     <a href="/privacy-policy.html" style="color:#3b6b8a;">Privacy Policy</a> · <a href="/terms.html" style="color:#3b6b8a;">Terms &amp; Conditions</a>

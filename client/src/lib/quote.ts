@@ -1,140 +1,44 @@
-// Shared business logic — carried over from the prior client app.
-
 export const CURRENCIES = [
   { code: 'ZAR', symbol: 'R' }, { code: 'USD', symbol: '$' }, { code: 'EUR', symbol: '€' }, { code: 'GBP', symbol: '£' },
   { code: 'AUD', symbol: 'A$' }, { code: 'CAD', symbol: 'C$' }, { code: 'JPY', symbol: '¥' }, { code: 'INR', symbol: '₹' },
   { code: 'BRL', symbol: 'R$' }, { code: 'NGN', symbol: '₦' }, { code: 'KES', symbol: 'KSh' }, { code: 'AED', symbol: 'د.إ' },
   { code: 'CNY', symbol: '¥' }, { code: 'CHF', symbol: 'CHF' }, { code: 'NZD', symbol: 'NZ$' }, { code: 'MXN', symbol: 'MX$' },
   { code: 'SEK', symbol: 'kr' }, { code: 'SGD', symbol: 'S$' },
-];
-
-export const STATUSES = {
-  draft:    { label: 'Draft',    cls: 'badge--draft' },
-  sent:     { label: 'Sent',     cls: 'badge--sent' },
-  accepted: { label: 'Accepted', cls: 'badge--accepted' },
-  declined: { label: 'Declined', cls: 'badge--declined' },
-  expired:  { label: 'Expired',  cls: 'badge--expired' },
-};
-
+] as const;
+export const STATUSES = { draft: { label: 'Draft', cls: 'badge--draft' }, sent: { label: 'Sent', cls: 'badge--sent' }, accepted: { label: 'Accepted', cls: 'badge--accepted' }, declined: { label: 'Declined', cls: 'badge--declined' }, expired: { label: 'Expired', cls: 'badge--expired' } } as const;
 export const UNITS = [
-  { value: 'each', label: 'Each' }, { value: 'hour', label: 'Hour' }, { value: 'day', label: 'Day' },
-  { value: 'sqm', label: 'Per m²' }, { value: 'sqft', label: 'Per ft²' }, { value: 'kg', label: 'Per kg' },
-  { value: 'km', label: 'Per km' }, { value: 'unit', label: 'Unit' }, { value: 'lot', label: 'Lot' },
-  { value: 'month', label: 'Month' }, { value: 'project', label: 'Project' }, { value: 'session', label: 'Session' },
-  { value: 'page', label: 'Page' }, { value: 'word', label: 'Word' }, { value: 'metre', label: 'Metre' }, { value: 'litre', label: 'Litre' },
+  { value: 'each', label: 'Each' }, { value: 'hour', label: 'Hour' }, { value: 'day', label: 'Day' }, { value: 'sqm', label: 'Per m²' }, { value: 'sqft', label: 'Per ft²' },
+  { value: 'kg', label: 'Per kg' }, { value: 'km', label: 'Per km' }, { value: 'unit', label: 'Unit' }, { value: 'lot', label: 'Lot' }, { value: 'month', label: 'Month' },
+  { value: 'project', label: 'Project' }, { value: 'session', label: 'Session' }, { value: 'page', label: 'Page' }, { value: 'word', label: 'Word' }, { value: 'metre', label: 'Metre' }, { value: 'litre', label: 'Litre' },
 ];
-
-export const uid = () =>
-  (typeof crypto !== 'undefined' && crypto.randomUUID)
-    ? crypto.randomUUID()
-    : Date.now().toString(36) + Math.random().toString(36).slice(2);
-
-export function money(a: number, c = 'ZAR') {
-  try { return new Intl.NumberFormat('en', { style: 'currency', currency: c }).format(a || 0); }
-  catch { return (CURRENCIES.find(x => x.code === c)?.symbol || '') + (a || 0).toFixed(2); }
+export const uid = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+export function money(a: number, c = 'ZAR') { try { return new Intl.NumberFormat('en', { style: 'currency', currency: c }).format(Number.isFinite(a) ? a : 0); } catch { return `${CURRENCIES.find(x => x.code === c)?.symbol || ''}${(Number.isFinite(a) ? a : 0).toFixed(2)}`; } }
+export function fmtDate(iso?: string) { if (!iso) return 'Not set'; const d = new Date(iso); return Number.isNaN(d.valueOf()) ? 'Not set' : d.toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' }); }
+export function minorToMajor(value: number, currency = 'ZAR') {
+  return Number(value || 0) / (currency === 'JPY' ? 1 : 100);
 }
-
-export function fmtDate(iso?: string) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-export function calcTotals(items: any[], tax: number, disc = 0) {
-  const line = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-  const da = line * (disc / 100), sub = line - da, t = sub * (tax / 100);
-  return { line, discountAmt: da, sub, tax: t, total: sub + t };
-}
-
-export function newQuote(cur?: string) {
-  return {
-    quoteNumber: '', title: '', clientId: '', clientName: '', clientUrl: '',
-    status: 'draft', currency: cur || 'ZAR', taxPercent: 15, discountPercent: 0,
-    validityDays: 30, notes: '', createdAt: new Date().toISOString(),
-    items: [{ id: uid(), description: '', quantity: 1, unitPrice: 0, catalogId: '' }],
-    signature: '', signedAt: '',
-  };
-}
+export function calcTotals(items: any[], tax: number, disc = 0, currency = 'ZAR') { const digits = currency === 'JPY' ? 0 : 2; const factor = 10 ** digits; const round = (v: number) => Math.round((v + Number.EPSILON) * factor) / factor; const line = round(items.reduce((sum, i) => sum + round((Number(i.quantity) || 0) * (Number(i.unitPrice) || 0)), 0)); const discountAmt = round(line * (disc / 100)); const sub = round(line - discountAmt); const taxAmt = round(sub * (tax / 100)); return { line, discountAmt, sub, tax: taxAmt, total: round(sub + taxAmt) }; }
+export function newQuote(cur?: string) { return { quoteNumber: '', title: '', clientId: '', clientName: '', clientEmail: '', clientUrl: '', status: 'draft', currency: cur || 'ZAR', taxPercent: 15, discountPercent: 0, validityDays: 30, paymentTermsDays: 30, notes: '', createdAt: new Date().toISOString(), items: [{ id: uid(), description: '', quantity: 1, unitPrice: 0, catalogId: '' }], version: 1 }; }
 export function newClient() { return { name: '', company: '', email: '', phone: '', address: '', website: '', notes: '' }; }
 export function newProduct() { return { name: '', category: '', description: '', unitPrice: 0, unit: 'each' }; }
-
-export function validateUrl(url?: string) {
-  if (!url || typeof url !== 'string') return '';
-  const t = url.trim();
-  if (!t) return '';
-  try {
-    const p = new URL(t.startsWith('http') ? t : 'https://' + t);
-    if (!['http:', 'https:'].includes(p.protocol)) return '';
-    if (p.hostname.includes('javascript')) return '';
-    if (/[<>"'`]/.test(p.href)) return '';
-    return p.href;
-  } catch { return ''; }
-}
-
-export function esc(s: any) {
-  return String(s ?? '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-export async function signQuote(quote: any, owner: any) {
-  const payload = JSON.stringify({
-    id: quote.id, title: quote.title, items: quote.items,
-    total: calcTotals(quote.items, quote.taxPercent, quote.discountPercent).total,
-    created: quote.createdAt, owner: owner.name || 'Business Quotes App',
-    ownerContact: owner.email || '', timestamp: new Date().toISOString(),
-  });
-  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+export function validateUrl(url?: string) { if (!url || typeof url !== 'string') return ''; const t = url.trim(); if (!t) return ''; try { const u = new URL(t.includes('://') ? t : `https://${t}`); return ['http:', 'https:'].includes(u.protocol) ? u.href : ''; } catch { return ''; } }
+export function esc(s: any) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+export async function signQuote(quote: any, owner: any) { const payload = JSON.stringify({ id: quote.id, title: quote.title, items: quote.items, total: calcTotals(quote.items, quote.taxPercent, quote.discountPercent, quote.currency).total, created: quote.createdAt, owner: owner.name || 'Business Quotes App', ownerContact: owner.email || '' }); const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload)); return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join(''); }
 
 export function buildPrintHtml(q: any, biz: any) {
-  const cur = q.currency;
-  const { line, discountAmt, sub, tax, total } = calcTotals(q.items, q.taxPercent, q.discountPercent);
-  // Display-only money cell. data-base holds the raw amount in the original
-  // currency (q.currency) so the converter can rewrite textContent losslessly.
-  // Number() coercion (not esc) is the sanitizer for the attribute value: the
-  // output is always a plain numeric literal, never attacker-controlled text.
-  const mc = (v: number) => `<span class="money" data-base="${Number(v) || 0}">${esc(money(v, cur))}</span>`;
-  const num = (v: any) => Number(v) || 0;
-  const itemRows = q.items.map((i: any) =>
-    `<tr><td style="padding:8px;border-bottom:1px solid #e5e5e5">${esc(i.description)}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:center">${num(i.quantity)}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:right">${mc(i.unitPrice)}</td><td style="padding:8px;border-bottom:1px solid #e5e5e5;text-align:right">${mc(i.quantity * i.unitPrice)}</td></tr>`
-  ).join('');
-  // Display-only currency converter UI — hidden when printing via .no-print.
-  const curOptions = CURRENCIES.map(c =>
-    `<option value="${esc(c.code)}"${c.code === cur ? ' selected' : ''}>${esc(c.code)}</option>`
-  ).join('');
-  const converterBlock = `<div class="no-print" style="margin:16px 0;font-size:13px"><label>Display currency: <select id="cur-sel">${curOptions}</select></label> <span id="cur-status" style="color:#666"></span></div>`;
-  const disclaimerBlock = `<div id="cur-disc" class="no-print" style="display:none;margin:8px 0;padding:8px 12px;background:#fff8e1;border:1px solid #ffe0a3;border-radius:4px;font-size:12px;color:#8a6d00"></div>`;
-  const converterScript = `<script>(function(){var BASE=${JSON.stringify(String(cur ?? '')).replace(/</g, '\\u003c')};var sel=document.getElementById('cur-sel');var statusEl=document.getElementById('cur-status');var disc=document.getElementById('cur-disc');if(!sel)return;var cells=[].slice.call(document.querySelectorAll('.money'));var orig=cells.map(function(c){return c.textContent;});var cache={};function reset(){for(var i=0;i<cells.length;i++){cells[i].textContent=orig[i];}if(disc){disc.style.display='none';}}function fmt(v,cur){try{return new Intl.NumberFormat('en',{style:'currency',currency:cur}).format(v);}catch(e){return cur+' '+(v||0).toFixed(2);}}function apply(cur,rate){for(var i=0;i<cells.length;i++){var b=parseFloat(cells[i].getAttribute('data-base'))||0;cells[i].textContent=fmt(b*rate,cur);}if(disc){disc.textContent='Amounts are payable in '+BASE+'. Converted figures shown in '+cur+' are indicative only, based on a live exchange rate, and are not a contractual price.';disc.style.display='';}}function fail(msg){sel.value=BASE;reset();if(statusEl){statusEl.textContent=msg;}}sel.addEventListener('change',function(){var target=sel.value;if(target===BASE){if(statusEl){statusEl.textContent='';}reset();return;}if(cache[target]!=null){if(statusEl){statusEl.textContent='Converted to '+target+' (indicative).';}apply(target,cache[target]);return;}if(statusEl){statusEl.textContent='Fetching rate…';}fetch('https://open.er-api.com/v6/latest/'+encodeURIComponent(BASE)).then(function(r){return r.json();}).then(function(d){var rate=d&&d.rates?d.rates[target]:null;if(d&&d.result==='success'&&typeof rate==='number'&&isFinite(rate)){cache[target]=rate;if(statusEl){statusEl.textContent='Converted to '+target+' (indicative).';}apply(target,rate);}else{fail('Conversion unavailable — showing '+BASE+'.');}}).catch(function(){fail('Conversion unavailable — showing '+BASE+'.');});});})();</script>`;
-  const sigBlock = q.signature
-    ? `<div style="margin-top:24px;padding:12px;background:#f8f8f8;border:1px solid #ddd;border-radius:4px;font-size:11px;color:#666"><strong>INTEGRITY SIGNATURE</strong><br/><code style="font-size:10px;word-break:break-all">${esc(q.signature)}</code><br/>Signed: ${esc(q.signedAt)}</div>` : '';
-  const copyright = `<div style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center">© ${new Date().getFullYear()} ${esc(biz.name || 'Business Quotes')}</div>`;
-  // esc() is safe here AND required: a valid png/jpeg data URL contains no
-  // HTML metacharacters, so escaping never corrupts a legitimate logo — while
-  // a hostile value (e.g. `...base64,x" onerror="...`) can no longer break out
-  // of the src attribute even if it slipped past server-side validation.
-  const logoBlock = biz.logo
-    ? `<img src="${esc(biz.logo)}" alt="" style="max-height:64px;max-width:240px;object-fit:contain;margin-bottom:16px" />`
-    : '';
-  // Lock the standalone print document down: no external scripts/styles/frames,
-  // images only from data: URLs (the logo), network access only to the exchange
-  // -rate API used by the inline converter script below.
-  const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src https://open.er-api.com" />`;
-  return `<!DOCTYPE html><html><head>${csp}<title>${esc(q.title || 'Quote')}</title><style>body{font-family:-apple-system,sans-serif;padding:40px;color:#1a1a1a;max-width:800px;margin:0 auto}h1{font-size:24px;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:20px 0}th{text-align:left;padding:8px;border-bottom:2px solid #333;font-size:11px;text-transform:uppercase}td{font-size:13px}.totals{margin-left:auto;width:280px}.totals td{padding:4px 8px}.totals .grand{font-weight:700;font-size:16px;border-top:2px solid #333;padding-top:8px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;font-size:13px}.meta strong{display:block;font-size:10px;text-transform:uppercase;color:#666;margin-bottom:2px}@media print{body{padding:20px}.no-print{display:none !important}}</style></head><body>${logoBlock}<h1>${esc(q.title || 'Quote')}</h1>${q.quoteNumber ? `<div style="color:#666;margin-bottom:16px">Quote #${esc(q.quoteNumber)}</div>` : ''}${converterBlock}${disclaimerBlock}<div class="meta"><div><strong>Client</strong>${esc(q.clientName || '—')}</div><div><strong>Date</strong>${fmtDate(q.createdAt)}</div><div><strong>Valid For</strong>${num(q.validityDays)} days</div><div><strong>Status</strong>${esc((STATUSES as any)[q.status]?.label || 'Draft')}</div></div><table><thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemRows}</tbody></table><table class="totals"><tr><td style="color:#666">Line Total</td><td style="text-align:right">${mc(line)}</td></tr>${q.discountPercent > 0 ? `<tr><td style="color:#666">Discount (${num(q.discountPercent)}%)</td><td style="text-align:right;color:#c00">-${mc(discountAmt)}</td></tr>` : ''}<tr><td style="color:#666">Subtotal</td><td style="text-align:right">${mc(sub)}</td></tr><tr><td style="color:#666">Tax (${num(q.taxPercent)}%)</td><td style="text-align:right">${mc(tax)}</td></tr><tr class="grand"><td>Total Due</td><td style="text-align:right">${mc(total)}</td></tr></table>${q.notes ? `<div style="margin-top:24px;padding-top:16px;border-top:1px solid #ddd"><strong style="font-size:10px;text-transform:uppercase;color:#666;display:block;margin-bottom:4px">Notes / Terms</strong><div style="font-size:12px;white-space:pre-wrap">${esc(q.notes)}</div></div>` : ''}${sigBlock}${copyright}${converterScript}</body></html>`;
+  const cur = q.currency || 'ZAR';
+  const { line, discountAmt, sub, tax, total } = calcTotals(q.items ?? [], q.taxPercent ?? 0, q.discountPercent ?? 0, cur);
+  const mc = (v: number) => esc(money(v, cur));
+  const num = (v: any) => Number.isFinite(Number(v)) ? Number(v) : 0;
+  const itemRows = (q.items ?? []).map((i: any) => `<tr><td>${esc(i.description)}</td><td class="qty">${num(i.quantity)}</td><td class="amount">${mc(i.unitPrice)}</td><td class="amount">${mc(num(i.quantity) * num(i.unitPrice))}</td></tr>`).join('');
+  const title = q.title || (q.quoteNumber ? `Quote ${q.quoteNumber}` : 'Quote');
+  const dueAt = q.dueAt || (q.createdAt ? (() => { const d = new Date(q.createdAt); d.setDate(d.getDate() + Number(q.paymentTermsDays ?? 30)); return d.toISOString(); })() : '');
+  const logo = biz.logo ? `<img src="${esc(biz.logo)}" alt="Business logo" class="logo">` : '';
+  const contact = [biz.email, biz.phone, biz.address].filter(Boolean).map(esc).join('<br>');
+  const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; style-src 'unsafe-inline'; img-src data:;">`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">${csp}<meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1e2430;max-width:820px;margin:0 auto;padding:36px;line-height:1.45}header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;border-bottom:2px solid #1e2430;padding-bottom:20px}.logo{max-width:220px;max-height:72px;object-fit:contain}.muted{color:#6b7280;font-size:13px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}.meta strong{display:block;font-size:11px;text-transform:uppercase;color:#6b7280;margin-bottom:3px}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{padding:9px 8px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px}th{font-size:11px;text-transform:uppercase;color:#6b7280;border-bottom:2px solid #111827}.qty{text-align:center}.amount{text-align:right;font-variant-numeric:tabular-nums}.totals{width:320px;margin-left:auto}.totals td{border-bottom:0}.grand td{border-top:2px solid #111827;font-size:16px;font-weight:600}.notes{margin-top:28px;border-top:1px solid #e5e7eb;padding-top:16px;white-space:pre-wrap;font-size:12px}@media print{body{padding:18px}a{text-decoration:none;color:inherit}}</style></head><body><header><div>${logo}<h1>${esc(title)}</h1><div class="muted">${q.quoteNumber ? `Document #${esc(q.quoteNumber)}` : ''}</div></div><div class="muted" style="text-align:right">${esc(biz.name || 'Business Quotes')}<br>${contact}</div></header><div class="meta"><div><strong>Client</strong>${esc(q.clientName || 'Not specified')}${q.clientEmail ? `<br><span class="muted">${esc(q.clientEmail)}</span>` : ''}</div><div><strong>Issued</strong>${esc(fmtDate(q.createdAt))}</div><div><strong>Valid until</strong>${esc(fmtDate(q.validUntil))}</div><div><strong>Payment due</strong>${esc(fmtDate(dueAt))}</div></div><table><thead><tr><th>Description</th><th class="qty">Qty</th><th class="amount">Unit price</th><th class="amount">Line total</th></tr></thead><tbody>${itemRows}</tbody></table><table class="totals"><tr><td class="muted">Line total</td><td class="amount">${mc(line)}</td></tr>${q.discountPercent > 0 ? `<tr><td class="muted">Discount (${num(q.discountPercent)}%)</td><td class="amount">-${mc(discountAmt)}</td></tr>` : ''}<tr><td class="muted">Subtotal</td><td class="amount">${mc(sub)}</td></tr><tr><td class="muted">Tax (${num(q.taxPercent)}%)</td><td class="amount">${mc(tax)}</td></tr><tr class="grand"><td>Total due</td><td class="amount">${mc(total)}</td></tr></table>${q.notes ? `<div class="notes"><strong>Notes / terms</strong><br>${esc(q.notes)}</div>` : ''}<div class="muted" style="margin-top:36px;text-align:center">© ${new Date().getFullYear()} ${esc(biz.name || 'Business Quotes')}</div></body></html>`;
 }
 
 function csvCell(v: any) { return `"${String(v ?? '').replace(/"/g, '""')}"`; }
-export function buildCsv(q: any, biz: any) {
-  const { line, discountAmt, sub, tax, total } = calcTotals(q.items, q.taxPercent, q.discountPercent);
-  const rows: (any[] | null)[] = [
-    ['Quote', q.title, 'Number', q.quoteNumber, 'Date', fmtDate(q.createdAt)],
-    ['Client', q.clientName], q.clientUrl ? ['Client Website', q.clientUrl] : null, [],
-    ['Description', 'Qty', 'Unit Price', 'Line Total'],
-    ...q.items.map((i: any) => [i.description, i.quantity, i.unitPrice, i.quantity * i.unitPrice]),
-    [], ['', '', 'Line Total', line],
-    q.discountPercent > 0 ? ['', '', `Discount (${q.discountPercent}%)`, -discountAmt] : null,
-    ['', '', 'Subtotal', sub], ['', '', `Tax (${q.taxPercent}%)`, tax], ['', '', 'TOTAL', total],
-    [], [`© ${new Date().getFullYear()} ${biz.name || 'Business Quotes'}`],
-  ];
-  return rows.filter(Boolean).map(r => (r as any[]).map(csvCell).join(',')).join('\n');
-}
+export function buildCsv(q: any, biz: any) { const { line, discountAmt, sub, tax, total } = calcTotals(q.items ?? [], q.taxPercent, q.discountPercent, q.currency); const rows: any[] = [['Quote', q.title, 'Number', q.quoteNumber, 'Date', fmtDate(q.createdAt)], ['Client', q.clientName], q.clientEmail ? ['Client email', q.clientEmail] : null, [], ['Description', 'Qty', 'Unit Price', 'Line Total'], ...(q.items ?? []).map((i: any) => [i.description, i.quantity, i.unitPrice, num(i.quantity) * num(i.unitPrice)]), [], ['', '', 'Line Total', line], q.discountPercent > 0 ? ['', '', `Discount (${q.discountPercent}%)`, -discountAmt] : null, ['', '', 'Subtotal', sub], ['', '', `Tax (${q.taxPercent}%)`, tax], ['', '', 'TOTAL', total], [], [`© ${new Date().getFullYear()} ${biz.name || 'Business Quotes'}`]]; return rows.filter(Boolean).map(r => r.map(csvCell).join(',')).join('\n'); }
+function num(v: any) { return Number.isFinite(Number(v)) ? Number(v) : 0; }

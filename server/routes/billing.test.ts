@@ -48,6 +48,7 @@ describe.skipIf(!hasDb)('billing ITN handler', () => {
   beforeEach(async () => {
     const { eq } = await import('drizzle-orm');
     await db.delete(schema.processedItns);
+    await db.delete(schema.billingCheckouts);
     await db.delete(schema.subscriptions).where(eq(schema.subscriptions.userId, USER_ID));
     await db.delete(schema.users).where(eq(schema.users.id, USER_ID));
     await db.insert(schema.users).values({
@@ -64,12 +65,19 @@ describe.skipIf(!hasDb)('billing ITN handler', () => {
     return db.query.subscriptions.findFirst({ where: eq(schema.subscriptions.userId, USER_ID) });
   };
 
-  const postItn = (fields: Record<string, string>) =>
-    app.request('/api/billing/notify', {
+  const postItn = async (fields: Record<string, string>) => {
+    if (fields.m_payment_id) {
+      await db.insert(schema.billingCheckouts).values({
+        merchantPaymentId: fields.m_payment_id, userId: USER_ID, tier: 'pro',
+        amountMinor: 29900, currency: 'ZAR',
+      }).onConflictDoNothing();
+    }
+    return app.request('/api/billing/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: itnBody(fields),
     });
+  };
 
   test('replayed FAILED ITN increments failedPayments only once', async () => {
     const failed = {
@@ -100,7 +108,7 @@ describe.skipIf(!hasDb)('billing ITN handler', () => {
     const before = new Date();
     const res = await postItn({
       payment_status: 'COMPLETE', custom_str1: USER_ID, custom_str2: 'pro',
-      pf_payment_id: 'PF-OK-1', amount_gross: '299.00', token: 'tok-123',
+      pf_payment_id: 'PF-OK-1', m_payment_id: `${USER_ID}:ok`, amount_gross: '299.00', token: 'tok-123',
     });
     expect(res.status).toBe(200);
 
@@ -116,7 +124,7 @@ describe.skipIf(!hasDb)('billing ITN handler', () => {
 
   test('status transition for the same pf_payment_id is not treated as a replay', async () => {
     // PENDING mutates nothing; the later COMPLETE for the same payment must still land.
-    const base = { custom_str1: USER_ID, custom_str2: 'pro', pf_payment_id: 'PF-TRANS-1' };
+    const base = { custom_str1: USER_ID, custom_str2: 'pro', pf_payment_id: 'PF-TRANS-1', m_payment_id: `${USER_ID}:transition` };
     await postItn({ ...base, payment_status: 'PENDING' });
     await postItn({ ...base, payment_status: 'COMPLETE', amount_gross: '299.00', token: 'tok-9' });
 
@@ -128,7 +136,7 @@ describe.skipIf(!hasDb)('billing ITN handler', () => {
   test('under-amount COMPLETE ITN is ignored and NOT marked processed', async () => {
     const fields = {
       payment_status: 'COMPLETE', custom_str1: USER_ID, custom_str2: 'pro',
-      pf_payment_id: 'PF-CHEAP-1', amount_gross: '1.00', token: 'tok-1',
+      pf_payment_id: 'PF-CHEAP-1', m_payment_id: `${USER_ID}:cheap`, amount_gross: '1.00', token: 'tok-1',
     };
     await postItn(fields);
     let sub = await getSub();

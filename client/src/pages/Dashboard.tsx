@@ -11,14 +11,16 @@ export default function Dashboard() {
 
   const accepted = quotes.filter((q: any) => q.status === 'accepted');
   const pending  = quotes.filter((q: any) => q.status === 'sent').length;
-  const revenue  = accepted.reduce((s: number, q: any) => s + calcTotals(q.items ?? [], q.taxPercent ?? 0, q.discountPercent ?? 0).total, 0);
+  const currencies = new Set(accepted.map((q: any) => q.currency || 'ZAR'));
+  const sameCurrencyValue = accepted.filter((q: any) => (q.currency || 'ZAR') === currency).reduce((s: number, q: any) => s + calcTotals(q.items ?? [], q.taxPercent ?? 0, q.discountPercent ?? 0, q.currency).total, 0);
+  const totalValue = currencies.size > 1 ? `${money(sameCurrencyValue, currency)} + other currencies` : money(sameCurrencyValue, currency);
   const recent   = [...quotes].sort((a: any, b: any) => new Date(b.updatedAt ?? 0).valueOf() - new Date(a.updatedAt ?? 0).valueOf()).slice(0, 10);
 
   const stats = [
     { label: 'Total Quotes', value: quotes.length,    cls: '' },
     { label: 'Pending',      value: pending,          cls: 'stat-card--warning' },
     { label: 'Accepted',     value: accepted.length,  cls: 'stat-card--success' },
-    { label: 'Total Value',  value: money(revenue, currency), cls: 'stat-card--accent' },
+    { label: 'Total Value',  value: totalValue, cls: 'stat-card--accent' },
   ];
 
   return (
@@ -52,13 +54,13 @@ export default function Dashboard() {
               <span>Quote #</span><span>Title</span><span>Client</span><span>Date</span><span>Value</span><span>Status</span>
             </div>
             {recent.map((q: any) => {
-              const { total } = calcTotals(q.items ?? [], q.taxPercent ?? 0, q.discountPercent ?? 0);
+              const { total } = calcTotals(q.items ?? [], q.taxPercent ?? 0, q.discountPercent ?? 0, q.currency);
               const s = (STATUSES as any)[q.status] ?? STATUSES.draft;
               return (
                 <Link key={q.id} to={`/quotes/${q.id}/edit`} className="list-row" style={{ color: 'inherit', textDecoration: 'none' }}>
-                  <span className="num">{q.quoteNumber || '—'}</span>
+                  <span className="num">{q.quoteNumber || ''}</span>
                   <span className="title">{q.title || 'Untitled'}</span>
-                  <span className="client">{q.clientName || '—'}</span>
+                  <span className="client">{q.clientName || ''}</span>
                   <span className="date">{fmtDate(q.updatedAt)}</span>
                   <span className="value">{money(total, q.currency)}</span>
                   <span className="status-cell"><span className={`badge ${s.cls}`}>{s.label}</span></span>

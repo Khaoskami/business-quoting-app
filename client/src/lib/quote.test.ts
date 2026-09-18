@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { buildPrintHtml, newQuote } from './quote';
+import { buildPrintHtml, newQuote, calcTotals } from './quote';
 
 const baseQuote = () => ({
   ...newQuote('ZAR'),
@@ -8,7 +8,12 @@ const baseQuote = () => ({
   items: [{ id: '1', description: 'Widget', quantity: 2, unitPrice: 100, catalogId: '' }],
 });
 
-describe('buildPrintHtml hardening', () => {
+describe('quote calculations and print hardening', () => {
+  test('uses zero decimal precision for JPY totals', () => {
+    const q = { ...baseQuote(), currency: 'JPY', items: [{ id: '1', description: 'Widget', quantity: 1, unitPrice: 123.6, catalogId: '' }] };
+    expect(calcTotals(q.items, 10, 0, q.currency).total).toBe(136);
+  });
+
   test('escapes a hostile logo so it cannot break out of the src attribute', () => {
     const html = buildPrintHtml(baseQuote(), {
       name: 'Biz',
@@ -24,14 +29,14 @@ describe('buildPrintHtml hardening', () => {
     expect(html).toContain(`<img src="${logo}"`);
   });
 
-  test('includes a CSP that only allows inline script/style, data: images, and the rates API', () => {
+  test('includes a CSP that blocks scripts and network access', () => {
     const html = buildPrintHtml(baseQuote(), { name: 'Biz' });
     expect(html).toContain('http-equiv="Content-Security-Policy"');
     expect(html).toContain("default-src 'none'");
-    expect(html).toContain("script-src 'unsafe-inline'");
+    expect(html).not.toContain("script-src 'unsafe-inline'");
     expect(html).toContain("style-src 'unsafe-inline'");
     expect(html).toContain('img-src data:');
-    expect(html).toContain('connect-src https://open.er-api.com');
+    expect(html).not.toContain('connect-src');
   });
 
   test('currency cannot terminate the inline converter script', () => {

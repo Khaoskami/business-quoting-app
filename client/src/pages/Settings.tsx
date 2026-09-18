@@ -122,6 +122,19 @@ export default function Settings() {
     onError: (e: any) => notify(e.message ?? 'Could not cancel subscription', 'error'),
   });
 
+  async function exportAccountData() {
+    try {
+      const { blob, disposition } = await api.profile.export();
+      const match = disposition?.match(/filename=([^;]+)/i);
+      const filename = match?.[1]?.replace(/^"|"$/g, '') || `business-quotes-export-${new Date().toISOString().slice(0, 10)}.json`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+      notify('Account export downloaded.');
+    } catch (e: any) { notify(e?.message ?? 'Could not export account data.', 'error'); }
+  }
+
   async function importFromLocalStorage() {
     const prefix = 'bq_';
     const keys = ['quotes', 'clients', 'catalog', 'biz'];
@@ -206,7 +219,7 @@ export default function Settings() {
             <input className="field-input" value={form.website ?? ''} onChange={(e) => setForm({ ...form, website: e.target.value })} /></div>
           <div className="field-group"><label className="field-label">Currency</label>
             <select className="field-select" value={form.defaultCurrency ?? 'ZAR'} onChange={(e) => setForm({ ...form, defaultCurrency: e.target.value })}>
-              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} — {c.symbol}</option>)}
+              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} · {c.symbol}</option>)}
             </select>
           </div>
           <div className="field-group field-group--span"><label className="field-label">Address</label>
@@ -248,13 +261,20 @@ export default function Settings() {
                 className={`btn btn--primary ${pwBusy ? 'btn--loading' : ''}`} style={{ marginTop: 14 }}>Update password</button>
       </div>
 
+      <h2 className="section-title">Your Data</h2>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div style={{ fontWeight: 500 }}>Export account data</div>
+        <div className="field-hint" style={{ marginTop: 4 }}>Download your business profile, quotes, invoices, payment records, clients, and catalog as JSON.</div>
+        <button className="btn btn--secondary" style={{ marginTop: 12 }} onClick={exportAccountData}>Export JSON</button>
+      </div>
+
       <h2 className="section-title">Support &amp; Legal</h2>
       <div className="card" style={{ marginBottom: 24 }}>
         <div className="support-row">
           <div>
             <div style={{ fontWeight: 500 }}>Need help?</div>
             <div className="field-hint" style={{ marginTop: 2 }}>
-              Billing questions, refunds, or anything not working — message us on WhatsApp.
+              Billing questions, refunds, or anything not working · message us on WhatsApp.
             </div>
           </div>
           <a className="btn btn--whatsapp" href="https://wa.me/27832001798" target="_blank" rel="noopener"
@@ -276,7 +296,7 @@ export default function Settings() {
           <div className="card" style={{ marginBottom: 24 }}>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
               We found data from a previous local-only version of the app on this device. Click to upload it to your account.
-              Encrypted data cannot be migrated automatically — only plain-text records from before the auth update.
+              Encrypted data cannot be migrated automatically · only plain-text records from before the auth update.
             </p>
             <button onClick={importFromLocalStorage} className="btn btn--secondary">Import</button>
           </div>

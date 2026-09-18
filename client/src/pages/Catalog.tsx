@@ -93,7 +93,7 @@ export default function Catalog() {
             <div key={p.id} className="simple-row">
               <div style={{ minWidth: 0 }}>
                 <div className="name">{p.name}{p.category && <span className="badge badge--draft" style={{ marginLeft: 8 }}>{p.category}</span>}</div>
-                <div className="meta">{p.description || '—'} · {money(p.unitPrice)}/{p.unit}</div>
+                <div className="meta">{p.description || ''} · {money(p.unitPrice)}/{p.unit}</div>
               </div>
               <div className="simple-row-actions">
                 <button onClick={() => setForm({ ...p })} className="btn btn--ghost btn--sm">Edit</button>

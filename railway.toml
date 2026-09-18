@@ -2,7 +2,8 @@
 dockerfilePath = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/api/health"
+preDeployCommand = "bun run db:migrate"
+healthcheckPath = "/api/ready"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3

@@ -6,7 +6,8 @@ type AuthCtx = {
   user: User | null;
   loading: boolean;
   signIn:  (email: string, password: string) => Promise<void>;
-  signUp:  (name: string, email: string, password: string) => Promise<void>;
+  signUp:  (name: string, email: string, password: string) => Promise<{ requiresVerification: boolean }>;
+  resendVerification: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -40,6 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await authClient.signUp.email({ name, email, password });
     if (error) throw new Error(error.message ?? 'Sign-up failed');
     await refresh();
+    return { requiresVerification: import.meta.env.PROD };
+  };
+
+  const resendVerification = async (email: string) => {
+    const { error } = await authClient.sendVerificationEmail({ email, callbackURL: '/' });
+    if (error) throw new Error(error.message ?? 'Could not resend verification email');
   };
 
   const signOut = async () => {
@@ -47,5 +54,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  return <Ctx.Provider value={{ user, loading, signIn, signUp, signOut, refresh }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, signIn, signUp, resendVerification, signOut, refresh }}>{children}</Ctx.Provider>;
 }

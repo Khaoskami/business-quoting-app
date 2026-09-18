@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 
 export default function Register() {
-  const { signUp } = useAuth();
+  const { signUp, resendVerification } = useAuth();
   const nav = useNavigate();
   const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
@@ -11,6 +11,7 @@ export default function Register() {
   const [confirm, setConfirm]   = useState('');
   const [err, setErr]           = useState('');
   const [loading, setLoading]   = useState(false);
+  const [created, setCreated]   = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,7 +20,12 @@ export default function Register() {
     if (password !== confirm) { setErr('Passwords do not match.'); return; }
     setLoading(true);
     try {
-      await signUp(name, email, password);
+      const result = await signUp(name, email, password);
+      if (result.requiresVerification) {
+        setCreated(true);
+        setLoading(false);
+        return;
+      }
       nav('/', { replace: true });
     } catch (e: any) {
       setErr(e.message ?? 'Sign-up failed');
@@ -33,6 +39,8 @@ export default function Register() {
         <div className="lock-logo">BQ</div>
         <h1 className="lock-title">Create account</h1>
         <p className="lock-subtitle">Start with the free plan. Upgrade any time.</p>
+
+        {created && <div role="status" className="card--flat" style={{ padding: 12, marginBottom: 14 }}>Check your email to verify the account, then sign in. <button type="button" className="btn btn--ghost btn--sm" onClick={() => resendVerification(email).then(() => setErr('A new verification email was sent.')).catch((e: any) => setErr(e.message ?? 'Could not resend verification email.'))}>Resend verification</button></div>}
 
         <div className="field-group" style={{ marginBottom: 12 }}>
           <label className="field-label" htmlFor="name">Name</label>

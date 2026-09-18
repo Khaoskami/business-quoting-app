@@ -43,6 +43,41 @@
       "when": 1783056743430,
       "tag": "0005_broad_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789743868105,
+      "tag": "0006_hardened_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789744868105,
+      "tag": "0007_invoice_due_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789745868105,
+      "tag": "0008_integrity_constraints",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789746868105,
+      "tag": "0009_share_token_encryption",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789746868106,
+      "tag": "0010_document_soft_delete_and_invoice_events",
+      "breakpoints": true
     }
   ]
 }
