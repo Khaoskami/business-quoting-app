@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { Icon } from '../components/Icons';
 import { useToast } from '../components/Toast';
-import { CURRENCIES, STATUSES, calcTotals, money, newQuote, uid, validateUrl, buildCsv, buildPrintHtml } from '../lib/quote';
+import { CURRENCIES, STATUSES, calcTotals, money, newQuote, uid, validateUrl, buildCsv } from '../lib/quote';
 
 export default function Editor() {
   const { id } = useParams();
@@ -68,7 +68,7 @@ export default function Editor() {
   function addItem(item?: any) { if (locked) return; setQ((p: any) => ({ ...p, items: [...p.items, item ?? { id: uid(), description: '', quantity: 1, unitPrice: 0, catalogId: '' }] })); }
   function removeItem(index: number) { if (!locked && q.items.length > 1) setQ((p: any) => ({ ...p, items: p.items.filter((_: any, i: number) => i !== index) })); }
   function applyClient(client: any) { if (locked) return; setQ((p: any) => ({ ...p, clientId: client.id, clientName: client.company ? `${client.name} (${client.company})` : client.name, clientEmail: client.email || '', clientUrl: client.website || '' })); }
-  function print() { const url = URL.createObjectURL(new Blob([buildPrintHtml(q, biz)], { type: 'text/html' })); const w = window.open(url, '_blank', 'noopener,noreferrer'); if (w) setTimeout(() => URL.revokeObjectURL(url), 60_000); }
+  async function downloadPdf() { try { const result = await api.quotes.pdf(q.id); const url = URL.createObjectURL(result.blob); const a = document.createElement('a'); a.href = url; a.download = result.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 60_000); } catch (e: any) { notify(e.message ?? 'Could not generate PDF.', 'error'); } }
   function csv() { const url = URL.createObjectURL(new Blob([buildCsv(q, biz)], { type: 'text/csv;charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = `${q.quoteNumber || 'quote'}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1_000); }
   async function copyLink() { if (!sendResult) return; await navigator.clipboard.writeText(sendResult); notify('Link copied.'); }
 
@@ -129,7 +129,7 @@ export default function Editor() {
           {!isNew && !deleted && !locked && <button className="btn btn--secondary" onClick={() => setConfirmOpen(true)}>Accept &amp; invoice</button>}
           {!isNew && !deleted && !locked && tf.clientUrl && <button className="btn btn--secondary" onClick={() => send.mutate()} disabled={send.isPending || !q.clientEmail}>{send.isPending ? 'Creating link...' : 'Send to client'}</button>}
           {!deleted && sendResult && <button className="btn btn--ghost" onClick={copyLink}>Copy client link</button>}
-          {!deleted && tf.print && <button className="btn btn--ghost" onClick={print}>Print / PDF</button>}
+          {!deleted && tf.print && <button className="btn btn--ghost" onClick={downloadPdf}>Download PDF</button>}
           {!deleted && tf.csv && <button className="btn btn--ghost" onClick={csv}>CSV</button>}
         </div>
         {sendResult && <div className="field-hint">Client link: <a href={sendResult} target="_blank" rel="noopener noreferrer">{sendResult}</a></div>}

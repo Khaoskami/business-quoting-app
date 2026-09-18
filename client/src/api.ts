@@ -1,5 +1,17 @@
 const base = '/api';
 
+
+async function requestBlob(path: string, publicRequest = false): Promise<{ blob: Blob; filename: string }> {
+  const res = await fetch(base + path, { credentials: publicRequest ? 'omit' : 'include', headers: { Accept: 'application/pdf' } });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error ?? 'Request failed');
+  }
+  const disposition = res.headers.get('content-disposition') || '';
+  const match = disposition.match(/filename="([^"]+)"/i);
+  return { blob: await res.blob(), filename: match?.[1] || 'document.pdf' };
+}
+
 async function request<T>(path: string, init?: RequestInit, publicRequest = false): Promise<T> {
   const res = await fetch(base + path, {
     credentials: publicRequest ? 'omit' : 'include',
@@ -30,6 +42,7 @@ export const api = {
     duplicate: (id: string, idempotencyKey = crypto.randomUUID()) => request<any>(`/quotes/${id}/duplicate`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: '{}' }),
     accept: (id: string) => request<any>(`/quotes/${id}/accept`, { method: 'POST', body: JSON.stringify({ confirmedByClient: true }) }),
     send: (id: string) => request<{ ok: true; url: string; queued: boolean }>(`/quotes/${id}/send`, { method: 'POST' }),
+    pdf: (id: string) => requestBlob(`/quotes/${id}/pdf`),
   },
   invoices: {
     list: (includeDeleted = false) => request<any[]>(`/invoices${includeDeleted ? '?includeDeleted=1' : ''}`),
@@ -39,6 +52,7 @@ export const api = {
     setStatus: (id: string, status: 'void' | 'unpaid') => request<{ ok: true }>(`/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
     share: (id: string) => request<{ ok: true; url: string }>(`/invoices/${id}/share`, { method: 'POST' }),
     recordPayment: (id: string, data: any, idempotencyKey = crypto.randomUUID()) => request<any>(`/invoices/${id}/payments`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(data) }),
+    pdf: (id: string) => requestBlob(`/invoices/${id}/pdf`),
   },
   clients: {
     list: () => request<any[]>('/clients'), create: (data: any) => request<any>('/clients', { method: 'POST', body: JSON.stringify(data) }), update: (id: string, data: any) => request<any>(`/clients/${id}`, { method: 'PUT', body: JSON.stringify(data) }), delete: (id: string) => request<{ ok: true }>(`/clients/${id}`, { method: 'DELETE' }),
@@ -57,5 +71,7 @@ export const api = {
     quote: (token: string) => request<any>(`/public/quotes/${encodeURIComponent(token)}`, undefined, true),
     respondQuote: (token: string, data: any) => request<any>(`/public/quotes/${encodeURIComponent(token)}/respond`, { method: 'POST', body: JSON.stringify(data) }, true),
     invoice: (token: string) => request<any>(`/public/invoices/${encodeURIComponent(token)}`, undefined, true),
+    quotePdf: (token: string) => requestBlob(`/public/quotes/${encodeURIComponent(token)}/pdf`, true),
+    invoicePdf: (token: string) => requestBlob(`/public/invoices/${encodeURIComponent(token)}/pdf`, true),
   },
 };

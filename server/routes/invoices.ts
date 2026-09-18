@@ -2,12 +2,13 @@ import { Hono } from 'hono';
 import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { invoices, invoicePayments, shareLinks, businessProfiles, invoiceEvents, emailJobs } from '../db/schema';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import { withTier } from '../lib/tier';
 import { invoicePaymentSchema } from '../lib/schemas';
 import { fromMinor, toMinor } from '../lib/finance';
 import { hashSecret, getClientIp, hashRequestIdentifier } from '../lib/security';
 import { upsertShareLink } from '../lib/share-links';
+import { renderInvoicePdf } from '../lib/pdf';
 
 export const invoicesRouter = new Hono<AppEnv>();
 invoicesRouter.use('*', withTier);
@@ -141,6 +142,27 @@ invoicesRouter.post('/:id/restore', async (c) => {
   return c.json({ ok: true });
 });
 
+
+invoicesRouter.get('/:id/pdf', async (c) => {
+  const userId = c.get('userId') as string;
+  const invoice = await db.query.invoices.findFirst({ where: and(eq(invoices.id, c.req.param('id')), eq(invoices.userId, userId)) });
+  if (!invoice) return c.json({ error: 'Not found' }, 404);
+  try {
+    const [businessRow, payments] = await Promise.all([
+      db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }),
+      db.query.invoicePayments.findMany({ where: eq(invoicePayments.invoiceId, invoice.id), orderBy: (p, { asc }) => [asc(p.receivedAt)] }),
+    ]);
+    const result = await renderInvoicePdf(invoice, businessRow?.data ?? {}, payments);
+    c.header('Content-Type', 'application/pdf');
+    c.header('Content-Disposition', `attachment; filename="${result.filename}"`);
+    c.header('Content-Length', String(result.pdf.byteLength));
+    return c.body(result.pdf as any);
+  } catch (error) {
+    console.error('[pdf] invoice', error);
+    return c.json({ error: 'Could not generate PDF.' }, 500);
+  }
+});
+
 invoicesRouter.get('/:id/events', async (c) => {
   const userId = c.get('userId') as string;
   const row = await db.query.invoices.findFirst({ where: and(eq(invoices.id, c.req.param('id')), eq(invoices.userId, userId)) });
@@ -149,6 +171,31 @@ invoicesRouter.get('/:id/events', async (c) => {
 });
 
 export const publicInvoicesRouter = new Hono();
+
+publicInvoicesRouter.get('/:token/pdf', async (c) => {
+  const token = c.req.param('token');
+  const tokenHash = hashSecret(token);
+  const link = await db.query.shareLinks.findFirst({ where: and(eq(shareLinks.tokenHash, tokenHash), sql`${shareLinks.revokedAt} is null`) });
+  if (!link?.invoiceId) return c.json({ error: 'Invoice link not found or expired.' }, 404);
+  const invoice = await db.query.invoices.findFirst({ where: eq(invoices.id, link.invoiceId) });
+  if (!invoice) return c.json({ error: 'Invoice not found.' }, 404);
+  if (invoice.deletedAt) return c.json({ error: 'This invoice is no longer available.' }, 410);
+  try {
+    const [businessRow, payments] = await Promise.all([
+      db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, invoice.userId) }),
+      db.query.invoicePayments.findMany({ where: eq(invoicePayments.invoiceId, invoice.id), orderBy: (p, { asc }) => [asc(p.receivedAt)] }),
+    ]);
+    const result = await renderInvoicePdf(invoice, businessRow?.data ?? {}, payments);
+    c.header('Content-Type', 'application/pdf');
+    c.header('Content-Disposition', `attachment; filename="${result.filename}"`);
+    c.header('Content-Length', String(result.pdf.byteLength));
+    return c.body(result.pdf as any);
+  } catch (error) {
+    console.error('[pdf] public invoice', error);
+    return c.json({ error: 'Could not generate PDF.' }, 500);
+  }
+});
+
 publicInvoicesRouter.get('/:token', async (c) => {
   const tokenHash = hashSecret(c.req.param('token'));
   const link = await db.query.shareLinks.findFirst({ where: and(eq(shareLinks.tokenHash, tokenHash), sql`${shareLinks.revokedAt} is null`) });

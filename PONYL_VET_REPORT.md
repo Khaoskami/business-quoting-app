@@ -205,3 +205,14 @@ Public quote and invoice capability URLs return HTTP 410 after archival. This pr
 The reminder scheduler excludes archived invoices. The email worker also checks the current document state immediately before sending so a queued message cannot resurrect an archived workflow by sending after deletion.
 
 Migration: `server/db/migrations/0010_document_soft_delete_and_invoice_events.sql`
+
+
+## Server-side PDF generation
+
+The document download path was changed from browser-side HTML printing to server-generated PDF files. Authenticated quote and invoice endpoints return `application/pdf` with attachment filenames. Public quote and invoice links also have direct PDF endpoints.
+
+The production Docker image installs Chromium plus Noto fonts. The renderer builds a local, fully escaped document HTML string and converts it to PDF without loading external web content. Currency formatting uses an explicit symbol map and a stable numeric locale, while the PDF font stack supports Latin, currency, and Arabic glyphs. Suspicious UTF-8/Latin-1 mojibake is repaired only when recognizable markers are present, and en/em dashes are normalized to ASCII hyphens for portable filenames and PDF text.
+
+PDF generation is concurrency-limited per process, temporary files are stored under a private `/tmp` directory and removed after each request, and the API keeps the PDF response cache-disabled under the existing `/api/*` policy.
+
+The browser UI now downloads the binary PDF rather than opening a generated HTML page. `buildPrintHtml` remains available only for legacy client tests and is no longer the document-download path.

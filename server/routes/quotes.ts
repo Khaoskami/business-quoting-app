@@ -10,6 +10,7 @@ import { getClientIp, hashRequestIdentifier, hashSecret } from '../lib/security'
 import { upsertShareLink } from '../lib/share-links';
 import { enqueueEmail } from '../lib/email-outbox';
 import { invoiceEmailHtml, quoteEmailHtml } from '../lib/billing-jobs';
+import { renderQuotePdf } from '../lib/pdf';
 
 export const quotesRouter = new Hono<AppEnv>();
 quotesRouter.use('*', withTier);
@@ -374,6 +375,24 @@ quotesRouter.post('/:id/restore', async (c) => {
   return c.json({ ok: true });
 });
 
+
+quotesRouter.get('/:id/pdf', async (c) => {
+  const userId = c.get('userId') as string;
+  const row = await db.query.quotes.findFirst({ where: and(eq(quotes.id, c.req.param('id')), eq(quotes.userId, userId)) });
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  try {
+    const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
+    const result = await renderQuotePdf({ id: row.id, version: row.version, deletedAt: row.deletedAt, ...(row.data as object) }, business);
+    c.header('Content-Type', 'application/pdf');
+    c.header('Content-Disposition', `attachment; filename="${result.filename}"`);
+    c.header('Content-Length', String(result.pdf.byteLength));
+    return c.body(result.pdf as any);
+  } catch (error) {
+    console.error('[pdf] quote', error);
+    return c.json({ error: 'Could not generate PDF.' }, 500);
+  }
+});
+
 quotesRouter.get('/:id/events', async (c) => {
   const userId = c.get('userId') as string;
   const row = await db.query.quotes.findFirst({ where: and(eq(quotes.id, c.req.param('id')), eq(quotes.userId, userId)) });
@@ -396,6 +415,28 @@ publicQuotesRouter.get('/:token', async (c) => {
   await db.insert(quoteEvents).values({ userId: row.userId, quoteId: row.id, eventType: 'viewed', metadata: {}, ipHash: hashRequestIdentifier(getClientIp(c.req.raw)), userAgent: c.req.header('user-agent')?.slice(0, 500) });
   const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, row.userId) }))?.data ?? {};
   return c.json({ quote: { id: row.id, version: row.version, ...q }, business, expired, canRespond: !expired && ['draft', 'sent'].includes(q.status) });
+});
+
+
+publicQuotesRouter.get('/:token/pdf', async (c) => {
+  const token = c.req.param('token');
+  const tokenHash = hashSecret(token);
+  const link = await db.query.shareLinks.findFirst({ where: and(eq(shareLinks.tokenHash, tokenHash), sql`${shareLinks.revokedAt} is null`) });
+  if (!link?.quoteId) return c.json({ error: 'Link not found or expired.' }, 404);
+  const row = await db.query.quotes.findFirst({ where: eq(quotes.id, link.quoteId) });
+  if (!row) return c.json({ error: 'Quote not found.' }, 404);
+  if (row.deletedAt) return c.json({ error: 'This quote is no longer available.' }, 410);
+  try {
+    const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, row.userId) }))?.data ?? {};
+    const result = await renderQuotePdf({ id: row.id, version: row.version, ...(row.data as object) }, business);
+    c.header('Content-Type', 'application/pdf');
+    c.header('Content-Disposition', `attachment; filename="${result.filename}"`);
+    c.header('Content-Length', String(result.pdf.byteLength));
+    return c.body(result.pdf as any);
+  } catch (error) {
+    console.error('[pdf] public quote', error);
+    return c.json({ error: 'Could not generate PDF.' }, 500);
+  }
 });
 
 publicQuotesRouter.post('/:token/respond', async (c) => {

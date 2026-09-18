@@ -188,3 +188,9 @@ Copyright (c) 2026 Khaoskami. All rights reserved. See [LICENSE](./LICENSE).
 This repository contains checked-in Drizzle migrations. Railway runs `bun run db:migrate` as the pre-deploy command before the application is released. Do not run `db:generate` during the production image build. Deploy updates against the existing Railway PostgreSQL service and keep the existing `DATABASE_URL` reference unchanged.
 
 The document-retention migration (`0010_document_soft_delete_and_invoice_events`) only adds nullable columns, indexes, an invoice-events table, enum values, and historical creation events. It does not delete existing quotes, invoices, payments, or customers. Quotes and invoices are soft-deleted by the application after this migration.
+
+## PDF documents
+
+Quote and invoice downloads are generated on the server as real `application/pdf` files. The browser no longer opens an HTML print page for document downloads. The production image installs Chromium and Noto fonts so currency symbols such as `R`, `$`, `€`, `£`, `¥`, `₹`, `₦`, and `د.إ` are rendered as PDF glyphs instead of relying on the user's browser font or encoding.
+
+Authenticated endpoints are `/api/quotes/:id/pdf` and `/api/invoices/:id/pdf`. Public capability URLs are `/api/public/quotes/:token/pdf` and `/api/public/invoices/:token/pdf`. PDF generation is locally concurrency-limited and cleans temporary files after completion.
