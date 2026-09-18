@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Business Quotes</title>
+  <rect width="64" height="64" rx="8" fill="#1e2430"/>
+  <path d="M17 13h21c7 0 11 4 11 10 0 4-2 7-5 8 4 1 7 4 7 9 0 7-5 11-13 11H17V13zm9 8v8h11c2 0 4-2 4-4s-2-4-4-4H26zm0 16v9h12c3 0 5-2 5-4.5S41 37 38 37H26z" fill="#faf8f5"/>
+</svg>

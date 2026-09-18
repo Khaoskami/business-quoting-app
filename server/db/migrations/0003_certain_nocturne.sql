@@ -1,0 +1,1 @@
+ALTER TABLE "subscriptions" ADD COLUMN "failed_payments" integer DEFAULT 0 NOT NULL;

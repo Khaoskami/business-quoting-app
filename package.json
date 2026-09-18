@@ -1,0 +1,40 @@
+{
+  "name": "business-quoting-app",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev:server": "bun --watch server/index.ts",
+    "dev:client": "vite client",
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\"",
+    "build": "vite build client --outDir ../dist/public",
+    "start": "bun server/index.ts",
+    "test": "bun test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@tanstack/react-query": "^5.60.0",
+    "better-auth": "^1.2.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.6.0",
+    "postgres": "^3.4.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "resend": "^6.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^9.0.0",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0"
+  }
+}
