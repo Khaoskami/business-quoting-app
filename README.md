@@ -2,6 +2,14 @@
 
 Multi-user SaaS for creating quotes and invoices with server-authoritative pricing, client review links, payment history, transactional email, PostgreSQL persistence, and PayFast subscription billing.
 
+## Product promise
+
+Business Quotes is designed around one job instead of two disconnected modules: turn a quote into cash with as little admin work as possible.
+
+The primary path is: Client → Quote → Send → Follow up → Approval → Invoice → Reminder → Payment. The dashboard now acts as a work queue, quote and invoice lists expose next actions, quote creation keeps client setup in context, and accepted quotes become invoices without re-keying the pricing.
+
+See [`QUOTE_INVOICE_AUDIT.md`](./QUOTE_INVOICE_AUDIT.md) for the UX audit, market evidence, identified pain points, and implementation map.
+
 
 ## Document lifecycle and retention
 

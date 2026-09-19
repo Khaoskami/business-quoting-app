@@ -33,7 +33,7 @@ async function request<T>(path: string, init?: RequestInit, publicRequest = fals
 export const api = {
   profile: { get: () => request<{ profile: any; subscription: any }>('/profile'), save: (data: any) => request<{ ok: true }>('/profile', { method: 'PUT', body: JSON.stringify(data) }), export: () => fetch('/api/profile/export', { credentials: 'include' }).then(async r => { if (!r.ok) throw new Error('Could not export account data'); return { blob: await r.blob(), disposition: r.headers.get('content-disposition') }; }) },
   quotes: {
-    list: (includeDeleted = false) => request<any[]>(`/quotes${includeDeleted ? '?includeDeleted=1' : ''}`),
+    list: (includeDeleted = false) => request<any[]>(`/quotes${includeDeleted ? '?deletedOnly=1' : ''}`),
     create: (data: any, idempotencyKey = crypto.randomUUID()) => request<any>('/quotes', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/quotes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => request<{ ok: true; softDeleted: true }>(`/quotes/${id}`, { method: 'DELETE' }),
@@ -42,15 +42,18 @@ export const api = {
     duplicate: (id: string, idempotencyKey = crypto.randomUUID()) => request<any>(`/quotes/${id}/duplicate`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: '{}' }),
     accept: (id: string) => request<any>(`/quotes/${id}/accept`, { method: 'POST', body: JSON.stringify({ confirmedByClient: true }) }),
     send: (id: string) => request<{ ok: true; url: string; queued: boolean }>(`/quotes/${id}/send`, { method: 'POST' }),
+    remind: (id: string) => request<{ ok: true; queued: boolean }>(`/quotes/${id}/remind`, { method: 'POST' }),
     pdf: (id: string) => requestBlob(`/quotes/${id}/pdf`),
   },
   invoices: {
-    list: (includeDeleted = false) => request<any[]>(`/invoices${includeDeleted ? '?includeDeleted=1' : ''}`),
+    list: (includeDeleted = false) => request<any[]>(`/invoices${includeDeleted ? '?deletedOnly=1' : ''}`),
     delete: (id: string) => request<{ ok: true; softDeleted: true }>(`/invoices/${id}`, { method: 'DELETE' }),
     restore: (id: string) => request<{ ok: true }>(`/invoices/${id}/restore`, { method: 'POST' }),
     events: (id: string) => request<any[]>(`/invoices/${id}/events`),
     setStatus: (id: string, status: 'void' | 'unpaid') => request<{ ok: true }>(`/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
     share: (id: string) => request<{ ok: true; url: string }>(`/invoices/${id}/share`, { method: 'POST' }),
+    send: (id: string) => request<{ ok: true; url: string; queued: boolean }>(`/invoices/${id}/send`, { method: 'POST' }),
+    remind: (id: string) => request<{ ok: true; queued: boolean }>(`/invoices/${id}/remind`, { method: 'POST' }),
     recordPayment: (id: string, data: any, idempotencyKey = crypto.randomUUID()) => request<any>(`/invoices/${id}/payments`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(data) }),
     pdf: (id: string) => requestBlob(`/invoices/${id}/pdf`),
   },

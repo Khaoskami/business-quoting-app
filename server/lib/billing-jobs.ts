@@ -33,6 +33,27 @@ export function invoiceEmailHtml(opts: { business: any; invoice: any; token: str
   </body></html>`;
 }
 
+export function quoteFollowupEmailHtml(opts: { business: any; quote: any; token: string }) {
+  return `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1e2430;line-height:1.5;max-width:680px;margin:0 auto;padding:24px">
+  <h1 style="font-size:22px">${esc(opts.business?.name || 'Business Quotes')}</h1>
+  <p>Just following up on quote <strong>${esc(opts.quote.quoteNumber)}</strong>.</p>
+  <p><strong>${esc(opts.quote.title || 'Quote')}</strong><br/>Total: <strong>${esc(String(opts.quote.totalDisplay || ''))}</strong></p>
+  <p><a href="${esc(appUrl(`/public/quote/${opts.token}`))}" style="display:inline-block;padding:10px 16px;background:#3b6b8a;color:#fff;text-decoration:none">Review quote</a></p>
+  <p style="font-size:12px;color:#6b7280">Reply through the quote page to accept, decline, or leave a message.</p>
+  </body></html>`;
+}
+
+export function invoiceReminderEmailHtml(opts: { business: any; invoice: any; token: string }) {
+  return `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1e2430;line-height:1.5;max-width:680px;margin:0 auto;padding:24px">
+  <h1 style="font-size:22px">${esc(opts.business?.name || 'Business Quotes')}</h1>
+  <p>This is a reminder about invoice <strong>${esc(opts.invoice.invoiceNumber)}</strong>.</p>
+  <p>Amount remaining: <strong>${esc(String(opts.invoice.balanceDisplay || ''))}</strong></p>
+  <p>Due: <strong>${esc(String(opts.invoice.dueDisplay || 'On receipt'))}</strong></p>
+  <p><a href="${esc(appUrl(`/public/invoice/${opts.token}`))}" style="display:inline-block;padding:10px 16px;background:#3b6b8a;color:#fff;text-decoration:none">Review invoice</a></p>
+  <p style="font-size:12px;color:#6b7280">Please ignore this message if payment has already been made.</p>
+  </body></html>`;
+}
+
 function dateOnly(d: Date) {
   return new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' }).format(d);
 }

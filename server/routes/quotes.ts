@@ -9,7 +9,7 @@ import { calculateTotals } from '../lib/finance';
 import { getClientIp, hashRequestIdentifier, hashSecret } from '../lib/security';
 import { upsertShareLink } from '../lib/share-links';
 import { enqueueEmail } from '../lib/email-outbox';
-import { invoiceEmailHtml, quoteEmailHtml } from '../lib/billing-jobs';
+import { invoiceEmailHtml, quoteEmailHtml, quoteFollowupEmailHtml } from '../lib/billing-jobs';
 import { renderQuotePdf } from '../lib/pdf';
 
 export const quotesRouter = new Hono<AppEnv>();
@@ -274,6 +274,55 @@ quotesRouter.post('/:id/send', async (c) => {
     return c.json({ ok: true, url: `${baseUrl()}/public/quote/${result.token}`, queued: true });
   } catch {
     return c.json({ error: 'Failed to send quote' }, 500);
+  }
+});
+
+quotesRouter.post('/:id/remind', async (c) => {
+  const userId = c.get('userId') as string;
+  const id = c.req.param('id');
+  const tier = c.get('tier') as Tier;
+  if (!TIER_LIMITS[tier].features.clientUrl) return c.json({ error: 'Client sharing is available on paid plans.' }, 403);
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [row] = await tx.execute(sql`
+        select id, data, version, deleted_at
+        from quotes
+        where id = ${id} and user_id = ${userId}
+        for update
+      `) as unknown as Array<{ id: string; data: any; version: number; deleted_at: Date | null }>;
+      if (!row) return { notFound: true as const };
+      if (row.deleted_at) return { deleted: true as const };
+      const q = (typeof row.data === 'string' ? JSON.parse(row.data) : row.data) as any;
+      if (q.status !== 'sent') return { notAwaiting: true as const };
+      if (!q.clientEmail) return { noEmail: true as const };
+      const token = await upsertShareLink(tx, userId, 'quote', id, q.validUntil ? new Date(q.validUntil) : null);
+      const now = new Date().toISOString();
+      const updatedData = { ...q, sentAt: now };
+      const updated = await tx.update(quotes).set({ data: updatedData, updatedAt: new Date(), version: row.version + 1 })
+        .where(and(eq(quotes.id, id), eq(quotes.userId, userId), eq(quotes.version, row.version))).returning({ id: quotes.id });
+      if (!updated.length) return { conflict: true as const };
+      await tx.insert(quoteEvents).values({ userId, quoteId: id, eventType: 'sent', metadata: { source: 'manual_followup' } });
+      return { q: updatedData, token };
+    });
+    if ('notFound' in result) return c.json({ error: 'Not found' }, 404);
+    if ('deleted' in result) return c.json({ error: 'Archived quotes must be restored before following up.' }, 409);
+    if ('notAwaiting' in result) return c.json({ error: 'Only quotes awaiting a client response can receive a follow-up.' }, 409);
+    if ('noEmail' in result) return c.json({ error: 'Add a client email before following up.' }, 400);
+    if ('conflict' in result) return c.json({ error: 'This quote changed while the follow-up was being prepared. Please try again.' }, 409);
+    const total = calculateTotals(result.q.items, result.q.taxPercent, result.q.discountPercent, result.q.currency);
+    const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
+    await enqueueEmail({
+      userId,
+      kind: 'quote_sent',
+      quoteId: id,
+      toEmail: result.q.clientEmail,
+      subject: `Following up: ${result.q.quoteNumber} from ${business.name || 'Business Quotes'}`,
+      html: quoteFollowupEmailHtml({ business, quote: { ...result.q, totalDisplay: `${result.q.currency} ${total.total.toFixed(2)}` }, token: result.token }),
+      idempotencyKey: `quote:${id}:followup:${result.q.version}`,
+    });
+    return c.json({ ok: true, queued: true });
+  } catch {
+    return c.json({ error: 'Failed to send follow-up' }, 500);
   }
 });
 

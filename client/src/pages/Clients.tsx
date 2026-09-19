@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { Icon } from '../components/Icons';
@@ -94,6 +95,7 @@ export default function Clients() {
                 <div className="meta">{[c.email, c.phone, c.website].filter(Boolean).join(' · ') || ''}</div>
               </div>
               <div className="simple-row-actions">
+                <Link to={`/quotes/new?client=${encodeURIComponent(c.id)}`} className="btn btn--primary btn--sm">New quote</Link>
                 <button onClick={() => setForm({ ...c })} className="btn btn--ghost btn--sm">Edit</button>
                 <button onClick={() => { if (confirm('Delete client?')) del.mutate(c.id); }} className="btn btn--danger btn--sm">Delete</button>
               </div>

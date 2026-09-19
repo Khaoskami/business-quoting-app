@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Hono } from 'hono';
 import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
@@ -8,6 +9,8 @@ import { invoicePaymentSchema } from '../lib/schemas';
 import { fromMinor, toMinor } from '../lib/finance';
 import { hashSecret, getClientIp, hashRequestIdentifier } from '../lib/security';
 import { upsertShareLink } from '../lib/share-links';
+import { enqueueEmail } from '../lib/email-outbox';
+import { invoiceEmailHtml, invoiceReminderEmailHtml } from '../lib/billing-jobs';
 import { renderInvoicePdf } from '../lib/pdf';
 
 export const invoicesRouter = new Hono<AppEnv>();
@@ -38,6 +41,87 @@ invoicesRouter.post('/:id/share', async (c) => {
   });
   if (!created) return c.json({ error: 'Not found or archived.' }, 404);
   return c.json({ ok: true, url: publicUrl(created) });
+});
+
+function displayMoney(minor: number, currency: string) {
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(fromMinor(Number(minor || 0), currency));
+  } catch {
+    return `${currency} ${fromMinor(Number(minor || 0), currency).toFixed(currency === 'JPY' ? 0 : 2)}`;
+  }
+}
+
+function displayDate(value?: Date | null) {
+  return value ? new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(value) : 'On receipt';
+}
+
+invoicesRouter.post('/:id/send', async (c) => {
+  const userId = c.get('userId') as string;
+  const id = c.req.param('id');
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [row] = await tx.execute(sql`select id, invoice_number, status, currency, amount_minor, amount_paid_minor, due_at, client_email, data, deleted_at from invoices where id = ${id} and user_id = ${userId} for update`) as unknown as Array<any>;
+      if (!row) return { notFound: true as const };
+      if (row.deleted_at) return { deleted: true as const };
+      if (row.status === 'void') return { void: true as const };
+      if (!row.client_email) return { noEmail: true as const };
+      const token = await upsertShareLink(tx, userId, 'invoice', id, null);
+      const now = new Date();
+      await tx.update(invoices).set({ sentAt: now, updatedAt: now }).where(eq(invoices.id, id));
+      await tx.insert(invoiceEvents).values({ userId, invoiceId: id, eventType: 'sent', metadata: { source: 'manual_send' } });
+      return { row, token };
+    });
+    if ('notFound' in result) return c.json({ error: 'Not found' }, 404);
+    if ('deleted' in result) return c.json({ error: 'Archived invoices must be restored before sending.' }, 409);
+    if ('void' in result) return c.json({ error: 'Void invoices cannot be sent.' }, 409);
+    if ('noEmail' in result) return c.json({ error: 'Add a client email before sending the invoice.' }, 400);
+    const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
+    const data = typeof result.row.data === 'string' ? JSON.parse(result.row.data) : result.row.data;
+    await enqueueEmail({
+      userId, kind: 'invoice_issued', invoiceId: id, toEmail: result.row.client_email,
+      subject: `${result.row.invoice_number} from ${business.name || 'Business Quotes'}`,
+      html: invoiceEmailHtml({ business, invoice: { ...data, invoiceNumber: result.row.invoice_number, totalDisplay: displayMoney(result.row.amount_minor, result.row.currency), dueDisplay: displayDate(result.row.due_at) }, token: result.token }),
+      idempotencyKey: `invoice:${id}:manual-send:${randomUUID()}`,
+    });
+    return c.json({ ok: true, url: publicUrl(result.token), queued: true });
+  } catch {
+    return c.json({ error: 'Failed to send invoice.' }, 500);
+  }
+});
+
+invoicesRouter.post('/:id/remind', async (c) => {
+  const userId = c.get('userId') as string;
+  const id = c.req.param('id');
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [row] = await tx.execute(sql`select id, invoice_number, currency, amount_minor, amount_paid_minor, status, due_at, client_email, data, deleted_at from invoices where id = ${id} and user_id = ${userId} for update`) as unknown as Array<any>;
+      if (!row) return { notFound: true as const };
+      if (row.deleted_at) return { deleted: true as const };
+      if (row.status === 'void') return { void: true as const };
+      if (row.status === 'paid' || Number(row.amount_paid_minor) >= Number(row.amount_minor)) return { paid: true as const };
+      if (!row.client_email) return { noEmail: true as const };
+      const token = await upsertShareLink(tx, userId, 'invoice', id, null);
+      await tx.insert(invoiceEvents).values({ userId, invoiceId: id, eventType: 'sent', metadata: { source: 'manual_reminder' } });
+      return { row, token };
+    });
+    if ('notFound' in result) return c.json({ error: 'Not found' }, 404);
+    if ('deleted' in result) return c.json({ error: 'Archived invoices must be restored before sending reminders.' }, 409);
+    if ('void' in result) return c.json({ error: 'Void invoices cannot receive reminders.' }, 409);
+    if ('paid' in result) return c.json({ error: 'Paid invoices do not need a reminder.' }, 409);
+    if ('noEmail' in result) return c.json({ error: 'Add a client email before sending a reminder.' }, 400);
+    const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
+    const data = typeof result.row.data === 'string' ? JSON.parse(result.row.data) : result.row.data;
+    const balanceMinor = Math.max(0, Number(result.row.amount_minor) - Number(result.row.amount_paid_minor));
+    await enqueueEmail({
+      userId, kind: 'invoice_reminder', invoiceId: id, toEmail: result.row.client_email,
+      subject: `${result.row.invoice_number} payment reminder`,
+      html: invoiceReminderEmailHtml({ business, invoice: { ...data, invoiceNumber: result.row.invoice_number, balanceDisplay: displayMoney(balanceMinor, result.row.currency), dueDisplay: displayDate(result.row.due_at) }, token: result.token }),
+      idempotencyKey: `invoice:${id}:manual-reminder:${crypto.randomUUID()}`,
+    });
+    return c.json({ ok: true, queued: true });
+  } catch {
+    return c.json({ error: 'Failed to send reminder.' }, 500);
+  }
 });
 
 invoicesRouter.post('/:id/payments', async (c) => {
