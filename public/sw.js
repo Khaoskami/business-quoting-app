@@ -7,7 +7,7 @@
  *   - Other assets: cache-first for offline shell.
  */
 
-const CACHE_VERSION = 'bq-saas-v1';
+const CACHE_VERSION = 'bq-saas-v2';
 const CORE_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
@@ -46,16 +46,13 @@ self.addEventListener('fetch', (event) => {
     );
   } else {
     event.respondWith(
-      caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request).then((res) => {
-          if (res.ok && res.type === 'basic') {
-            const clone = res.clone();
-            caches.open(CACHE_VERSION).then((c) => c.put(event.request, clone));
-          }
-          return res;
-        });
-      })
+      fetch(event.request).then((res) => {
+        if (res.ok && res.type === 'basic') {
+          const clone = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put(event.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(event.request))
     );
   }
 });

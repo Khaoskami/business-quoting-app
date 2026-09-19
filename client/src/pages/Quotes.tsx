@@ -33,7 +33,7 @@ export default function Quotes() {
   const [showDeleted, setShowDeleted] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
-  const { data: active = [], isLoading } = useQuery({ queryKey: ['quotes'], queryFn: api.quotes.list });
+  const { data: active = [], isLoading, isError, error, refetch } = useQuery({ queryKey: ['quotes'], queryFn: api.quotes.list, retry: 2 });
   const { data: archived = [] } = useQuery({ queryKey: ['quotes', 'archived'], queryFn: () => api.quotes.list(true), enabled: showDeleted });
   const send = useMutation({
     mutationFn: (id: string) => api.quotes.send(id),
@@ -89,7 +89,14 @@ export default function Quotes() {
 
       {showDeleted && <div className="info-banner">Archived quotes stay in your account history. Restore one to send or edit it again.</div>}
 
-      {isLoading ? <div className="page-loading local-loading">Loading quotes...</div> : filtered.length === 0 ? (
+      {isLoading ? <div className="page-loading local-loading"><div className="loading-card"><span className="loading-spinner" aria-hidden="true" /><strong>Loading your quotes</strong><span>Fetching your saved quotes and pipeline status.</span></div></div> : isError ? (
+        <div className="empty-state card error-state">
+          <Icon.emptyDoc />
+          <h3>Quotes could not be loaded</h3>
+          <p>{(error as any)?.message || 'Something went wrong while loading your quotes.'}</p>
+          <button className="btn btn--primary" onClick={() => refetch()}>Try again</button>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="empty-state card">
           <Icon.emptyDoc />
           <h3>{showDeleted ? 'No archived quotes' : search ? 'No matching quotes' : 'No quotes yet'}</h3>

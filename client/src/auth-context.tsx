@@ -20,15 +20,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function refresh() {
-    const { data } = await authClient.getSession();
-    setUser((data?.user as User) ?? null);
+    try {
+      const { data } = await authClient.getSession();
+      setUser((data?.user as User) ?? null);
+    } catch (error) {
+      console.error('[auth-session-error]', error);
+      setUser(null);
+    }
   }
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       await refresh();
-      setLoading(false);
+      if (mounted) setLoading(false);
     })();
+    return () => { mounted = false; };
   }, []);
 
   const signIn = async (email: string, password: string) => {
