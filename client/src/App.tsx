@@ -13,6 +13,7 @@ import Clients from './pages/Clients';
 import Catalog from './pages/Catalog';
 import Settings from './pages/Settings';
 import Admin from './pages/Admin';
+import Landing from './pages/Landing';
 import PublicQuote from './pages/PublicQuote';
 import PublicInvoice from './pages/PublicInvoice';
 
@@ -20,6 +21,12 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="page-loading">Loading...</div>;
   return user ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+function Home() {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="page-loading">Loading...</div>;
+  return user ? <Dashboard /> : <Landing />;
 }
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
@@ -36,8 +43,9 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/public/quote/:token" element={<PublicQuote />} />
       <Route path="/public/invoice/:token" element={<PublicInvoice />} />
+      <Route index element={<Home />} />
       <Route element={<RequireAuth><AppShell /></RequireAuth>}>
-        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="quotes" element={<Quotes />} />
         <Route path="invoices" element={<Invoices />} />
         <Route path="quotes/new" element={<Editor />} />

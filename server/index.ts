@@ -106,6 +106,36 @@ app.onError((err, c) => {
   return c.json({ error: 'Unexpected server error.' }, 500);
 });
 
+app.get('/robots.txt', (c) => {
+  const origin = new URL(c.req.url).origin;
+  return c.text([
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /api/',
+    'Disallow: /public/quote/',
+    'Disallow: /public/invoice/',
+    `Sitemap: ${origin}/sitemap.xml`,
+    ''
+  ].join('\n'), 200, { 'Content-Type': 'text/plain; charset=UTF-8' });
+});
+
+app.get('/sitemap.xml', (c) => {
+  const origin = new URL(c.req.url).origin;
+  const lastmod = new Date().toISOString().slice(0, 10);
+  const urls = [
+    { loc: `${origin}/`, changefreq: 'weekly' },
+    { loc: `${origin}/login`, changefreq: 'monthly' },
+    { loc: `${origin}/register`, changefreq: 'monthly' },
+    { loc: `${origin}/privacy-policy.html`, changefreq: 'yearly' },
+    { loc: `${origin}/terms.html`, changefreq: 'yearly' },
+  ];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${lastmod}</lastmod><changefreq>${u.changefreq}</changefreq></url>`).join('\n')}
+</urlset>`;
+  return c.body(xml, 200, { 'Content-Type': 'application/xml; charset=UTF-8' });
+});
+
 app.use('/*', serveStatic({ root: './dist/public' }));
 app.get('/*', serveStatic({ path: './dist/public/index.html' }));
 

@@ -202,3 +202,12 @@ The document-retention migration (`0010_document_soft_delete_and_invoice_events`
 Quote and invoice downloads are generated on the server as real `application/pdf` files. The browser no longer opens an HTML print page for document downloads. The production image installs Chromium and Noto fonts so currency symbols such as `R`, `$`, `€`, `£`, `¥`, `₹`, `₦`, and `د.إ` are rendered as PDF glyphs instead of relying on the user's browser font or encoding.
 
 Authenticated endpoints are `/api/quotes/:id/pdf` and `/api/invoices/:id/pdf`. Public capability URLs are `/api/public/quotes/:token/pdf` and `/api/public/invoices/:token/pdf`. PDF generation is locally concurrency-limited and cleans temporary files after completion.
+
+
+## SEO and AI search
+
+The public root page is now a search-friendly product landing page for quote and invoice software for small businesses and service professionals. It includes descriptive metadata, canonical URLs, Open Graph/Twitter metadata, SoftwareApplication/WebSite/Organization structured data, natural-language product FAQs, and crawl endpoints at `/robots.txt` and `/sitemap.xml`.
+
+The application intentionally avoids keyword stuffing. Public marketing copy focuses on the actual workflow: creating professional quotes and estimates, sending them for approval, converting accepted quotes into invoices, generating PDF documents, tracking balances, recording payments, and following up on overdue invoices.
+
+Private tokenized quote and invoice URLs are excluded from crawling.
