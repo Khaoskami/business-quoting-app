@@ -1,9 +1,12 @@
 import { db } from '../db';
-import { businessProfiles, invoices, emailJobs, shareLinks } from '../db/schema';
+import { businessProfiles, invoices, subscriptions, shareLinks } from '../db/schema';
 import { and, eq, gte, lte, lt, inArray, sql } from 'drizzle-orm';
-import { enqueueEmail } from './email-outbox';
+import { enqueueClientEmail } from './email-outbox';
 import { decryptSecret } from './security';
 import { upsertShareLink } from './share-links';
+import { effectiveTier, TIER_LIMITS } from './tier';
+import { fromMinor } from './finance';
+import { isEmailConfigured } from './email-service';
 
 function esc(value: unknown) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -54,6 +57,17 @@ export function invoiceReminderEmailHtml(opts: { business: any; invoice: any; to
   </body></html>`;
 }
 
+export function clientEmailHtml(opts: { business: any; recipientName: string; message: string }) {
+  const body = esc(opts.message).replace(/\r?\n/g, '<br>');
+  return `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1e2430;line-height:1.6;max-width:680px;margin:0 auto;padding:24px">
+  <h1 style="font-size:22px">${esc(opts.business?.name || 'Business Quotes')}</h1>
+  <p>${esc(opts.recipientName || 'Hello')},</p>
+  <div style="white-space:normal">${body}</div>
+  <hr style="border:0;border-top:1px solid #e5e7eb;margin:28px 0" />
+  <p style="font-size:12px;color:#6b7280">Sent from ${esc(opts.business?.name || 'Business Quotes')}.</p>
+  </body></html>`;
+}
+
 function dateOnly(d: Date) {
   return new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' }).format(d);
 }
@@ -63,12 +77,13 @@ function diffDays(target: Date, now: Date) {
 }
 
 export async function scheduleInvoiceReminderJobs() {
+  if (!isEmailConfigured()) return;
   const now = new Date();
   const windowEnd = new Date(now.getTime() + 3 * 86_400_000);
   const rows = await db.query.invoices.findMany({
     where: and(
       lte(invoices.dueAt, windowEnd),
-      gte(invoices.dueAt, new Date(now.getTime() - 14 * 86_400_000)),
+      gte(invoices.dueAt, new Date(now.getTime() - 90 * 86_400_000)),
       lt(invoices.amountPaidMinor, invoices.amountMinor),
       sql`${invoices.deletedAt} is null`,
     ),
@@ -79,39 +94,55 @@ export async function scheduleInvoiceReminderJobs() {
   const userIds = [...new Set(rows.map(r => r.userId))];
   const profileRows = userIds.length ? await db.query.businessProfiles.findMany({ where: inArray(businessProfiles.userId, userIds) }) : [];
   const profileByUser = new Map(profileRows.map(p => [p.userId, p.data as any]));
+  const subscriptionRows = userIds.length ? await db.query.subscriptions.findMany({ where: inArray(subscriptions.userId, userIds) }) : [];
+  const subscriptionByUser = new Map(subscriptionRows.map(s => [s.userId, s]));
   const invoiceIds = rows.map(r => r.id);
   const shareRows = invoiceIds.length ? await db.query.shareLinks.findMany({ where: and(inArray(shareLinks.invoiceId, invoiceIds), sql`${shareLinks.revokedAt} is null`) }) : [];
   const shareByInvoice = new Map(shareRows.filter(r => r.invoiceId).map(r => [r.invoiceId!, r]));
 
   for (const invoice of rows) {
-    if (!invoice.clientEmail || invoice.status === 'void' || invoice.status === 'paid') continue;
-    if (!invoice.dueAt) continue;
-    const days = diffDays(invoice.dueAt, now);
-    const keys: Array<[string, string]> = [];
-    if (days === 3) keys.push(['3d_before', 'Your invoice is due in 3 days']);
-    if (days === 0) keys.push(['due_today', 'Invoice due today']);
-    if (days === -3) keys.push(['3d_overdue', 'Invoice is 3 days overdue']);
-    if (days === -14) keys.push(['14d_overdue', 'Invoice is 14 days overdue']);
-    if (!keys.length) continue;
+    if (!invoice.clientEmail || invoice.status === 'void' || invoice.status === 'paid' || !invoice.dueAt) continue;
+
+    const tier = effectiveTier(subscriptionByUser.get(invoice.userId));
+    const limits = TIER_LIMITS[tier];
+    if (!limits.features.autoReminders) continue;
 
     const profile: any = profileByUser.get(invoice.userId) ?? {};
+    const settings = profile.emailSettings ?? {};
+    if (settings.autoReminders === false) continue;
+
+    const configuredDays = Array.isArray(settings.reminderDays) ? settings.reminderDays : null;
+    const reminderDays = tier === 'business' && configuredDays?.length
+      ? [...new Set(configuredDays.map((d: any) => Number(d)).filter((d: number) => Number.isInteger(d) && d >= -90 && d <= 90))]
+      : [3, 0, -3, -14];
+
+    const days = diffDays(invoice.dueAt, now);
+    if (!reminderDays.includes(days)) continue;
+
     let token = shareByInvoice.get(invoice.id)?.tokenCiphertext ? decryptSecret(shareByInvoice.get(invoice.id)!.tokenCiphertext!) : null;
     if (!token) {
       token = await db.transaction((tx) => upsertShareLink(tx, invoice.userId, 'invoice', invoice.id, null));
-      shareByInvoice.set(invoice.id, { tokenCiphertext: null } as any);
-      // The upsert generated the raw token for this job; it is not persisted in plaintext.
     }
+
     const reminderUrl = appUrl(`/public/invoice/${token}`);
-    for (const [kind, subject] of keys) {
-      await db.insert(emailJobs).values({
-        userId: invoice.userId,
-        kind: 'invoice_reminder',
-        invoiceId: invoice.id,
-        toEmail: invoice.clientEmail,
-        subject,
-        html: `<html><body style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:24px;color:#1e2430"><h1>${esc(profile.name || 'Business Quotes')}</h1><p>Invoice <strong>${esc(invoice.invoiceNumber)}</strong> remains outstanding.</p><p>Please review the invoice and arrange payment as soon as practical.</p><p>Due date: ${esc(dateOnly(invoice.dueAt))}</p><p><a href="${esc(reminderUrl)}" style="display:inline-block;padding:10px 16px;background:#3b6b8a;color:#fff;text-decoration:none">View invoice</a></p></body></html>`,
-        idempotencyKey: `invoice:${invoice.id}:reminder:${kind}:${dateOnly(invoice.dueAt)}`,
-      }).onConflictDoNothing({ target: emailJobs.idempotencyKey });
-    }
+    const profileEmail = String(profile.email || '').trim();
+    const subject = days > 0
+      ? `Invoice ${invoice.invoiceNumber} is due in ${days} day${days === 1 ? '' : 's'}`
+      : days === 0
+        ? `Invoice ${invoice.invoiceNumber} is due today`
+        : `Invoice ${invoice.invoiceNumber} is ${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} overdue`;
+
+    const balanceMinor = Math.max(0, Number(invoice.amountMinor) - Number(invoice.amountPaidMinor));
+    await enqueueClientEmail({
+      userId: invoice.userId,
+      tier,
+      kind: 'invoice_reminder',
+      invoiceId: invoice.id,
+      toEmail: invoice.clientEmail,
+      replyTo: profileEmail || undefined,
+      subject,
+      html: invoiceReminderEmailHtml({ business: profile, invoice: { ...(invoice.data as any), invoiceNumber: invoice.invoiceNumber, balanceDisplay: `${invoice.currency} ${fromMinor(balanceMinor, invoice.currency).toFixed(invoice.currency === 'JPY' ? 0 : 2)}`, dueDisplay: dateOnly(invoice.dueAt) }, token }),
+      idempotencyKey: `invoice:${invoice.id}:auto-reminder:${days}:${dateOnly(invoice.dueAt)}`,
+    });
   }
 }

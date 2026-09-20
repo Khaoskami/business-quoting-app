@@ -48,6 +48,7 @@ export default function Invoices() {
   const { data: history = [] } = useQuery({ queryKey: ['invoice-events', historyFor?.id], queryFn: () => api.invoices.events(historyFor.id), enabled: Boolean(historyFor) });
   const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: api.profile.get });
   const biz = profile?.profile ?? {};
+  const canRemind = Boolean(profile?.subscription?.limits?.features?.manualReminders);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ['invoices'] });
   const send = useMutation({
@@ -167,7 +168,7 @@ export default function Invoices() {
                 <div className="document-status"><span className={toneClass(state.tone)}>{state.label}</span><small>{state.detail}</small></div>
                 <div className="document-actions">
                   {!showDeleted && !inv.deletedAt && inv.clientEmail && <button className="btn btn--secondary btn--sm" onClick={() => send.mutate(inv.id)} disabled={send.isPending}>{send.isPending ? 'Sending...' : 'Send'}</button>}
-                  {!showDeleted && !inv.deletedAt && inv.status !== 'paid' && inv.status !== 'void' && inv.clientEmail && <button className="btn btn--ghost btn--sm" onClick={() => remind.mutate(inv.id)} disabled={remind.isPending}>{remind.isPending ? 'Sending...' : 'Remind'}</button>}
+                  {!showDeleted && !inv.deletedAt && inv.status !== 'paid' && inv.status !== 'void' && inv.clientEmail && canRemind && <button className="btn btn--ghost btn--sm" onClick={() => remind.mutate(inv.id)} disabled={remind.isPending}>{remind.isPending ? 'Sending...' : 'Remind'}</button>}
                   {!showDeleted && !inv.deletedAt && inv.status !== 'paid' && inv.status !== 'void' && <button className="btn btn--secondary btn--sm" onClick={() => { setPaymentFor(inv); setAmount(String(balance)); setMethod('bank_transfer'); setNote(''); }}>Record payment</button>}
                   {!showDeleted && !inv.deletedAt && <button className="btn btn--ghost btn--sm" onClick={() => share.mutate(inv.id)} disabled={share.isPending}>Copy link</button>}
                   <button className="btn btn--ghost btn--sm" onClick={() => downloadPdf(inv)}>PDF</button>

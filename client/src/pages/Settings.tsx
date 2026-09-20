@@ -4,12 +4,24 @@ import { api } from '../api';
 import { authClient } from '../auth-client';
 import { useToast } from '../components/Toast';
 import { CURRENCIES, fmtDate } from '../lib/quote';
+import { PRICING } from '../../../shared/pricing';
 
 const TIERS = [
-  { key: 'free',     name: 'Free',     price: 'Free forever', features: ['50 quotes/month', '3 clients', '10 catalog items', 'CSV export'] },
-  { key: 'pro',      name: 'Pro',      price: 'R299/mo',      features: ['100 quotes/month', '999 clients', 'Print/PDF', 'Discounts', 'Signatures'] },
-  { key: 'business', name: 'Business', price: 'R599/mo',      features: ['Unlimited quotes', 'Unlimited clients', 'All Pro features'] },
+  { key: 'free', name: PRICING.free.name, price: `${PRICING.free.priceLabel} forever`, features: ['5 quotes/month', '3 clients', '10 catalog items', '10 client emails/month', 'PDF + online quote links'] },
+  { key: 'pro', name: PRICING.pro.name, price: `${PRICING.pro.priceLabel}/mo`, features: ['300 quotes/month', '250 clients', '400 client emails/month', 'Automated reminders', 'Client portal + e-signature', '5 team members'] },
+  { key: 'business', name: PRICING.business.name, price: `${PRICING.business.priceLabel}/mo`, features: ['Unlimited quotes, clients & catalog', '2,000 client emails/month', 'Custom reminder schedules', 'All Growth workflow features', 'Higher-volume client communication'] },
 ];
+
+const REMINDER_OPTIONS = [
+  { value: 7, label: '7 days before' },
+  { value: 3, label: '3 days before' },
+  { value: 0, label: 'Due today' },
+  { value: -3, label: '3 days overdue' },
+  { value: -7, label: '7 days overdue' },
+  { value: -14, label: '14 days overdue' },
+  { value: -30, label: '30 days overdue' },
+];
+const DEFAULT_REMINDERS = [3, 0, -3, -14];
 
 function hasOldLocalStorage() {
   try { return Object.keys(localStorage).some(k => k.startsWith('bq_')); }
@@ -26,6 +38,10 @@ export default function Settings() {
   useEffect(() => { if (profile?.profile) setForm(profile.profile); }, [profile?.profile]);
 
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const emailStatus = profile?.email;
+  const emailSettings = form?.emailSettings ?? {};
+  const autoReminders = emailSettings.autoReminders ?? tier !== 'free';
+  const reminderDays: number[] = Array.isArray(emailSettings.reminderDays) && emailSettings.reminderDays.length ? emailSettings.reminderDays : DEFAULT_REMINDERS;
   const [pwBusy, setPwBusy] = useState(false);
 
   async function handleLogoFile(file: File) {
@@ -105,7 +121,7 @@ export default function Settings() {
   }, []);
 
   const saveProfile = useMutation({
-    mutationFn: () => api.profile.save(form),
+    mutationFn: () => api.profile.save({ ...form, emailSettings }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['profile'] }); notify('Saved.'); },
     onError: (e: any) => notify(e.message ?? 'Save failed', 'error'),
   });
@@ -178,20 +194,20 @@ export default function Settings() {
               <ul>{t.features.map(f => <li key={f}>✓ {f}</li>)}</ul>
               {tier === t.key
                 ? <span className="field-hint" style={{ marginTop: 8 }}>Current plan</span>
-                : t.key !== 'free' && (
+                : ((tier === 'free' && t.key !== 'free') || (tier === 'pro' && t.key === 'business')) && (
                   <button className="btn btn--primary btn--sm" style={{ marginTop: 8 }}
                           onClick={() => checkout.mutate(t.key)}
-                          disabled={checkout.isPending}>Upgrade</button>
+                          disabled={checkout.isPending}>Get {t.name}</button>
                 )}
             </div>
           ))}
         </div>
-        {profile?.subscription?.currentPeriodEnd && (
-          <div className="field-hint" style={{ marginTop: 12 }}>
-            Renews {fmtDate(profile.subscription.currentPeriodEnd)}
-            {profile?.subscription?.comped && ' (comped)'}
-          </div>
-        )}
+        <div className="field-hint" style={{ marginTop: 12 }}>
+          {profile?.subscription?.comped ? 'Comped account.' : profile?.subscription?.billingAmountMinor && Number(profile.subscription.billingAmountMinor) !== Number((PRICING as any)[tier]?.price ?? 0) * 100
+            ? `Current billing: R${(Number(profile.subscription.billingAmountMinor) / 100).toLocaleString('en-ZA', { minimumFractionDigits: 0 })}/mo (grandfathered rate)`
+            : tier === 'free' ? 'No credit card required.' : `Current price: ${(PRICING as any)[tier]?.priceLabel}/month.`}
+          {profile?.subscription?.currentPeriodEnd && ` · Renews ${fmtDate(profile.subscription.currentPeriodEnd)}`}
+        </div>
         {tier !== 'free' && !profile?.subscription?.comped && (
           <>
             <button onClick={() => { if (confirm('Cancel your subscription? You keep your paid plan until the end of the period you have already paid for, then revert to Free.')) cancel.mutate(); }}
@@ -239,6 +255,54 @@ export default function Settings() {
         </div>
         <button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}
                 className={`btn btn--primary ${saveProfile.isPending ? 'btn--loading' : ''}`} style={{ marginTop: 14 }}>Save</button>
+      </div>
+
+      <h2 className="section-title">Email &amp; reminders</h2>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="settings-callout">
+          <div>
+            <div style={{ fontWeight: 600 }}>Client communication</div>
+            <div className="field-hint" style={{ marginTop: 4 }}>
+              Verification and password-reset emails are system emails and do not use your client-email allowance. Quote sends, invoice sends, reminders, and direct client messages use your monthly client-email credits.
+            </div>
+          </div>
+          <div className={`status-pill ${emailStatus?.configured ? 'status-pill--success' : 'status-pill--warning'}`}>
+            {emailStatus?.configured ? 'Email delivery connected' : 'Email delivery not configured'}
+          </div>
+        </div>
+        <div className="email-usage-card">
+          <div><strong>{emailStatus?.usedThisMonth ?? 0}</strong><span>client emails used this month</span></div>
+          <div><strong>{emailStatus?.monthlyClientLimit == null ? '∞' : (emailStatus?.monthlyClientLimit ?? 0)}</strong><span>included on your plan</span></div>
+          <div><strong>{emailStatus?.monthlyClientLimit == null ? '∞' : Math.max(0, (emailStatus?.monthlyClientLimit ?? 0) - (emailStatus?.usedThisMonth ?? 0))}</strong><span>remaining</span></div>
+        </div>
+        {!emailStatus?.configured && <div className="info-banner" style={{ marginTop: 12 }}>Set RESEND_API_KEY and EMAIL_FROM in Railway, then verify your sending domain with Resend. Authentication email delivery works without adding email credentials to each customer account.</div>}
+
+        <div className="reminder-settings" style={{ marginTop: 18 }}>
+          <div className="field-group">
+            <label className="field-label">Automatic invoice reminders</label>
+            {tier === 'free' ? (
+              <div className="locked-feature">Available on Growth. Upgrade to automate due-date and overdue reminders.</div>
+            ) : (
+              <label className="switch-row"><input type="checkbox" checked={Boolean(autoReminders)} onChange={(e) => setForm({ ...form, emailSettings: { ...emailSettings, autoReminders: e.target.checked } })} /><span>Automatically email clients about upcoming and overdue invoices</span></label>
+            )}
+          </div>
+
+          {tier === 'business' ? (
+            <div className="field-group" style={{ marginTop: 16 }}>
+              <label className="field-label">Reminder schedule</label>
+              <div className="reminder-options">
+                {REMINDER_OPTIONS.map((option) => (
+                  <label key={option.value} className="check-option"><input type="checkbox" checked={reminderDays.includes(option.value)} onChange={(e) => { const next = e.target.checked ? [...new Set([...reminderDays, option.value])] : reminderDays.filter((d) => d !== option.value); setForm({ ...form, emailSettings: { ...emailSettings, reminderDays: next } }); }} /><span>{option.label}</span></label>
+                ))}
+              </div>
+              <div className="field-hint" style={{ marginTop: 8 }}>Business can tailor the schedule. Growth uses the included workflow: 3 days before, due today, 3 days overdue, and 14 days overdue.</div>
+            </div>
+          ) : tier === 'pro' ? (
+            <div className="field-hint" style={{ marginTop: 14 }}>Growth includes automatic reminders on the standard 3 / 0 / -3 / -14 day schedule.</div>
+          ) : null}
+        </div>
+
+        <button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending} className="btn btn--primary" style={{ marginTop: 16 }}>Save email settings</button>
       </div>
 
       <h2 className="section-title">Change Password</h2>

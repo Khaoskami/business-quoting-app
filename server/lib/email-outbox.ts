@@ -1,44 +1,98 @@
-import { Resend } from 'resend';
 import { db } from '../db';
-import { emailJobs, quotes, invoices } from '../db/schema';
+import { emailJobs, emailUsage, quotes, invoices } from '../db/schema';
 import { and, eq, lte, sql } from 'drizzle-orm';
+import { TIER_LIMITS, clientEmailLimitReached, type Tier } from './tier';
+import { sendEmail } from './email-service';
 
-let resend: Resend | null = null;
-function getResend() {
-  if (!process.env.RESEND_API_KEY) return null;
-  resend ??= new Resend(process.env.RESEND_API_KEY);
-  return resend;
+function monthStartUtc(now = new Date()) {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
 
-export async function enqueueEmail(job: {
+
+export async function getClientEmailUsage(userId: string) {
+  const monthStart = monthStartUtc();
+  const [usage] = await db.select({ clientEmailsQueued: emailUsage.clientEmailsQueued })
+    .from(emailUsage)
+    .where(and(eq(emailUsage.userId, userId), eq(emailUsage.monthStart, monthStart)))
+    .limit(1);
+  return Number(usage?.clientEmailsQueued ?? 0);
+}
+
+export async function enqueueClientEmail(job: {
   userId: string;
-  kind: 'quote_sent' | 'invoice_issued' | 'invoice_reminder';
+  tier: Tier;
+  kind: 'quote_sent' | 'invoice_issued' | 'invoice_reminder' | 'client_email';
   quoteId?: string;
   invoiceId?: string;
   toEmail: string;
+  replyTo?: string | null;
   subject: string;
   html: string;
   idempotencyKey: string;
   scheduledAt?: Date;
 }) {
-  await db.insert(emailJobs).values({
-    userId: job.userId,
-    kind: job.kind,
-    quoteId: job.quoteId,
-    invoiceId: job.invoiceId,
-    toEmail: job.toEmail,
-    subject: job.subject,
-    html: job.html,
-    idempotencyKey: job.idempotencyKey,
-    scheduledAt: job.scheduledAt ?? new Date(),
-    nextAttemptAt: job.scheduledAt ?? new Date(),
-  }).onConflictDoNothing({ target: emailJobs.idempotencyKey });
+  const now = new Date();
+  const scheduledAt = job.scheduledAt ?? now;
+  const monthStart = monthStartUtc(now);
+
+  return db.transaction(async (tx) => {
+    const [existing] = await tx.select({ id: emailJobs.id, status: emailJobs.status }).from(emailJobs)
+      .where(eq(emailJobs.idempotencyKey, job.idempotencyKey)).limit(1);
+    if (existing) return { queued: true as const, duplicate: true as const, remaining: null };
+
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${job.userId}, 0))`);
+
+    // Re-check the idempotency key after the lock. A concurrent request can
+    // have inserted the same job while this transaction was waiting.
+    const [existingAfterLock] = await tx.select({ id: emailJobs.id, status: emailJobs.status }).from(emailJobs)
+      .where(eq(emailJobs.idempotencyKey, job.idempotencyKey)).limit(1);
+    if (existingAfterLock) return { queued: true as const, duplicate: true as const, remaining: null };
+
+    const [usage] = await tx.select({ clientEmailsQueued: emailUsage.clientEmailsQueued })
+      .from(emailUsage)
+      .where(and(eq(emailUsage.userId, job.userId), eq(emailUsage.monthStart, monthStart)))
+      .limit(1);
+
+    const used = Number(usage?.clientEmailsQueued ?? 0);
+    const limit = TIER_LIMITS[job.tier].clientEmailsPerMonth;
+    if (clientEmailLimitReached(job.tier, used)) {
+      return { queued: false as const, duplicate: false as const, remaining: 0, limit };
+    }
+
+    if (!usage) {
+      await tx.insert(emailUsage).values({
+        userId: job.userId,
+        monthStart,
+        clientEmailsQueued: 1,
+        updatedAt: now,
+      });
+    } else {
+      await tx.update(emailUsage).set({ clientEmailsQueued: used + 1, updatedAt: now })
+        .where(and(eq(emailUsage.userId, job.userId), eq(emailUsage.monthStart, monthStart)));
+    }
+
+    await tx.insert(emailJobs).values({
+      userId: job.userId,
+      kind: job.kind,
+      quoteId: job.quoteId,
+      invoiceId: job.invoiceId,
+      toEmail: job.toEmail,
+      replyTo: job.replyTo ?? null,
+      subject: job.subject,
+      html: job.html,
+      idempotencyKey: job.idempotencyKey,
+      scheduledAt,
+      nextAttemptAt: scheduledAt,
+    });
+
+    return { queued: true as const, duplicate: false as const, remaining: limit === Infinity ? null : Math.max(0, limit - used - 1) };
+  });
 }
 
 async function claimJob() {
   return db.transaction(async (tx) => {
     const [job] = await tx.execute(sql`
-      select id, user_id, kind, quote_id, invoice_id, to_email, subject, html, attempts
+      select id, user_id, kind, quote_id, invoice_id, to_email, reply_to, subject, html, attempts
       from email_jobs
       where status = 'pending' and next_attempt_at <= now()
       order by scheduled_at asc, id asc
@@ -55,9 +109,8 @@ async function claimJob() {
   });
 }
 
-export async function processEmailJobs(maxJobs = 5) {
-  const client = getResend();
-  if (!client) return;
+export async function processEmailJobs(maxJobs = 10) {
+  if (!process.env.RESEND_API_KEY) return;
   for (let i = 0; i < maxJobs; i += 1) {
     const job = await claimJob();
     if (!job) break;
@@ -76,13 +129,14 @@ export async function processEmailJobs(maxJobs = 5) {
           continue;
         }
       }
-      const result = await client.emails.send({
-        from: process.env.RESET_FROM_EMAIL ?? 'no-reply@invalid.example',
+
+      await sendEmail({
         to: job.to_email,
         subject: job.subject,
         html: job.html,
+        replyTo: job.reply_to || undefined,
       });
-      if (result.error) throw new Error(result.error.message || 'Email provider error');
+
       await db.update(emailJobs).set({ status: 'sent', sentAt: new Date(), lastError: null }).where(eq(emailJobs.id, job.id));
     } catch (error: any) {
       const attempts = Number(job.attempts);

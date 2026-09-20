@@ -14,6 +14,7 @@ export function Sidebar({ biz, tier }: { biz: any; tier: string }) {
   const { user, signOut } = useAuth();
   const nav = useNavigate();
   const tierCls = tier === 'pro' ? 'tier-badge--pro' : tier === 'business' ? 'tier-badge--business' : '';
+  const tierName = tier === 'pro' ? 'Growth' : tier === 'business' ? 'Business' : 'Free';
 
   async function handleSignOut() {
     await signOut();
@@ -42,7 +43,7 @@ export function Sidebar({ biz, tier }: { biz: any; tier: string }) {
       </nav>
       <div className="sidebar-footer">
         <span className={`tier-badge ${tierCls}`} style={{ margin: '4px 4px 8px', alignSelf: 'flex-start' }}>
-          {tier.charAt(0).toUpperCase() + tier.slice(1)}
+          {tierName}
         </span>
         <NavLink to="/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <Icon.settings /><span>Settings</span>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { SEO, StructuredData } from '../components/SEO';
+import { PRICING } from '../../../shared/pricing';
 
 const faqs = [
   {
@@ -17,6 +18,14 @@ const faqs = [
   {
     q: 'Does Business Quotes generate PDF quotes and invoices?',
     a: 'Yes. Quotes and invoices can be generated as real PDF documents for download, printing, or sharing rather than relying on a browser print page.'
+  },
+  {
+    q: 'Can I email my own clients from Business Quotes?',
+    a: 'Yes. You can send a direct message to any saved client who has an email address, as well as send quotes, invoices, and payment reminders. Client messages use the verified application sending address and can route replies to your business email. Verification and password-reset emails are handled separately.'
+  },
+  {
+    q: 'Can reminders be automated?',
+    a: 'Growth includes automatic invoice reminders on the standard schedule. Business adds a configurable reminder schedule so you can choose common before-due and overdue touchpoints.'
   },
   {
     q: 'Can I track unpaid and overdue invoices?',
@@ -82,6 +91,7 @@ export default function Landing() {
         <nav aria-label="Primary navigation">
           <a href="#features">Features</a>
           <a href="#how-it-works">How it works</a>
+          <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
           <Link to="/login" className="btn btn--secondary">Sign in</Link>
           <Link to="/register" className="btn btn--primary">Get started</Link>
@@ -129,6 +139,7 @@ export default function Landing() {
             <article><h3>Invoice tracking</h3><p>See paid, partially paid, open, due-soon, and overdue invoices with the remaining balance visible.</p></article>
             <article><h3>Client management</h3><p>Keep client contact details connected to quotes and invoices so documents stay easy to find.</p></article>
             <article><h3>Follow-up workflow</h3><p>Surface quotes waiting for a response and invoices that need a reminder instead of leaving collection work hidden.</p></article>
+            <article><h3>Client email & reminders</h3><p>Send quotes, invoices, direct messages, and payment reminders from a verified business sending address, with replies routed to your business email.</p></article>
           </div>
         </section>
 
@@ -154,6 +165,31 @@ export default function Landing() {
             <article><h3>Need a free-style quote template?</h3><p>Use a structured quote builder instead of starting every estimate from a blank document. Add your business details, client, line items, tax, terms, and notes, then generate a professional document.</p></article>
             <article><h3>Need an invoice from an estimate?</h3><p>Start with the approved quote and convert the accepted pricing into an invoice. This reduces duplicate entry and keeps the invoice tied to the original commercial agreement.</p></article>
             <article><h3>Need to chase unpaid invoices?</h3><p>Use invoice status, due dates, balances, and reminder actions to identify collection work without opening every invoice one by one.</p></article>
+          </div>
+        </section>
+
+
+        <section id="pricing" className="landing-section landing-section--warm">
+          <div className="landing-section-heading">
+            <p className="landing-eyebrow">Simple pricing that grows with the workflow</p>
+            <h2>Start free. Upgrade when client communication becomes a core part of your process.</h2>
+            <p>Every plan keeps the core quote-to-invoice workflow familiar. Paid plans add volume, reminders, client collaboration, teams, and advanced controls.</p>
+          </div>
+          <div className="landing-pricing-grid">
+            {[
+              { ...PRICING.free, key: 'free', priceText: 'R0', features: ['5 quotes / month', '3 clients', '10 catalog items', '10 client-email credits / month', 'PDF + online quote links'] },
+              { ...PRICING.pro, key: 'pro', priceText: 'R1,099 / month', popular: true, features: ['300 quotes / month', '250 clients', '400 client-email credits / month', 'Manual + automated reminders', 'Discounts + CSV export', 'Quote duplication'] },
+              { ...PRICING.business, key: 'business', priceText: 'R1,699 / month', features: ['Unlimited quotes, clients & catalog', '2,000 client-email credits / month', 'Custom reminder schedules', 'All Growth workflow features', 'Higher-volume client communication'] },
+            ].map((plan: any) => (
+              <article key={plan.key} className={`landing-price-card ${plan.popular ? 'landing-price-card--featured' : ''}`}>
+                {plan.popular && <div className="price-badge">Growth</div>}
+                <h3>{plan.name}</h3>
+                <div className="landing-price">{plan.priceText}</div>
+                <p>{plan.tagline}</p>
+                <ul>{plan.features.map((feature: string) => <li key={feature}>✓ {feature}</li>)}</ul>
+                <Link to="/register" className={`btn ${plan.popular ? 'btn--primary' : 'btn--secondary'}`}>{plan.key === 'free' ? 'Start free' : `Choose ${plan.name}`}</Link>
+              </article>
+            ))}
           </div>
         </section>
 

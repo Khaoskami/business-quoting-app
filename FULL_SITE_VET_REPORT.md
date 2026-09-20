@@ -155,3 +155,11 @@ Public quote and invoice pages now validate the response shape before rendering 
 The supplied quote-editor error has a specific, fixed root cause. The codebase has also been checked for common SPA routing failures, React render races, API-to-SPA fallback confusion, authentication handling, unsafe DOM sinks, request validation, URL construction, ownership predicates, service-worker caching, responsive viewport configuration, public document rendering, financial calculation consistency, and PDF/print escaping.
 
 The remaining release uncertainty is execution against the real Railway environment and its PostgreSQL database. That cannot be truthfully marked as passed from this container because the production domain did not resolve here and the repository's Bun dependency/runtime stack was not available locally.
+
+## Email, pricing and packaging update — 20 September 2026
+
+The repository now includes a Resend-backed transactional email path for production authentication and client communication. Better Auth sends account verification and password-reset emails through the shared email service. Quote sends, invoice sends, manual follow-ups, automatic invoice reminders and direct client messages use the database-backed email outbox and per-account monthly client-email allowance.
+
+The customer-facing plans are now Free (R0), Growth (R1,099/month) and Business (R1,699/month). The database key `pro` remains for backwards compatibility and is presented as Growth in the customer UI. Existing paid subscribers retain their stored historical billing amount rather than being silently repriced by the migration.
+
+The static vet suite was expanded from 14 to 19 checks. All 19 passed after the email and pricing update. A TypeScript/TSX syntax parse across 63 source files also passed. A full production dependency install/build could not be completed in this environment because package installation timed out and the Bun runtime is unavailable; this limitation is not treated as a passing production build claim.

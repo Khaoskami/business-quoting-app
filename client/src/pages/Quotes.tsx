@@ -33,6 +33,7 @@ export default function Quotes() {
   const [showDeleted, setShowDeleted] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: api.profile.get });
   const { data: active = [], isLoading, isError, error, refetch } = useQuery({ queryKey: ['quotes'], queryFn: api.quotes.list, retry: 2 });
   const { data: archived = [] } = useQuery({ queryKey: ['quotes', 'archived'], queryFn: () => api.quotes.list(true), enabled: showDeleted });
   const send = useMutation({
@@ -40,6 +41,8 @@ export default function Quotes() {
     onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['quotes'] }); navigator.clipboard?.writeText(r.url).catch(() => {}); notify('Quote sent. Client link copied.'); },
     onError: (e: any) => notify(e.message ?? 'Could not send quote.', 'error'),
   });
+  const canRemind = Boolean(profile?.subscription?.limits?.features?.manualReminders);
+
   const remind = useMutation({
     mutationFn: (id: string) => api.quotes.remind(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['quotes'] }); notify('Follow-up sent.'); },
@@ -118,7 +121,7 @@ export default function Quotes() {
                 <div className="document-total"><strong>{money(total, q.currency)}</strong><span>{q.validUntil ? `Valid to ${fmtDate(q.validUntil)}` : 'No expiry set'}</span></div>
                 <div className="document-status"><span className={toneClass(state.tone)}>{state.label}</span><small>{state.detail}</small></div>
                 <div className="document-actions">
-                  {!showDeleted && q.status === 'sent' && !q.deletedAt && <button className="btn btn--secondary btn--sm" onClick={() => remind.mutate(q.id)} disabled={remind.isPending || !q.clientEmail}>{remind.isPending ? 'Sending...' : 'Follow up'}</button>}
+                  {!showDeleted && q.status === 'sent' && !q.deletedAt && canRemind && <button className="btn btn--secondary btn--sm" onClick={() => remind.mutate(q.id)} disabled={remind.isPending || !q.clientEmail}>{remind.isPending ? 'Sending...' : 'Follow up'}</button>}
                   {!showDeleted && q.status === 'draft' && !q.deletedAt && <button className="btn btn--secondary btn--sm" onClick={() => send.mutate(q.id)} disabled={send.isPending || !q.clientEmail}>{send.isPending ? 'Sending...' : 'Send'}</button>}
                   {!showDeleted && !q.deletedAt && q.status !== 'accepted' && <button className="btn btn--ghost btn--sm" onClick={() => duplicate.mutate(q.id)} disabled={duplicate.isPending}>Duplicate</button>}
                   {q.status === 'accepted' && <span className="field-hint">Invoice issued automatically</span>}

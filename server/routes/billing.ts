@@ -6,9 +6,10 @@ import { and, eq, sql } from 'drizzle-orm';
 import { buildSubscriptionRedirect, validateItn, cancelSubscription } from '../lib/payfast';
 import { toMinor } from '../lib/finance';
 import { randomBytes } from 'node:crypto';
+import { PRICING } from '../../shared/pricing';
 
 export const billingRouter = new Hono<AppEnv>();
-const PRICES = { pro: 299, business: 599 } as const;
+const PRICES = { pro: PRICING.pro.price, business: PRICING.business.price } as const;
 const FAILED_PAYMENT_LIMIT = 2;
 
 billingRouter.post('/checkout', async (c) => {
@@ -28,7 +29,7 @@ billingRouter.post('/checkout', async (c) => {
   const clientBase = process.env.CLIENT_URL!.replace(/\/+$/, '');
   const apiBase = process.env.BETTER_AUTH_URL!.replace(/\/+$/, '');
   const url = buildSubscriptionRedirect({
-    amount: PRICES[tier].toFixed(2), itemName: `Business Quotes ${tier === 'pro' ? 'Pro' : 'Business'}`,
+    amount: PRICES[tier].toFixed(2), itemName: `Business Quotes ${tier === 'pro' ? 'Growth' : 'Business'}`,
     email: userEmail, mPaymentId: merchantPaymentId, userId, tier,
     returnUrl: `${clientBase}/settings?billing=success`,
     cancelUrl: `${clientBase}/settings?billing=cancelled`,
@@ -69,7 +70,7 @@ billingRouter.post('/notify', async (c) => {
         const periodEnd = new Date(); periodEnd.setMonth(periodEnd.getMonth() + 1);
         await tx.update(subscriptions).set({
           tier: checkout.tier, status: 'active', stripeSubscriptionId: data.token || null,
-          failedPayments: 0, currentPeriodEnd: periodEnd, updatedAt: new Date(),
+          failedPayments: 0, billingAmountMinor: Number(checkout.amount_minor), currentPeriodEnd: periodEnd, updatedAt: new Date(),
         }).where(eq(subscriptions.userId, checkout.userId));
       } else if (status === 'FAILED') {
         await tx.update(billingCheckouts).set({ status: 'failed', updatedAt: new Date() }).where(eq(billingCheckouts.id, checkout.id));

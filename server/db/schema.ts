@@ -18,7 +18,7 @@ export const emailJobStatusEnum = pgEnum('email_job_status', [
   'pending', 'processing', 'sent', 'failed'
 ]);
 export const emailJobKindEnum = pgEnum('email_job_kind', [
-  'quote_sent', 'invoice_issued', 'invoice_reminder'
+  'quote_sent', 'invoice_issued', 'invoice_reminder', 'client_email'
 ]);
 export const invoiceEventTypeEnum = pgEnum('invoice_event_type', [
   'created', 'sent', 'viewed', 'payment_received', 'paid', 'overdue', 'voided', 'reopened', 'deleted', 'restored'
@@ -83,6 +83,7 @@ export const subscriptions = pgTable('subscriptions', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   currentPeriodEnd: timestamp('current_period_end'),
   failedPayments: integer('failed_payments').notNull().default(0),
+  billingAmountMinor: bigint('billing_amount_minor', { mode: 'number' }).notNull().default(0),
   comped: boolean('comped').notNull().default(false),
   compedBy: text('comped_by').references(() => users.id),
   compedNote: text('comped_note'),
@@ -242,6 +243,17 @@ export const invoiceEvents = pgTable('invoice_events', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (t) => [index('invoice_events_invoice_id_created_at_idx').on(t.invoiceId, t.createdAt)]);
 
+export const emailUsage = pgTable('email_usage', {
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  monthStart: timestamp('month_start').notNull(),
+  clientEmailsQueued: integer('client_emails_queued').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.userId, t.monthStart] }),
+  index('email_usage_month_idx').on(t.monthStart),
+]);
+
 export const emailJobs = pgTable('email_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -249,6 +261,7 @@ export const emailJobs = pgTable('email_jobs', {
   quoteId: uuid('quote_id').references(() => quotes.id, { onDelete: 'cascade' }),
   invoiceId: uuid('invoice_id').references(() => invoices.id, { onDelete: 'cascade' }),
   toEmail: text('to_email').notNull(),
+  replyTo: text('reply_to'),
   subject: text('subject').notNull(),
   html: text('html').notNull(),
   idempotencyKey: text('idempotency_key').notNull().unique(),

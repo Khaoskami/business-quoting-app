@@ -40,7 +40,7 @@ export default function Catalog() {
         <button onClick={() => setForm(newProduct())} className="btn btn--primary"><Icon.plus /> Add Item</button>
       </div>
 
-      {typeof max === 'number' && max !== Infinity && (
+      {max != null && (
         <div className="field-hint" style={{ marginBottom: 12 }}>{items.length} of {max} catalog items used</div>
       )}
 

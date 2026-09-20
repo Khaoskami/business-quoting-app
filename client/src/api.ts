@@ -63,7 +63,7 @@ export const api = {
     pdf: (id: string) => requestBlob(`/invoices/${id}/pdf`),
   },
   clients: {
-    list: () => request<any[]>('/clients'), create: (data: any) => request<any>('/clients', { method: 'POST', body: JSON.stringify(data) }), update: (id: string, data: any) => request<any>(`/clients/${id}`, { method: 'PUT', body: JSON.stringify(data) }), delete: (id: string) => request<{ ok: true }>(`/clients/${id}`, { method: 'DELETE' }),
+    list: () => request<any[]>('/clients'), create: (data: any) => request<any>('/clients', { method: 'POST', body: JSON.stringify(data) }), update: (id: string, data: any) => request<any>(`/clients/${id}`, { method: 'PUT', body: JSON.stringify(data) }), email: (id: string, data: { subject: string; message: string }) => request<{ ok: true; queued: true; remainingEmailCredits: number | null }>(`/clients/${id}/email`, { method: 'POST', body: JSON.stringify(data) }), delete: (id: string) => request<{ ok: true }>(`/clients/${id}`, { method: 'DELETE' }),
   },
   catalog: {
     list: () => request<any[]>('/catalog'), create: (data: any) => request<any>('/catalog', { method: 'POST', body: JSON.stringify(data) }), update: (id: string, data: any) => request<any>(`/catalog/${id}`, { method: 'PUT', body: JSON.stringify(data) }), delete: (id: string) => request<{ ok: true }>(`/catalog/${id}`, { method: 'DELETE' }),

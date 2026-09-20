@@ -50,6 +50,32 @@ const sw = read('public/sw.js');
 const main = read('client/src/main.tsx');
 const styles = read('client/src/styles.css');
 
+const clientsRoute = read('server/routes/clients.ts');
+const profileRoute = read('server/routes/profile.ts');
+const emailOutbox = read('server/lib/email-outbox.ts');
+const pricing = read('shared/pricing.ts');
+const settingsPage = read('client/src/pages/Settings.tsx');
+const landingPage = read('client/src/pages/Landing.tsx');
+
+pass('transactional email auth wiring',
+  auth.includes('sendResetPassword') && auth.includes('sendVerificationEmail') && auth.includes('RESEND_API_KEY') &&
+  auth.includes('resetPasswordTokenExpiresIn: 60 * 60'));
+
+pass('direct client email endpoint',
+  clientsRoute.includes("clientsRouter.post('/:id/email'") && clientsRoute.includes('enqueueClientEmail') &&
+  quoteApi.includes('clients:') && read('client/src/api.ts').includes('email: (id: string, data: { subject: string; message: string })'));
+
+pass('email quota and race protection',
+  emailOutbox.includes('emailUsage') && emailOutbox.includes('pg_advisory_xact_lock') && emailOutbox.includes('existingAfterLock'));
+
+pass('json-safe subscription limits',
+  profileRoute.includes('quotesPerMonth: rawLimits.quotesPerMonth === Infinity ? null') &&
+  profileRoute.includes('maxClients: rawLimits.maxClients === Infinity ? null'));
+
+pass('customer-facing Growth pricing',
+  pricing.includes("name: 'Growth'") && pricing.includes('price: 1099') && pricing.includes('price: 1699') &&
+  settingsPage.includes('400 client emails/month') && landingPage.includes('R1,099 / month'));
+
 pass('quote exact deep-link lookup',
   quoteApi.includes("get: (id: string) => request<any>(`/quotes/${encodeURIComponent(id)}`)") &&
   editor.includes("queryFn: () => api.quotes.get(id!)") &&
@@ -98,4 +124,4 @@ if (failures.length) {
   console.error(`\n${failures.length} vet check(s) failed.`);
   process.exit(1);
 }
-console.log(`\nAll ${14} site vet checks passed.`);
+console.log(`\nAll ${19} site vet checks passed.`);

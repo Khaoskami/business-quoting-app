@@ -1,14 +1,15 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
-import { quotes, quoteCounters, invoices, invoiceCounters, clients, shareLinks, quoteEvents, businessProfiles, emailJobs, invoiceEvents } from '../db/schema';
+import { quotes, quoteCounters, invoices, invoiceCounters, clients, shareLinks, quoteEvents, businessProfiles, emailJobs, invoiceEvents, subscriptions } from '../db/schema';
 import { eq, and, count, gte, sql } from 'drizzle-orm';
-import { withTier, TIER_LIMITS, quoteLimitReached, type Tier } from '../lib/tier';
+import { withTier, TIER_LIMITS, quoteLimitReached, effectiveTier, type Tier } from '../lib/tier';
 import { quoteResponseSchema, quoteSchema } from '../lib/schemas';
 import { calculateTotals } from '../lib/finance';
 import { getClientIp, hashRequestIdentifier, hashSecret } from '../lib/security';
 import { upsertShareLink } from '../lib/share-links';
-import { enqueueEmail } from '../lib/email-outbox';
+import { enqueueClientEmail } from '../lib/email-outbox';
+import { isEmailConfigured } from '../lib/email-service';
 import { invoiceEmailHtml, quoteEmailHtml, quoteFollowupEmailHtml } from '../lib/billing-jobs';
 import { renderQuotePdf } from '../lib/pdf';
 
@@ -243,7 +244,8 @@ quotesRouter.post('/:id/send', async (c) => {
   const userId = c.get('userId') as string;
   const id = c.req.param('id');
   const tier = c.get('tier') as Tier;
-  if (!TIER_LIMITS[tier].features.clientUrl) return c.json({ error: 'Client sharing is available on paid plans.' }, 403);
+  if (!TIER_LIMITS[tier].features.clientUrl) return c.json({ error: 'Client sharing is available on a supported plan.' }, 403);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`
@@ -273,16 +275,20 @@ quotesRouter.post('/:id/send', async (c) => {
     if ('conflict' in result) return c.json({ error: 'This quote changed while it was being sent. Please try again.' }, 409);
     const total = calculateTotals(result.q.items, result.q.taxPercent, result.q.discountPercent, result.q.currency);
     const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
-    await enqueueEmail({
+    const tier = c.get('tier') as Tier;
+    const email = await enqueueClientEmail({
       userId,
+      tier,
       kind: 'quote_sent',
       quoteId: id,
       toEmail: result.q.clientEmail,
+      replyTo: business.email || (c.get('userEmail') as string),
       subject: `${result.q.quoteNumber} from ${business.name || 'Business Quotes'}`,
       html: quoteEmailHtml({ business, quote: { ...result.q, totalDisplay: `${result.q.currency} ${total.total.toFixed(2)}` }, token: result.token }),
       idempotencyKey: `quote:${id}:sent:${result.q.version}`,
     });
-    return c.json({ ok: true, url: `${baseUrl()}/public/quote/${result.token}`, queued: true });
+    if (!email.queued) return c.json({ error: `Monthly client email limit reached (${email.limit}). Upgrade your plan to keep sending.` }, 429);
+    return c.json({ ok: true, url: `${baseUrl()}/public/quote/${result.token}`, queued: true, remainingEmailCredits: email.remaining });
   } catch {
     return c.json({ error: 'Failed to send quote' }, 500);
   }
@@ -292,7 +298,8 @@ quotesRouter.post('/:id/remind', async (c) => {
   const userId = c.get('userId') as string;
   const id = c.req.param('id');
   const tier = c.get('tier') as Tier;
-  if (!TIER_LIMITS[tier].features.clientUrl) return c.json({ error: 'Client sharing is available on paid plans.' }, 403);
+  if (!TIER_LIMITS[tier].features.manualReminders) return c.json({ error: 'Quote follow-ups are available on Growth and Business plans.' }, 403);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`
@@ -322,16 +329,19 @@ quotesRouter.post('/:id/remind', async (c) => {
     if ('conflict' in result) return c.json({ error: 'This quote changed while the follow-up was being prepared. Please try again.' }, 409);
     const total = calculateTotals(result.q.items, result.q.taxPercent, result.q.discountPercent, result.q.currency);
     const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
-    await enqueueEmail({
+    const email = await enqueueClientEmail({
       userId,
+      tier,
       kind: 'quote_sent',
       quoteId: id,
       toEmail: result.q.clientEmail,
+      replyTo: business.email || (c.get('userEmail') as string),
       subject: `Following up: ${result.q.quoteNumber} from ${business.name || 'Business Quotes'}`,
       html: quoteFollowupEmailHtml({ business, quote: { ...result.q, totalDisplay: `${result.q.currency} ${total.total.toFixed(2)}` }, token: result.token }),
       idempotencyKey: `quote:${id}:followup:${result.q.version}`,
     });
-    return c.json({ ok: true, queued: true });
+    if (!email.queued) return c.json({ error: `Monthly client email limit reached (${email.limit}). Upgrade your plan to keep sending.` }, 429);
+    return c.json({ ok: true, queued: true, remainingEmailCredits: email.remaining });
   } catch {
     return c.json({ error: 'Failed to send follow-up' }, 500);
   }
@@ -388,10 +398,12 @@ quotesRouter.post('/:id/accept', async (c) => {
     if ('deleted' in result) return c.json({ error: 'Deleted quotes must be restored before acceptance.' }, 409);
     if ('alreadyAccepted' in result) return c.json({ id: result.row.id, version: result.row.version, ...(result.row.data as object), invoice: result.invoice, alreadyAccepted: true });
     const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
-    if (result.invoice && result.invoiceToken && result.row.data && (result.row.data as any).clientEmail) {
+    const tier = c.get('tier') as Tier;
+    if (result.invoice && result.invoiceToken && result.row.data && (result.row.data as any).clientEmail && isEmailConfigured()) {
       const qd = result.row.data as any;
       const total = calculateTotals(qd.items, qd.taxPercent, qd.discountPercent, qd.currency);
-      await enqueueEmail({ userId, kind: 'invoice_issued', invoiceId: result.invoice.id, toEmail: qd.clientEmail, subject: `${result.invoice.invoiceNumber} from ${business.name || 'Business Quotes'}`, html: invoiceEmailHtml({ business, invoice: { ...qd, invoiceNumber: result.invoice.invoiceNumber, totalDisplay: `${qd.currency} ${total.total.toFixed(2)}`, dueDisplay: result.invoice.dueAt?.toISOString() ?? '' }, token: result.invoiceToken }), idempotencyKey: `invoice:${result.invoice.id}:issued` });
+      const email = await enqueueClientEmail({ userId, tier, kind: 'invoice_issued', invoiceId: result.invoice.id, toEmail: qd.clientEmail, replyTo: business.email || (c.get('userEmail') as string), subject: `${result.invoice.invoiceNumber} from ${business.name || 'Business Quotes'}`, html: invoiceEmailHtml({ business, invoice: { ...qd, invoiceNumber: result.invoice.invoiceNumber, totalDisplay: `${qd.currency} ${total.total.toFixed(2)}`, dueDisplay: result.invoice.dueAt?.toISOString() ?? '' }, token: result.invoiceToken }), idempotencyKey: `invoice:${result.invoice.id}:issued` });
+      if (!email.queued) console.warn('[email] invoice notification skipped: client email quota reached', { userId, invoiceId: result.invoice.id, limit: email.limit });
     }
     return c.json({ id: result.row.id, version: result.row.version, ...(result.row.data as object), invoice: result.invoice, invoiceUrl: result.invoiceToken ? `${baseUrl()}/public/invoice/${result.invoiceToken}` : null, alreadyAccepted: false });
   } catch {
@@ -545,9 +557,12 @@ publicQuotesRouter.post('/:token/respond', async (c) => {
     if (result.invoice) {
       if (!result.quote.clientEmail) return c.json({ ok: true, status: 'accepted', invoice: { id: result.invoice.id, invoiceNumber: result.invoice.invoiceNumber, url: `${baseUrl()}/public/invoice/${result.invoiceToken}` }, emailQueued: false });
       const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, result.row.userId) }))?.data ?? {};
+      const subscription = await db.query.subscriptions.findFirst({ where: eq(subscriptions.userId, result.row.userId) });
+      const tier = effectiveTier(subscription);
       const total = calculateTotals(result.quote.items, result.quote.taxPercent, result.quote.discountPercent, result.quote.currency);
-      await enqueueEmail({ userId: result.row.userId, kind: 'invoice_issued', invoiceId: result.invoice.id, toEmail: result.quote.clientEmail || '', subject: `${result.invoice.invoiceNumber} from ${business.name || 'Business Quotes'}`, html: invoiceEmailHtml({ business, invoice: { ...result.quote, invoiceNumber: result.invoice.invoiceNumber, totalDisplay: `${result.quote.currency} ${total.total.toFixed(2)}`, dueDisplay: result.invoice.dueAt?.toISOString() ?? '' }, token: result.invoiceToken! }), idempotencyKey: `invoice:${result.invoice.id}:issued` });
-      return c.json({ ok: true, status: 'accepted', invoice: { id: result.invoice.id, invoiceNumber: result.invoice.invoiceNumber, url: `${baseUrl()}/public/invoice/${result.invoiceToken}` } });
+      if (!isEmailConfigured()) return c.json({ ok: true, status: 'accepted', invoice: { id: result.invoice.id, invoiceNumber: result.invoice.invoiceNumber, url: `${baseUrl()}/public/invoice/${result.invoiceToken}` }, emailQueued: false });
+      const email = await enqueueClientEmail({ userId: result.row.userId, tier, kind: 'invoice_issued', invoiceId: result.invoice.id, toEmail: result.quote.clientEmail || '', replyTo: business.email || undefined, subject: `${result.invoice.invoiceNumber} from ${business.name || 'Business Quotes'}`, html: invoiceEmailHtml({ business, invoice: { ...result.quote, invoiceNumber: result.invoice.invoiceNumber, totalDisplay: `${result.quote.currency} ${total.total.toFixed(2)}`, dueDisplay: result.invoice.dueAt?.toISOString() ?? '' }, token: result.invoiceToken! }), idempotencyKey: `invoice:${result.invoice.id}:issued` });
+      return c.json({ ok: true, status: 'accepted', invoice: { id: result.invoice.id, invoiceNumber: result.invoice.invoiceNumber, url: `${baseUrl()}/public/invoice/${result.invoiceToken}` }, emailQueued: email.queued });
     }
     return c.json({ ok: true, status: 'declined' });
   } catch {

@@ -1,17 +1,14 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { Resend } from 'resend';
 import { db } from './db';
 import * as schema from './db/schema';
+import { sendEmail } from './lib/email-service';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
-if (!process.env.RESET_FROM_EMAIL) {
-  console.warn(
-    '[email] RESET_FROM_EMAIL is not set — password-reset emails will use a ' +
-    'non-deliverable placeholder sender and will likely be rejected. Set ' +
-    'RESET_FROM_EMAIL to a sender on a verified Resend domain.'
-  );
+if (!process.env.RESEND_API_KEY) {
+  console.warn('[email] RESEND_API_KEY is not set. Verification and password-reset emails cannot be delivered.');
+}
+if (!process.env.EMAIL_FROM && !process.env.RESET_FROM_EMAIL) {
+  console.warn('[email] EMAIL_FROM is not set. Set it to a sender on your verified Resend domain.');
 }
 
 const clientOrigin = new URL(process.env.CLIENT_URL ?? 'http://localhost:5173').origin;
@@ -34,7 +31,7 @@ export const auth = betterAuth({
         type: 'boolean',
         required: false,
         defaultValue: false,
-        input: false, // never accept isAdmin from client signup/update payloads
+        input: false,
       },
     },
   },
@@ -43,75 +40,61 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: process.env.NODE_ENV === 'production',
     minPasswordLength: 8,
-    // Better Auth calls this with ({ user, url, token }, request). We build our
-    // own link pointing at the SPA reset page rather than using the default
-    // server `url`, then email it via Resend.
+    maxPasswordLength: 128,
     sendResetPassword: async ({ user, url }) => {
-      const resetUrl = url;
-
-      if (!resend) {
-        console.error('RESEND_API_KEY is not set; cannot send password reset email.');
-        throw new Error('Email service is not configured.');
-      }
-
-      void resend.emails.send({
-        from: process.env.RESET_FROM_EMAIL ?? 'no-reply@invalid.example',
+      void sendEmail({
         to: user.email,
         subject: 'Reset your Business Quotes password',
-        html: `
-          <p>We received a request to reset your Business Quotes password.</p>
-          <p><a href="${resetUrl}">Click here to choose a new password</a>. This link expires in 1 hour.</p>
-          <p>If you didn't request this, you can safely ignore this email.</p>
-        `,
+        html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1e2430;line-height:1.5;max-width:680px;margin:0 auto;padding:24px">
+          <h1 style="font-size:22px">Business Quotes</h1>
+          <p>We received a request to reset the password for your Business Quotes account.</p>
+          <p><a href="${url}" style="display:inline-block;padding:10px 16px;background:#3b6b8a;color:#fff;text-decoration:none">Choose a new password</a></p>
+          <p>This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
+        </body></html>`,
       }).catch((error) => console.error('[email] password reset send failed', error));
     },
+    resetPasswordTokenExpiresIn: 60 * 60,
+    revokeSessionsOnPasswordReset: true,
   },
 
   emailVerification: {
     sendOnSignUp: true,
     sendOnSignIn: process.env.NODE_ENV === 'production',
     autoSignInAfterVerification: true,
+    expiresIn: 60 * 60,
     sendVerificationEmail: async ({ user, url }) => {
-      if (!resend) {
-        console.error('RESEND_API_KEY is not set; cannot send verification email.');
-        return;
-      }
-      void resend.emails.send({
-        from: process.env.RESET_FROM_EMAIL ?? 'no-reply@invalid.example',
+      void sendEmail({
         to: user.email,
         subject: 'Verify your Business Quotes email',
-        html: `<p>Please verify your email address before signing in to Business Quotes.</p><p><a href=\"${url}\">Verify email address</a></p><p>This link expires according to your account verification settings.</p>`,
+        html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1e2430;line-height:1.5;max-width:680px;margin:0 auto;padding:24px">
+          <h1 style="font-size:22px">Business Quotes</h1>
+          <p>Please verify your email address to finish setting up your account.</p>
+          <p><a href="${url}" style="display:inline-block;padding:10px 16px;background:#3b6b8a;color:#fff;text-decoration:none">Verify email address</a></p>
+          <p>This link expires in 1 hour.</p>
+        </body></html>`,
       }).catch((error) => console.error('[email] verification send failed', error));
     },
   },
 
   session: {
-    expiresIn: 60 * 60 * 24 * 30,   // 30 days
-    updateAge: 60 * 60 * 24,         // refresh daily
+    expiresIn: 60 * 60 * 24 * 30,
+    updateAge: 60 * 60 * 24,
     cookieCache: { enabled: true, maxAge: 60 * 5 },
   },
 
-  // Built-in rate limiting on auth routes. 100 requests per 60s window per IP.
   rateLimit: {
     enabled: true,
     window: 60,
     max: 100,
   },
 
-  trustedOrigins: [
-    clientOrigin,
-    authOrigin,
-  ],
+  trustedOrigins: [clientOrigin, authOrigin],
 
   databaseHooks: {
     user: {
       create: {
         after: async (user) => {
-          // Everyone starts on free; seed the subscription row.
-          // NOTE: admin promotion is intentionally NOT done here. Email infra
-          // for verification isn't wired up yet, so we avoid auto-admin by
-          // email and instead promote explicitly via scripts/make-admin.ts.
-          await db.insert(schema.subscriptions).values({ userId: user.id });
+          await db.insert(schema.subscriptions).values({ userId: user.id, billingAmountMinor: 0 });
         },
       },
     },

@@ -49,6 +49,11 @@ export const clientSchema = z.object({
   notes: z.string().max(20_000).default(''),
 }).strip();
 
+export const clientEmailSchema = z.object({
+  subject: z.string().trim().min(1).max(200).transform((value) => value.replace(/[\r\n]+/g, ' ')),
+  message: z.string().trim().min(1).max(10_000),
+}).strip();
+
 export const catalogItemSchema = z.object({
   name: z.string().trim().min(1).max(500),
   category: z.string().trim().max(500).default(''),
@@ -68,6 +73,10 @@ export const profileSchema = z.object({
   terms: z.string().max(20_000).optional(),
   paymentInstructions: z.string().max(5_000).optional(),
   logo: z.string().max(1_400_000).regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/).optional(),
+  emailSettings: z.object({
+    autoReminders: z.boolean().optional(),
+    reminderDays: z.array(z.number().int().min(-90).max(90)).max(8).optional(),
+  }).optional(),
 }).strip();
 
 export const quoteResponseSchema = z.object({

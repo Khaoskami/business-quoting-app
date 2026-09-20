@@ -25,12 +25,20 @@ export default function Clients() {
   const max = profile?.subscription?.limits?.maxClients;
 
   const [form, setForm] = useState<any>(null);
+  const [emailFor, setEmailFor] = useState<any>(null);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
   const [search, setSearch] = useState('');
 
   const save = useMutation({
     mutationFn: (data: any) => data.id ? api.clients.update(data.id, data) : api.clients.create(data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); setForm(null); notify('Saved.'); },
     onError: (e: any) => notify(e.message ?? 'Save failed', 'error'),
+  });
+  const sendEmail = useMutation({
+    mutationFn: () => api.clients.email(emailFor.id, { subject: emailSubject, message: emailMessage }),
+    onSuccess: (result) => { qc.invalidateQueries({ queryKey: ['profile'] }); setEmailFor(null); setEmailSubject(''); setEmailMessage(''); notify(result.remainingEmailCredits == null ? 'Email queued.' : `Email queued. ${result.remainingEmailCredits} client email credits remain.`); },
+    onError: (e: any) => notify(e.message ?? 'Could not send email.', 'error'),
   });
   const del = useMutation({
     mutationFn: (id: string) => api.clients.delete(id),
@@ -46,7 +54,7 @@ export default function Clients() {
         <button onClick={() => setForm(newClient())} className="btn btn--primary"><Icon.plus /> Add Client</button>
       </div>
 
-      {typeof max === 'number' && max !== Infinity && (
+      {max != null && (
         <div className="field-hint" style={{ marginBottom: 12 }}>{clients.length} of {max} clients used</div>
       )}
 
@@ -96,6 +104,7 @@ export default function Clients() {
               </div>
               <div className="simple-row-actions">
                 <Link to={`/quotes/new?client=${encodeURIComponent(c.id)}`} className="btn btn--primary btn--sm">New quote</Link>
+                {tf.directEmail && c.email && <button onClick={() => { setEmailFor(c); setEmailSubject(`Hello ${c.name || c.company || ''}`.trim()); setEmailMessage(''); }} className="btn btn--secondary btn--sm">Email</button>}
                 <button onClick={() => setForm({ ...c })} className="btn btn--ghost btn--sm">Edit</button>
                 <button onClick={() => { if (confirm('Delete client?')) del.mutate(c.id); }} className="btn btn--danger btn--sm">Delete</button>
               </div>
@@ -103,6 +112,18 @@ export default function Clients() {
           ))}
         </div>
       )}
+
+      {emailFor && <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget && !sendEmail.isPending) setEmailFor(null); }}>
+        <div className="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="client-email-title">
+          <div className="modal-header"><div><div className="eyebrow">Client email</div><h2 id="client-email-title">Email {emailFor.name || emailFor.company}</h2><div className="field-hint">{emailFor.email}</div></div><button className="btn btn--ghost btn--sm" onClick={() => setEmailFor(null)} disabled={sendEmail.isPending}>Close</button></div>
+          <div className="modal-body">
+            <div className="field-group"><label className="field-label" htmlFor="client-email-subject">Subject</label><input id="client-email-subject" autoFocus className="field-input" maxLength={200} value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} /></div>
+            <div className="field-group" style={{ marginTop: 14 }}><label className="field-label" htmlFor="client-email-message">Message</label><textarea id="client-email-message" className="field-textarea" rows={10} maxLength={10000} value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)} placeholder="Write your message to the client..." /></div>
+            <div className="field-hint" style={{ marginTop: 6 }}>{emailMessage.length}/10,000 characters · Replies go to your business email.</div>
+          </div>
+          <div className="modal-footer"><button className="btn btn--ghost" onClick={() => setEmailFor(null)} disabled={sendEmail.isPending}>Cancel</button><button className="btn btn--primary" disabled={sendEmail.isPending || !emailSubject.trim() || !emailMessage.trim()} onClick={() => sendEmail.mutate()}>{sendEmail.isPending ? 'Sending...' : 'Send email'}</button></div>
+        </div>
+      </div>}
     </div>
   );
 }

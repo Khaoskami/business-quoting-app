@@ -4,12 +4,13 @@ import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { invoices, invoicePayments, shareLinks, businessProfiles, invoiceEvents, emailJobs } from '../db/schema';
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
-import { withTier } from '../lib/tier';
+import { withTier, TIER_LIMITS, type Tier } from '../lib/tier';
 import { invoicePaymentSchema } from '../lib/schemas';
 import { fromMinor, toMinor } from '../lib/finance';
 import { hashSecret, getClientIp, hashRequestIdentifier } from '../lib/security';
 import { upsertShareLink } from '../lib/share-links';
-import { enqueueEmail } from '../lib/email-outbox';
+import { enqueueClientEmail } from '../lib/email-outbox';
+import { isEmailConfigured } from '../lib/email-service';
 import { invoiceEmailHtml, invoiceReminderEmailHtml } from '../lib/billing-jobs';
 import { renderInvoicePdf } from '../lib/pdf';
 
@@ -58,6 +59,8 @@ function displayDate(value?: Date | null) {
 invoicesRouter.post('/:id/send', async (c) => {
   const userId = c.get('userId') as string;
   const id = c.req.param('id');
+  const tier = c.get('tier') as Tier;
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`select id, invoice_number, status, currency, amount_minor, amount_paid_minor, due_at, client_email, data, deleted_at from invoices where id = ${id} and user_id = ${userId} for update`) as unknown as Array<any>;
@@ -77,13 +80,15 @@ invoicesRouter.post('/:id/send', async (c) => {
     if ('noEmail' in result) return c.json({ error: 'Add a client email before sending the invoice.' }, 400);
     const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
     const data = typeof result.row.data === 'string' ? JSON.parse(result.row.data) : result.row.data;
-    await enqueueEmail({
-      userId, kind: 'invoice_issued', invoiceId: id, toEmail: result.row.client_email,
+    const email = await enqueueClientEmail({
+      userId, tier, kind: 'invoice_issued', invoiceId: id, toEmail: result.row.client_email,
+      replyTo: business.email || (c.get('userEmail') as string),
       subject: `${result.row.invoice_number} from ${business.name || 'Business Quotes'}`,
       html: invoiceEmailHtml({ business, invoice: { ...data, invoiceNumber: result.row.invoice_number, totalDisplay: displayMoney(result.row.amount_minor, result.row.currency), dueDisplay: displayDate(result.row.due_at) }, token: result.token }),
       idempotencyKey: `invoice:${id}:manual-send:${randomUUID()}`,
     });
-    return c.json({ ok: true, url: publicUrl(result.token), queued: true });
+    if (!email.queued) return c.json({ error: `Monthly client email limit reached (${email.limit}). Upgrade your plan to keep sending.` }, 429);
+    return c.json({ ok: true, url: publicUrl(result.token), queued: true, remainingEmailCredits: email.remaining });
   } catch {
     return c.json({ error: 'Failed to send invoice.' }, 500);
   }
@@ -92,6 +97,9 @@ invoicesRouter.post('/:id/send', async (c) => {
 invoicesRouter.post('/:id/remind', async (c) => {
   const userId = c.get('userId') as string;
   const id = c.req.param('id');
+  const tier = c.get('tier') as Tier;
+  if (!TIER_LIMITS[tier].features.manualReminders) return c.json({ error: 'Invoice reminders are available on Growth and Business plans.' }, 403);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`select id, invoice_number, currency, amount_minor, amount_paid_minor, status, due_at, client_email, data, deleted_at from invoices where id = ${id} and user_id = ${userId} for update`) as unknown as Array<any>;
@@ -112,13 +120,15 @@ invoicesRouter.post('/:id/remind', async (c) => {
     const business = (await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) }))?.data ?? {};
     const data = typeof result.row.data === 'string' ? JSON.parse(result.row.data) : result.row.data;
     const balanceMinor = Math.max(0, Number(result.row.amount_minor) - Number(result.row.amount_paid_minor));
-    await enqueueEmail({
-      userId, kind: 'invoice_reminder', invoiceId: id, toEmail: result.row.client_email,
+    const email = await enqueueClientEmail({
+      userId, tier, kind: 'invoice_reminder', invoiceId: id, toEmail: result.row.client_email,
+      replyTo: business.email || (c.get('userEmail') as string),
       subject: `${result.row.invoice_number} payment reminder`,
       html: invoiceReminderEmailHtml({ business, invoice: { ...data, invoiceNumber: result.row.invoice_number, balanceDisplay: displayMoney(balanceMinor, result.row.currency), dueDisplay: displayDate(result.row.due_at) }, token: result.token }),
-      idempotencyKey: `invoice:${id}:manual-reminder:${crypto.randomUUID()}`,
+      idempotencyKey: `invoice:${id}:manual-reminder:${randomUUID()}`,
     });
-    return c.json({ ok: true, queued: true });
+    if (!email.queued) return c.json({ error: `Monthly client email limit reached (${email.limit}). Upgrade your plan to keep sending.` }, 429);
+    return c.json({ ok: true, queued: true, remainingEmailCredits: email.remaining });
   } catch {
     return c.json({ error: 'Failed to send reminder.' }, 500);
   }

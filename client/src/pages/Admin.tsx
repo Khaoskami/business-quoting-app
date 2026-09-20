@@ -25,7 +25,7 @@ export default function Admin() {
 
   const statCards = [
     { label: 'Total Users',     value: stats?.totalUsers ?? 'Not set',    cls: '' },
-    { label: 'Pro Users',       value: stats?.proUsers ?? 'Not set',      cls: 'stat-card--success' },
+    { label: 'Growth Users',       value: stats?.proUsers ?? 'Not set',      cls: 'stat-card--success' },
     { label: 'Business Users',  value: stats?.businessUsers ?? 'Not set', cls: 'stat-card--accent' },
     { label: 'Comped',          value: stats?.compedUsers ?? 'Not set',   cls: 'stat-card--warning' },
   ];
@@ -59,12 +59,12 @@ export default function Admin() {
                   <td>{u.name}{u.isAdmin && <span className="badge badge--accepted" style={{ marginLeft: 6 }}>Admin</span>}</td>
                   <td>{u.email}</td>
                   <td>{fmtDate(u.createdAt)}</td>
-                  <td><span className={`tier-badge ${tierCls}`}>{u.tier ?? 'free'}</span></td>
+                  <td><span className={`tier-badge ${tierCls}`}>{u.tier === 'pro' ? 'Growth' : u.tier === 'business' ? 'Business' : 'Free'}</span></td>
                   <td>{u.status ?? 'Not set'}</td>
                   <td>{u.comped ? (u.compedNote || 'yes') : 'Not set'}</td>
                   <td>
                     <div className="admin-actions">
-                      <button className="btn btn--ghost btn--sm" onClick={() => comp.mutate({ id: u.id, tier: 'pro' })}>Grant Pro</button>
+                      <button className="btn btn--ghost btn--sm" onClick={() => comp.mutate({ id: u.id, tier: 'pro' })}>Grant Growth</button>
                       <button className="btn btn--ghost btn--sm" onClick={() => comp.mutate({ id: u.id, tier: 'business' })}>Grant Business</button>
                       <button className="btn btn--ghost btn--sm" onClick={() => revoke.mutate(u.id)}>Revoke</button>
                       <button className="btn btn--ghost btn--sm" onClick={() => toggleAdmin.mutate({ id: u.id, isAdmin: !u.isAdmin })}>

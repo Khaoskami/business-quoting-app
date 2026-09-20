@@ -3,7 +3,9 @@ import type { AppEnv } from '../lib/hono-env';
 import { db } from '../db';
 import { businessProfiles, subscriptions, quotes, invoices, invoicePayments, clients, catalogItems } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { TIER_LIMITS, effectiveTier } from '../lib/tier';
+import { TIER_LIMITS, effectiveTier, TIER_NAMES } from '../lib/tier';
+import { getClientEmailUsage } from '../lib/email-outbox';
+import { isEmailConfigured } from '../lib/email-service';
 import { profileSchema } from '../lib/schemas';
 
 export const profileRouter = new Hono<AppEnv>();
@@ -30,14 +32,30 @@ profileRouter.get('/', async (c) => {
   const profile = await db.query.businessProfiles.findFirst({ where: eq(businessProfiles.userId, userId) });
   const sub = await db.query.subscriptions.findFirst({ where: eq(subscriptions.userId, userId) });
   const tier = effectiveTier(sub);
+  const emailUsed = await getClientEmailUsage(userId);
+  const billingAmount = Number(sub?.billingAmountMinor ?? 0);
+  const rawLimits = TIER_LIMITS[tier];
+  const limits = {
+    ...rawLimits,
+    quotesPerMonth: rawLimits.quotesPerMonth === Infinity ? null : rawLimits.quotesPerMonth,
+    maxClients: rawLimits.maxClients === Infinity ? null : rawLimits.maxClients,
+    maxCatalog: rawLimits.maxCatalog === Infinity ? null : rawLimits.maxCatalog,
+  };
   return c.json({
     profile: profile?.data ?? {},
     subscription: {
       tier,
-      status:           sub?.status,
+      name: TIER_NAMES[tier],
+      status: sub?.status,
       currentPeriodEnd: sub?.currentPeriodEnd,
-      comped:           sub?.comped,
-      limits:           TIER_LIMITS[tier],
+      billingAmountMinor: billingAmount,
+      comped: sub?.comped,
+      limits,
+    },
+    email: {
+      configured: isEmailConfigured(),
+      usedThisMonth: emailUsed,
+      monthlyClientLimit: TIER_LIMITS[tier].clientEmailsPerMonth,
     },
   });
 });
