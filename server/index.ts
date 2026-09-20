@@ -43,8 +43,10 @@ app.use('*', async (c, next) => {
   await next();
 });
 
+const clientOrigin = new URL(process.env.CLIENT_URL!).origin;
+
 app.use('/api/*', cors({
-  origin: process.env.CLIENT_URL!,
+  origin: clientOrigin,
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Idempotency-Key'],
@@ -57,7 +59,7 @@ app.use('/api/*', async (c, next) => {
   if (!publicRoute && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(c.req.method)) {
     const origin = c.req.header('origin');
     const referer = c.req.header('referer');
-    const expected = new URL(process.env.CLIENT_URL!).origin;
+    const expected = clientOrigin;
     let refererOrigin: string | null = null;
     if (referer) { try { refererOrigin = new URL(referer).origin; } catch { refererOrigin = null; } }
     if ((origin && origin !== expected) || (!origin && referer && refererOrigin !== expected)) {
@@ -100,6 +102,11 @@ app.route('/api/billing', billingRouter);
 app.route('/api/admin', adminRouter);
 app.route('/api/invoices', invoicesRouter);
 app.route('/api/public/invoices', publicInvoicesRouter);
+
+// Keep unknown API requests JSON. Without this boundary, the SPA fallback can
+// return index.html for a missing API route, which makes fetch/json clients fail
+// with misleading parse errors.
+app.all('/api/*', (c) => c.json({ error: 'Not found' }, 404));
 
 app.onError((err, c) => {
   console.error('[request-error]', { path: c.req.path, method: c.req.method, message: err.message });

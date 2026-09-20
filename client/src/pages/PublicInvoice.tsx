@@ -1,15 +1,70 @@
-import { useParams } from 'react-router-dom';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import { fmtDate, money, calcTotals, minorToMajor } from '../lib/quote';
 
 export default function PublicInvoice() {
   const { token = '' } = useParams();
+  const [downloadError, setDownloadError] = useState('');
   const { data, isLoading, error } = useQuery({ queryKey: ['public-invoice', token], queryFn: () => api.public.invoice(token), retry: false });
+
   if (isLoading) return <div className="public-screen"><div className="public-card">Loading invoice...</div></div>;
-  if (error || !data) return <div className="public-screen"><div className="public-card"><h1>Invoice unavailable</h1><p>This link is invalid or no longer available.</p></div></div>;
-  const inv = data.invoice; const biz = data.business; const totals = calcTotals(inv.items ?? [], inv.taxPercent ?? 0, inv.discountPercent ?? 0, inv.currency);
+  if (error || !data?.invoice || !Array.isArray(data.invoice.items)) {
+    return <div className="public-screen"><div className="public-card"><h1>Invoice unavailable</h1><p>This link is invalid or the invoice data is incomplete.</p></div></div>;
+  }
+
+  const inv = data.invoice;
+  const biz = data.business ?? {};
+  const totals = calcTotals(inv.items, inv.taxPercent ?? 0, inv.discountPercent ?? 0, inv.currency);
   const statusLabel = inv.status === 'paid' ? 'Paid' : inv.status === 'overdue' ? 'Overdue' : inv.status === 'void' ? 'Void' : inv.status === 'partially_paid' ? 'Partially paid' : 'Open';
   const statusClass = inv.status === 'paid' ? 'badge--accepted' : inv.status === 'overdue' ? 'badge--expired' : inv.status === 'void' ? 'badge--declined' : 'badge--sent';
-  return <div className="public-screen"><div className="public-document"><header className="public-header"><div>{biz.logo && <img src={biz.logo} className="public-logo" alt="Business logo" />}<h1>{biz.name || 'Business Quotes'}</h1><div className="field-hint">{biz.email}{biz.phone ? ` · ${biz.phone}` : ''}</div></div><div className="public-meta"><strong>{inv.invoiceNumber}</strong><span>Due {fmtDate(inv.dueAt)}</span><span className={`badge ${statusClass}`}>{statusLabel}</span></div></header><section className="public-block"><h2>Invoice for {inv.clientName || 'client'}</h2><p className="field-hint">Issued {fmtDate(inv.createdAt)}</p></section><table className="public-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>{inv.items.map((i: any, idx: number) => <tr key={i.id || idx}><td>{i.description}</td><td>{i.quantity}</td><td>{money(i.unitPrice, inv.currency)}</td><td>{money(i.quantity * i.unitPrice, inv.currency)}</td></tr>)}</tbody></table><div className="public-balance-callout"><span>Balance due</span><strong>{money(data.balance, inv.currency)}</strong>{inv.status !== 'paid' && inv.status !== 'void' && <small>Payment status updates when a payment is recorded.</small>}</div><div className="public-totals"><div><span>Subtotal</span><span>{money(totals.sub, inv.currency)}</span></div><div><span>Tax</span><span>{money(totals.tax, inv.currency)}</span></div><div className="grand"><span>Total</span><span>{money(totals.total, inv.currency)}</span></div><div><span>Paid</span><span>{money(minorToMajor(inv.amountPaidMinor || 0, inv.currency), inv.currency)}</span></div><div className="grand"><span>Balance</span><span>{money(data.balance, inv.currency)}</span></div></div>{biz.paymentInstructions && <div className="public-notes"><h3>How to pay</h3><div>{biz.paymentInstructions}</div></div>}{biz.terms && <div className="public-notes"><h3>Terms</h3><div>{biz.terms}</div></div>}<div className="action-bar"><button className="btn btn--primary" onClick={async () => { try { const result = await api.public.invoicePdf(token); const url = URL.createObjectURL(result.blob); const a = document.createElement('a'); a.href = url; a.download = result.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 60_000); } catch {} }}>Download PDF</button></div></div></div>;
+
+  const downloadPdf = async () => {
+    setDownloadError('');
+    try {
+      const result = await api.public.invoicePdf(token);
+      const url = URL.createObjectURL(result.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : 'Could not download the PDF.');
+    }
+  };
+
+  return <div className="public-screen"><div className="public-document">
+    <header className="public-header">
+      <div>
+        {biz.logo && <img src={biz.logo} className="public-logo" alt="Business logo" />}
+        <h1>{biz.name || 'Business Quotes'}</h1>
+        <div className="field-hint">{biz.email}{biz.phone ? ` · ${biz.phone}` : ''}</div>
+      </div>
+      <div className="public-meta"><strong>{inv.invoiceNumber || 'Invoice'}</strong><span>Due {fmtDate(inv.dueAt)}</span><span className={`badge ${statusClass}`}>{statusLabel}</span></div>
+    </header>
+
+    <section className="public-block"><h2>Invoice for {inv.clientName || 'client'}</h2><p className="field-hint">Issued {fmtDate(inv.createdAt)}</p></section>
+
+    <table className="public-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>
+      {inv.items.map((i: any, idx: number) => <tr key={i.id || idx}><td>{i.description}</td><td>{i.quantity}</td><td>{money(i.unitPrice, inv.currency)}</td><td>{money(i.quantity * i.unitPrice, inv.currency)}</td></tr>)}
+    </tbody></table>
+
+    <div className="public-balance-callout"><span>Balance due</span><strong>{money(data.balance, inv.currency)}</strong>{inv.status !== 'paid' && inv.status !== 'void' && <small>Payment status updates when a payment is recorded.</small>}</div>
+
+    <div className="public-totals">
+      <div><span>Subtotal</span><span>{money(totals.sub, inv.currency)}</span></div>
+      <div><span>Tax</span><span>{money(totals.tax, inv.currency)}</span></div>
+      <div className="grand"><span>Total</span><span>{money(totals.total, inv.currency)}</span></div>
+      <div><span>Paid</span><span>{money(minorToMajor(inv.amountPaidMinor || 0, inv.currency), inv.currency)}</span></div>
+      <div className="grand"><span>Balance</span><span>{money(data.balance, inv.currency)}</span></div>
+    </div>
+
+    {biz.paymentInstructions && <div className="public-notes"><h3>How to pay</h3><div>{biz.paymentInstructions}</div></div>}
+    {biz.terms && <div className="public-notes"><h3>Terms</h3><div>{biz.terms}</div></div>}
+
+    <div className="action-bar"><button className="btn btn--primary" onClick={downloadPdf}>Download PDF</button></div>
+    {downloadError && <div className="field-error" role="alert">{downloadError}</div>}
+  </div></div>;
 }

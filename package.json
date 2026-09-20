@@ -12,7 +12,8 @@
     "test": "bun test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "site:vet": "node scripts/site-vet.mjs"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",

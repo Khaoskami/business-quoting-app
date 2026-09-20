@@ -15,7 +15,7 @@ import { renderQuotePdf } from '../lib/pdf';
 export const quotesRouter = new Hono<AppEnv>();
 quotesRouter.use('*', withTier);
 
-function baseUrl() { return process.env.CLIENT_URL ?? 'http://localhost:5173'; }
+function baseUrl() { return (process.env.CLIENT_URL ?? 'http://localhost:5173').replace(/\/+$/, ''); }
 function withValidUntil(data: any, createdAt: Date) {
   const d = new Date(createdAt);
   d.setDate(d.getDate() + Number(data.validityDays ?? 30));
@@ -100,6 +100,17 @@ quotesRouter.get('/', async (c) => {
     limit: 250,
   });
   return c.json(rows.map(r => ({ id: r.id, version: r.version, deletedAt: r.deletedAt, ...(r.data as object), updatedAt: r.updatedAt })));
+});
+
+quotesRouter.get('/:id', async (c) => {
+  const userId = c.get('userId') as string;
+  const id = c.req.param('id');
+  const row = await db.query.quotes.findFirst({
+    where: and(eq(quotes.id, id), eq(quotes.userId, userId)),
+  });
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  const data = row.data && typeof row.data === 'object' ? row.data as object : {};
+  return c.json({ id: row.id, version: row.version, deletedAt: row.deletedAt, ...data, updatedAt: row.updatedAt });
 });
 
 quotesRouter.post('/', async (c) => {
@@ -415,7 +426,7 @@ quotesRouter.post('/:id/restore', async (c) => {
     if (!row) return { notFound: true as const };
     if (!row.deleted_at) return { active: true as const };
     const now = new Date();
-    await tx.update(quotes).set({ deletedAt: null, deletedBy: null, updatedAt: now }).where(eq(quotes.id, id));
+    await tx.update(quotes).set({ deletedAt: null, deletedBy: null, updatedAt: now }).where(and(eq(quotes.id, id), eq(quotes.userId, userId)));
     await tx.insert(quoteEvents).values({ userId, quoteId: id, eventType: 'restored', metadata: { mode: 'soft_delete_restore' } });
     return { ok: true as const };
   });

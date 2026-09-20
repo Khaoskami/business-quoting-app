@@ -14,6 +14,9 @@ if (!process.env.RESET_FROM_EMAIL) {
   );
 }
 
+const clientOrigin = new URL(process.env.CLIENT_URL ?? 'http://localhost:5173').origin;
+const authOrigin = new URL(process.env.BETTER_AUTH_URL ?? 'http://localhost:3000').origin;
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
@@ -96,8 +99,8 @@ export const auth = betterAuth({
   },
 
   trustedOrigins: [
-    process.env.CLIENT_URL ?? 'http://localhost:5173',
-    process.env.BETTER_AUTH_URL ?? 'http://localhost:3000',
+    clientOrigin,
+    authOrigin,
   ],
 
   databaseHooks: {

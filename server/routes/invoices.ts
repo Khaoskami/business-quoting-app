@@ -16,7 +16,7 @@ import { renderInvoicePdf } from '../lib/pdf';
 export const invoicesRouter = new Hono<AppEnv>();
 invoicesRouter.use('*', withTier);
 
-function publicUrl(token: string) { return `${process.env.CLIENT_URL ?? 'http://localhost:5173'}/public/invoice/${token}`; }
+function publicUrl(token: string) { return `${(process.env.CLIENT_URL ?? 'http://localhost:5173').replace(/\/+$/, '')}/public/invoice/${token}`; }
 
 invoicesRouter.get('/', async (c) => {
   const userId = c.get('userId') as string;
@@ -67,7 +67,7 @@ invoicesRouter.post('/:id/send', async (c) => {
       if (!row.client_email) return { noEmail: true as const };
       const token = await upsertShareLink(tx, userId, 'invoice', id, null);
       const now = new Date();
-      await tx.update(invoices).set({ sentAt: now, updatedAt: now }).where(eq(invoices.id, id));
+      await tx.update(invoices).set({ sentAt: now, updatedAt: now }).where(and(eq(invoices.id, id), eq(invoices.userId, userId)));
       await tx.insert(invoiceEvents).values({ userId, invoiceId: id, eventType: 'sent', metadata: { source: 'manual_send' } });
       return { row, token };
     });
@@ -154,7 +154,7 @@ invoicesRouter.post('/:id/payments', async (c) => {
       }).returning();
       const paidMinor = Number(invoice.amount_paid_minor) + amountMinor;
       const status = paidMinor >= Number(invoice.amount_minor) ? 'paid' : (Number(invoice.due_at ? new Date(invoice.due_at).getTime() : Date.now()) < Date.now() ? 'overdue' : 'partially_paid');
-      await tx.update(invoices).set({ amountPaidMinor: paidMinor, status, paidAt: status === 'paid' ? new Date() : null, updatedAt: new Date() }).where(eq(invoices.id, invoice.id));
+      await tx.update(invoices).set({ amountPaidMinor: paidMinor, status, paidAt: status === 'paid' ? new Date() : null, updatedAt: new Date() }).where(and(eq(invoices.id, invoice.id), eq(invoices.userId, userId)));
       await tx.insert(invoiceEvents).values({ userId, invoiceId: invoice.id, eventType: 'payment_received', metadata: { paymentId: payment.id, amountMinor, status } });
       if (status === 'paid') await tx.insert(invoiceEvents).values({ userId, invoiceId: invoice.id, eventType: 'paid', metadata: { paymentId: payment.id } });
       return { payment, status, balanceMinor: Number(invoice.amount_minor) - paidMinor, dueAt: invoice.due_at ? new Date(invoice.due_at) : null };
@@ -182,7 +182,7 @@ invoicesRouter.patch('/:id/status', async (c) => {
     if (current.deleted_at) return { deleted: true as const };
     if (status === 'unpaid' && Number(current.amount_paid_minor) > 0) return { paidHistory: true as const };
     const now = new Date();
-    const [row] = await tx.update(invoices).set({ status, voidedAt: status === 'void' ? now : null, updatedAt: now }).where(eq(invoices.id, c.req.param('id'))).returning();
+    const [row] = await tx.update(invoices).set({ status, voidedAt: status === 'void' ? now : null, updatedAt: now }).where(and(eq(invoices.id, c.req.param('id')), eq(invoices.userId, userId))).returning();
     await tx.insert(invoiceEvents).values({ userId, invoiceId: row.id, eventType: status === 'void' ? 'voided' : 'reopened', metadata: { previousStatus: current.status } });
     return { row };
   });
@@ -199,7 +199,7 @@ invoicesRouter.delete('/:id', async (c) => {
     if (!row) return { notFound: true as const };
     if (row.deleted_at) return { alreadyDeleted: true as const };
     const now = new Date();
-    await tx.update(invoices).set({ deletedAt: now, deletedBy: userId, updatedAt: now }).where(eq(invoices.id, row.id));
+    await tx.update(invoices).set({ deletedAt: now, deletedBy: userId, updatedAt: now }).where(and(eq(invoices.id, row.id), eq(invoices.userId, userId)));
     await tx.update(shareLinks).set({ revokedAt: now }).where(and(eq(shareLinks.invoiceId, row.id), sql`${shareLinks.revokedAt} is null`));
     await tx.update(emailJobs).set({ status: 'failed', lastError: 'Document archived before delivery.' }).where(and(eq(emailJobs.invoiceId, row.id), eq(emailJobs.status, 'pending')));
     await tx.insert(invoiceEvents).values({ userId, invoiceId: row.id, eventType: 'deleted', metadata: { mode: 'soft_delete', previousStatus: row.status } });
@@ -217,7 +217,7 @@ invoicesRouter.post('/:id/restore', async (c) => {
     if (!row) return { notFound: true as const };
     if (!row.deleted_at) return { active: true as const };
     const now = new Date();
-    await tx.update(invoices).set({ deletedAt: null, deletedBy: null, updatedAt: now }).where(eq(invoices.id, row.id));
+    await tx.update(invoices).set({ deletedAt: null, deletedBy: null, updatedAt: now }).where(and(eq(invoices.id, row.id), eq(invoices.userId, userId)));
     await tx.insert(invoiceEvents).values({ userId, invoiceId: row.id, eventType: 'restored', metadata: { mode: 'soft_delete_restore' } });
     return { ok: true as const };
   });

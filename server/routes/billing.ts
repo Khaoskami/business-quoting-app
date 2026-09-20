@@ -25,8 +25,8 @@ billingRouter.post('/checkout', async (c) => {
   const amountMinor = toMinor(PRICES[tier], 'ZAR');
   await db.insert(billingCheckouts).values({ merchantPaymentId, userId, tier, amountMinor, currency: 'ZAR' });
 
-  const clientBase = process.env.CLIENT_URL!;
-  const apiBase = process.env.BETTER_AUTH_URL!;
+  const clientBase = process.env.CLIENT_URL!.replace(/\/+$/, '');
+  const apiBase = process.env.BETTER_AUTH_URL!.replace(/\/+$/, '');
   const url = buildSubscriptionRedirect({
     amount: PRICES[tier].toFixed(2), itemName: `Business Quotes ${tier === 'pro' ? 'Pro' : 'Business'}`,
     email: userEmail, mPaymentId: merchantPaymentId, userId, tier,

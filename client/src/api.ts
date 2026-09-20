@@ -3,6 +3,10 @@ const base = '/api';
 
 async function requestBlob(path: string, publicRequest = false): Promise<{ blob: Blob; filename: string }> {
   const res = await fetch(base + path, { credentials: publicRequest ? 'omit' : 'include', headers: { Accept: 'application/pdf' } });
+  if (res.status === 401 && !publicRequest) {
+    if (!location.pathname.startsWith('/login') && !location.pathname.startsWith('/register')) window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Request failed' }));
     throw new Error(err.error ?? 'Request failed');
@@ -34,6 +38,7 @@ export const api = {
   profile: { get: () => request<{ profile: any; subscription: any }>('/profile'), save: (data: any) => request<{ ok: true }>('/profile', { method: 'PUT', body: JSON.stringify(data) }), export: () => fetch('/api/profile/export', { credentials: 'include' }).then(async r => { if (!r.ok) throw new Error('Could not export account data'); return { blob: await r.blob(), disposition: r.headers.get('content-disposition') }; }) },
   quotes: {
     list: (includeDeleted = false) => request<any[]>(`/quotes${includeDeleted ? '?deletedOnly=1' : ''}`),
+    get: (id: string) => request<any>(`/quotes/${encodeURIComponent(id)}`),
     create: (data: any, idempotencyKey = crypto.randomUUID()) => request<any>('/quotes', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/quotes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => request<{ ok: true; softDeleted: true }>(`/quotes/${id}`, { method: 'DELETE' }),

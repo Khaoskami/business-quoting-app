@@ -27,14 +27,18 @@ export default function Editor() {
   const isNew = !id;
   const selectedClientId = searchParams.get('client') || '';
 
-  const { data: quotes = [], isLoading } = useQuery({ queryKey: ['quotes'], queryFn: api.quotes.list });
+  const { data: existing, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['quote', id],
+    queryFn: () => api.quotes.get(id!),
+    enabled: !isNew,
+    retry: 2,
+  });
   const { data: clients = [] } = useQuery({ queryKey: ['clients'], queryFn: api.clients.list });
   const { data: catalog = [] } = useQuery({ queryKey: ['catalog'], queryFn: api.catalog.list });
   const { data: invoices = [] } = useQuery({ queryKey: ['invoices'], queryFn: () => api.invoices.list() });
   const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: api.profile.get });
   const biz = profile?.profile ?? {};
   const tf = profile?.subscription?.limits?.features ?? {};
-  const existing = !isNew ? quotes.find((x: any) => x.id === id) : undefined;
   const [q, setQ] = useState<any>(() => isNew ? (loadLocalDraft() || newQuote('ZAR')) : undefined);
   const [catOpen, setCatOpen] = useState(false);
   const [catSearch, setCatSearch] = useState('');
@@ -206,8 +210,12 @@ export default function Editor() {
     if (client) applyClient(client);
   }, [clients, isNew, selectedClientId, q?.clientId]);
 
-  if (!isNew && isLoading) return <div className="page-loading">Loading quote...</div>;
-  if (!isNew && !existing) return <div className="empty-state card"><Icon.emptyDoc /><h3>Quote not found</h3><Link className="btn btn--primary" to="/quotes">Back to quotes</Link></div>;
+  if (!isNew && isLoading) return <div className="page-loading local-loading"><div className="loading-card"><span className="loading-spinner" aria-hidden="true" /><strong>Loading quote</strong><span>Opening your saved quote and preparing the editor.</span></div></div>;
+  if (!isNew && isError) return <div className="empty-state card error-state"><Icon.emptyDoc /><h3>Quote could not be loaded</h3><p>{(error as any)?.message || 'Something went wrong while loading this quote.'}</p><div className="action-bar"><button className="btn btn--primary" onClick={() => refetch()}>Try again</button><Link className="btn btn--secondary" to="/quotes">Back to quotes</Link></div></div>;
+  if (!isNew && !existing) return <div className="empty-state card"><Icon.emptyDoc /><h3>Quote not found</h3><p>The quote may have been deleted or you may no longer have access to it.</p><Link className="btn btn--primary" to="/quotes">Back to quotes</Link></div>;
+  // The query result arrives before the state-setting effect. Keep rendering gated here
+  // so q can never be dereferenced during that one render between data arrival and effect.
+  if (!isNew && !q) return <div className="page-loading">Preparing quote editor...</div>;
 
   return (
     <div className="page-enter">

@@ -28,6 +28,13 @@ describe("document lifecycle contracts", () => {
     expect(invoices).toContain("eventType: 'payment_received'");
   });
 
+
+
+  test('quotes expose an owner-scoped direct lookup endpoint for deep links', () => {
+    expect(quotes).toContain("quotesRouter.get('/:id'");
+    expect(quotes).toContain("eq(quotes.id, id), eq(quotes.userId, userId)");
+  });
+
   test("archived public documents are unavailable", () => {
     expect(quotes).toContain("return c.json({ error: 'This quote is no longer available.' }, 410)");
     expect(invoices).toContain("return c.json({ error: 'This invoice is no longer available.' }, 410)");

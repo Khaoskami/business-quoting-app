@@ -6,14 +6,89 @@ import { calcTotals, fmtDate, money } from '../lib/quote';
 
 export default function PublicQuote() {
   const { token = '' } = useParams();
-  const { data, isLoading, error } = useQuery({ queryKey: ['public-quote', token], queryFn: () => api.public.quote(token), retry: false });
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [done, setDone] = useState<any>(null);
-  const respond = useMutation({ mutationFn: (action: 'accept' | 'decline') => api.public.respondQuote(token, { action, name, message }), onSuccess: setDone });
+  const [downloadError, setDownloadError] = useState('');
+  const { data, isLoading, error } = useQuery({ queryKey: ['public-quote', token], queryFn: () => api.public.quote(token), retry: false });
+  const respond = useMutation({
+    mutationFn: (action: 'accept' | 'decline') => api.public.respondQuote(token, { action, name, message }),
+    onSuccess: setDone,
+  });
+
   if (isLoading) return <div className="public-screen"><div className="public-card">Loading quote...</div></div>;
-  if (error || !data) return <div className="public-screen"><div className="public-card"><h1>Quote unavailable</h1><p>This link is invalid, expired, or no longer available.</p></div></div>;
-  const q = data.quote; const biz = data.business; const totals = calcTotals(q.items ?? [], q.taxPercent ?? 0, q.discountPercent ?? 0, q.currency);
-  if (done) return <div className="public-screen"><div className="public-card"><h1>{done.status === 'accepted' ? 'Quote accepted' : 'Response recorded'}</h1><p>{done.status === 'accepted' ? `Invoice ${done.invoice?.invoiceNumber ?? ''} has been issued.` : 'The business has been notified of your response.'}</p>{done.invoice?.url && <a className="btn btn--primary" href={done.invoice.url}>View invoice</a>}</div></div>;
-  return <div className="public-screen"><div className="public-document"><header className="public-header"><div>{biz.logo && <img src={biz.logo} className="public-logo" alt="Business logo" />}<h1>{biz.name || 'Business Quotes'}</h1><div className="field-hint">{biz.email}{biz.phone ? ` · ${biz.phone}` : ''}</div></div><div className="public-meta"><strong>{q.quoteNumber}</strong><span>Valid until {fmtDate(q.validUntil)}</span></div></header><section className="public-block"><h2>{q.title || 'Quote'}</h2><p className="field-hint">Prepared for {q.clientName || 'client'} · issued {fmtDate(q.createdAt)}</p></section><table className="public-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>{q.items.map((i: any, idx: number) => <tr key={i.id || idx}><td>{i.description}</td><td>{i.quantity}</td><td>{money(i.unitPrice, q.currency)}</td><td>{money(i.quantity * i.unitPrice, q.currency)}</td></tr>)}</tbody></table><div className="public-totals"><div><span>Subtotal</span><span>{money(totals.sub, q.currency)}</span></div><div><span>Tax</span><span>{money(totals.tax, q.currency)}</span></div><div className="grand"><span>Total</span><span>{money(totals.total, q.currency)}</span></div></div>{q.notes && <div className="public-notes"><h3>Notes / terms</h3><div>{q.notes}</div></div>}{data.canRespond ? <section className="public-response"><h2>Respond to this quote</h2><div className="field-group"><label className="field-label">Your name</label><input className="field-input" value={name} onChange={e => setName(e.target.value)} autoComplete="name" /></div><div className="field-group"><label className="field-label">Message</label><textarea className="field-textarea" rows={3} value={message} onChange={e => setMessage(e.target.value)} /></div><div className="action-bar"><button className="btn btn--primary" disabled={!name.trim() || respond.isPending} onClick={() => respond.mutate('accept')}>Accept quote</button><button className="btn btn--secondary" disabled={!name.trim() || respond.isPending} onClick={() => respond.mutate('decline')}>Decline</button></div></section> : <div className="field-hint">This quote is no longer open for a response.</div>}<button className="btn btn--ghost" onClick={async () => { try { const result = await api.public.quotePdf(token); const url = URL.createObjectURL(result.blob); const a = document.createElement('a'); a.href = url; a.download = result.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 60_000); } catch {} }}>Download PDF</button></div></div>;
+  if (error || !data?.quote || !Array.isArray(data.quote.items)) {
+    return <div className="public-screen"><div className="public-card"><h1>Quote unavailable</h1><p>This link is invalid, expired, or the quote data is incomplete.</p></div></div>;
+  }
+
+  const q = data.quote;
+  const biz = data.business ?? {};
+  const totals = calcTotals(q.items, q.taxPercent ?? 0, q.discountPercent ?? 0, q.currency);
+
+  if (done) {
+    return <div className="public-screen"><div className="public-card">
+      <h1>{done.status === 'accepted' ? 'Quote accepted' : 'Response recorded'}</h1>
+      <p>{done.status === 'accepted' ? `Invoice ${done.invoice?.invoiceNumber ?? ''} has been issued.` : 'The business has been notified of your response.'}</p>
+      {done.invoice?.url && <a className="btn btn--primary" href={done.invoice.url}>View invoice</a>}
+    </div></div>;
+  }
+
+  const downloadPdf = async () => {
+    setDownloadError('');
+    try {
+      const result = await api.public.quotePdf(token);
+      const url = URL.createObjectURL(result.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : 'Could not download the PDF.');
+    }
+  };
+
+  return <div className="public-screen"><div className="public-document">
+    <header className="public-header">
+      <div>
+        {biz.logo && <img src={biz.logo} className="public-logo" alt="Business logo" />}
+        <h1>{biz.name || 'Business Quotes'}</h1>
+        <div className="field-hint">{biz.email}{biz.phone ? ` · ${biz.phone}` : ''}</div>
+      </div>
+      <div className="public-meta"><strong>{q.quoteNumber || 'Quote'}</strong><span>Valid until {fmtDate(q.validUntil)}</span></div>
+    </header>
+
+    <section className="public-block">
+      <h2>{q.title || 'Quote'}</h2>
+      <p className="field-hint">Prepared for {q.clientName || 'client'} · issued {fmtDate(q.createdAt)}</p>
+    </section>
+
+    <table className="public-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>
+      {q.items.map((i: any, idx: number) => <tr key={i.id || idx}><td>{i.description}</td><td>{i.quantity}</td><td>{money(i.unitPrice, q.currency)}</td><td>{money(i.quantity * i.unitPrice, q.currency)}</td></tr>)}
+    </tbody></table>
+
+    <div className="public-totals">
+      <div><span>Subtotal</span><span>{money(totals.sub, q.currency)}</span></div>
+      <div><span>Tax</span><span>{money(totals.tax, q.currency)}</span></div>
+      <div className="grand"><span>Total</span><span>{money(totals.total, q.currency)}</span></div>
+    </div>
+
+    {q.notes && <div className="public-notes"><h3>Notes / terms</h3><div>{q.notes}</div></div>}
+
+    {data.canRespond ? <section className="public-response">
+      <h2>Respond to this quote</h2>
+      <div className="field-group"><label className="field-label">Your name</label><input className="field-input" value={name} onChange={e => setName(e.target.value)} autoComplete="name" /></div>
+      <div className="field-group"><label className="field-label">Message</label><textarea className="field-textarea" rows={3} value={message} onChange={e => setMessage(e.target.value)} /></div>
+      <div className="action-bar">
+        <button className="btn btn--primary" disabled={!name.trim() || respond.isPending} onClick={() => respond.mutate('accept')}>{respond.isPending ? 'Submitting...' : 'Accept quote'}</button>
+        <button className="btn btn--secondary" disabled={!name.trim() || respond.isPending} onClick={() => respond.mutate('decline')}>Decline</button>
+      </div>
+      {respond.error && <div className="field-error" role="alert">{respond.error instanceof Error ? respond.error.message : 'Could not record your response.'}</div>}
+    </section> : <div className="field-hint">This quote is no longer open for a response.</div>}
+
+    <div className="action-bar">
+      <button className="btn btn--ghost" onClick={downloadPdf}>Download PDF</button>
+    </div>
+    {downloadError && <div className="field-error" role="alert">{downloadError}</div>}
+  </div></div>;
 }

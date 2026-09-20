@@ -52,7 +52,7 @@
   --transition: 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-html, body, #root { height: 100%; }
+html, body, #root { height: 100%; min-width: 320px; }
 body {
   font-family: var(--font-main);
   background: var(--bg);
@@ -79,7 +79,7 @@ a:hover { text-decoration: underline; }
   display: flex; flex-direction: column; padding: 20px 12px;
   position: sticky; top: 0; height: 100vh; overflow-y: auto; gap: 4px;
 }
-.main-content { background: var(--bg); padding: 32px; overflow-y: auto; min-width: 0; }
+.main-content { background: var(--bg); padding: 32px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
 .page-title { font-size: var(--font-size-2xl); font-weight: 600; letter-spacing: -0.01em; }
 .page-loading { display: grid; place-items: center; min-height: 100vh; color: var(--text-secondary); }
@@ -479,6 +479,31 @@ a:hover { text-decoration: underline; }
 .public-balance-callout span { color: var(--text-secondary); font-size: var(--font-size-sm); }
 .public-balance-callout strong { font-family: var(--font-mono); font-size: 22px; }
 .public-balance-callout small { flex: 1 1 100%; color: var(--text-secondary); font-size: 10px; }
+.public-screen { min-height: 100svh; min-height: 100dvh; padding: clamp(16px, 4vw, 40px); background: var(--bg); display: grid; place-items: start center; overflow-x: hidden; }
+.public-card, .public-document { width: min(100%, 900px); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); }
+.public-card { margin-top: 8vh; padding: clamp(24px, 5vw, 48px); text-align: center; }
+.public-card h1 { font-size: clamp(24px, 5vw, 36px); line-height: 1.15; }
+.public-card p { margin-top: 10px; color: var(--text-secondary); }
+.public-document { padding: clamp(18px, 4vw, 36px); min-width: 0; }
+.public-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 20px; border-bottom: 2px solid var(--text); }
+.public-header h1 { margin-top: 8px; font-size: clamp(22px, 4vw, 30px); line-height: 1.15; overflow-wrap: anywhere; }
+.public-logo { display: block; max-width: min(220px, 55vw); max-height: 72px; object-fit: contain; object-position: left center; }
+.public-meta { display: grid; gap: 4px; justify-items: end; text-align: right; color: var(--text-secondary); font-size: var(--font-size-sm); }
+.public-meta strong { color: var(--text); font-family: var(--font-mono); font-size: var(--font-size-md); }
+.public-block { padding: 20px 0; }
+.public-block h2 { font-size: clamp(20px, 4vw, 26px); line-height: 1.2; overflow-wrap: anywhere; }
+.public-table { width: 100%; border-collapse: collapse; margin: 8px 0 18px; min-width: 560px; }
+.public-table th, .public-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; font-size: var(--font-size-sm); vertical-align: top; }
+.public-table th { color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; font-size: var(--font-size-xs); }
+.public-table td:nth-child(n+2), .public-table th:nth-child(n+2) { text-align: right; }
+.public-totals { width: min(100%, 360px); margin-left: auto; display: grid; gap: 5px; }
+.public-totals > div { display: flex; justify-content: space-between; gap: 18px; padding: 4px 0; font-size: var(--font-size-sm); }
+.public-totals .grand { border-top: 2px solid var(--text); padding-top: 9px; margin-top: 4px; font-weight: 700; font-size: var(--font-size-md); }
+.public-notes { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); white-space: pre-wrap; overflow-wrap: anywhere; }
+.public-notes h3 { font-size: var(--font-size-sm); margin-bottom: 6px; }
+.public-response { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--border); }
+.public-response h2 { font-size: var(--font-size-md); margin-bottom: 14px; }
+.public-document > .action-bar { margin-top: 20px; justify-content: flex-end; }
 
 @media (max-width: 1024px) {
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -625,6 +650,18 @@ a:hover { text-decoration: underline; }
   .landing-hero h1 { font-size: clamp(36px, 10vw, 52px); }
   .landing-lede { font-size: 16px; }
 }
+@media (max-width: 720px) {
+  .public-screen { padding: 10px; }
+  .public-document { border-radius: var(--radius-lg); padding: 16px; }
+  .public-header { flex-direction: column; gap: 14px; }
+  .public-meta { justify-items: start; text-align: left; width: 100%; }
+  .public-table { margin-top: 4px; overflow: visible; }
+  .public-document { overflow-x: auto; }
+  .public-document > .action-bar { justify-content: stretch; }
+  .public-document > .action-bar .btn { width: 100%; }
+  .public-response .action-bar { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 480px) {
   body { font-size: 14px; }
   .main-content { padding-left: 12px; padding-right: 12px; }

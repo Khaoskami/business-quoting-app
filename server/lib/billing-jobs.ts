@@ -10,7 +10,7 @@ function esc(value: unknown) {
 }
 
 function appUrl(path: string) {
-  return `${process.env.CLIENT_URL ?? 'http://localhost:5173'}${path}`;
+  return `${(process.env.CLIENT_URL ?? 'http://localhost:5173').replace(/\/+$/, '')}${path}`;
 }
 
 export function quoteEmailHtml(opts: { business: any; quote: any; token: string }) {
