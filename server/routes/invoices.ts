@@ -60,7 +60,7 @@ invoicesRouter.post('/:id/send', async (c) => {
   const userId = c.get('userId') as string;
   const id = c.req.param('id');
   const tier = c.get('tier') as Tier;
-  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add SMTP_USER, SMTP_PASSWORD and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`select id, invoice_number, status, currency, amount_minor, amount_paid_minor, due_at, client_email, data, deleted_at from invoices where id = ${id} and user_id = ${userId} for update`) as unknown as Array<any>;
@@ -99,7 +99,7 @@ invoicesRouter.post('/:id/remind', async (c) => {
   const id = c.req.param('id');
   const tier = c.get('tier') as Tier;
   if (!TIER_LIMITS[tier].features.manualReminders) return c.json({ error: 'Invoice reminders are available on Growth and Business plans.' }, 403);
-  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add SMTP_USER, SMTP_PASSWORD and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`select id, invoice_number, currency, amount_minor, amount_paid_minor, status, due_at, client_email, data, deleted_at from invoices where id = ${id} and user_id = ${userId} for update`) as unknown as Array<any>;

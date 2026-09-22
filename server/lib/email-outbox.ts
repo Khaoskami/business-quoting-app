@@ -110,7 +110,9 @@ async function claimJob() {
 }
 
 export async function processEmailJobs(maxJobs = 10) {
-  if (!process.env.RESEND_API_KEY) return;
+  // The worker uses the same configured SMTP provider as authentication email.
+  // If SMTP is not configured, leave queued jobs pending rather than losing them.
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) return;
   for (let i = 0; i < maxJobs; i += 1) {
     const job = await claimJob();
     if (!job) break;

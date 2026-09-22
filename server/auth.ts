@@ -4,11 +4,11 @@ import { db } from './db';
 import * as schema from './db/schema';
 import { sendEmail } from './lib/email-service';
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn('[email] RESEND_API_KEY is not set. Verification and password-reset emails cannot be delivered.');
+if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+  console.warn('[email] SMTP_USER/SMTP_PASSWORD are not set. Verification and password-reset emails cannot be delivered.');
 }
 if (!process.env.EMAIL_FROM && !process.env.RESET_FROM_EMAIL) {
-  console.warn('[email] EMAIL_FROM is not set. Set it to a sender on your verified Resend domain.');
+  console.warn('[email] EMAIL_FROM is not set. Set it to the same Gmail address used for SMTP_USER.');
 }
 
 const clientOrigin = new URL(process.env.CLIENT_URL ?? 'http://localhost:5173').origin;

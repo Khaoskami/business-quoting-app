@@ -58,7 +58,7 @@ const settingsPage = read('client/src/pages/Settings.tsx');
 const landingPage = read('client/src/pages/Landing.tsx');
 
 pass('transactional email auth wiring',
-  auth.includes('sendResetPassword') && auth.includes('sendVerificationEmail') && auth.includes('RESEND_API_KEY') &&
+  auth.includes('sendResetPassword') && auth.includes('sendVerificationEmail') && auth.includes('SMTP_USER') &&
   auth.includes('resetPasswordTokenExpiresIn: 60 * 60'));
 
 pass('direct client email endpoint',

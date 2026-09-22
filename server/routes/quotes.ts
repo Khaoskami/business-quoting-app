@@ -245,7 +245,7 @@ quotesRouter.post('/:id/send', async (c) => {
   const id = c.req.param('id');
   const tier = c.get('tier') as Tier;
   if (!TIER_LIMITS[tier].features.clientUrl) return c.json({ error: 'Client sharing is available on a supported plan.' }, 403);
-  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add SMTP_USER, SMTP_PASSWORD and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`
@@ -299,7 +299,7 @@ quotesRouter.post('/:id/remind', async (c) => {
   const id = c.req.param('id');
   const tier = c.get('tier') as Tier;
   if (!TIER_LIMITS[tier].features.manualReminders) return c.json({ error: 'Quote follow-ups are available on Growth and Business plans.' }, 403);
-  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add SMTP_USER, SMTP_PASSWORD and EMAIL_FROM in Railway.' }, 503);
   try {
     const result = await db.transaction(async (tx) => {
       const [row] = await tx.execute(sql`

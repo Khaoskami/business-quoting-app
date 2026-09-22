@@ -12,9 +12,12 @@ export function validateEnvironment() {
       const value = process.env[key]!;
       if (!value.startsWith('https://')) throw new Error(`${key} must use https:// in production.`);
     }
-    for (const key of ['RESEND_API_KEY', 'RESET_FROM_EMAIL']) {
+    for (const key of ['SMTP_USER', 'SMTP_PASSWORD', 'EMAIL_FROM']) {
       if (!process.env[key]) throw new Error(`Missing production email setting: ${key}`);
     }
+    const provider = (process.env.EMAIL_PROVIDER ?? 'gmail').trim().toLowerCase();
+    if (!['gmail', 'smtp'].includes(provider)) throw new Error('EMAIL_PROVIDER must be gmail or smtp.');
+    if (provider === 'smtp' && !process.env.SMTP_HOST) throw new Error('SMTP_HOST is required when EMAIL_PROVIDER=smtp.');
     if (process.env.PAYFAST_SANDBOX === 'false') {
       for (const key of ['PAYFAST_MERCHANT_ID', 'PAYFAST_MERCHANT_KEY', 'PAYFAST_PASSPHRASE']) {
         if (!process.env[key]) throw new Error(`Missing PayFast production secret: ${key}`);

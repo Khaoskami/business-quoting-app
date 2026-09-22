@@ -14,7 +14,6 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-router-dom": "^6.28.0",
-        "resend": "^6.0.0",
         "zod": "^4.4.3",
       },
       "devDependencies": {
@@ -351,8 +350,6 @@
     "react-router-dom": ["react-router-dom@6.30.4", "", { "dependencies": { "@remix-run/router": "1.23.3", "react-router": "6.30.4" }, "peerDependencies": { "react": ">=16.8", "react-dom": ">=16.8" } }, "sha512-q4HvNl+mmDdkS0g+MqiBZNteQJCuimWoOyHMy4T/RQLAn9Z29+E91QXRaxOujeMl2HTzRSS0KFPd7lxX3PjV0Q=="],
 
     "require-directory": ["require-directory@2.1.1", "", {}, "sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q=="],
-
-    "resend": ["resend@6.12.4", "", { "dependencies": { "postal-mime": "2.7.4", "standardwebhooks": "1.0.0" }, "peerDependencies": { "@react-email/render": "*" }, "optionalPeers": ["@react-email/render"] }, "sha512-lRpJ2Hxd+ht+JPDm97juRcUp9HOMuZyxaRFRFmc9Tx8iNWiei94Dx9v6SWufgKk2667C/uCeKKspMotOHSpCSg=="],
 
     "resolve-pkg-maps": ["resolve-pkg-maps@1.0.0", "", {}, "sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw=="],
 

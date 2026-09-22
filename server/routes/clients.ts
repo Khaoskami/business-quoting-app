@@ -17,7 +17,7 @@ clientsRouter.post('/:id/email', async (c) => {
   const userId = c.get('userId') as string;
   const tier = c.get('tier') as Tier;
   if (!TIER_LIMITS[tier].features.directEmail) return c.json({ error: 'Direct client email is not available on your plan.' }, 403);
-  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Railway.' }, 503);
+  if (!isEmailConfigured()) return c.json({ error: 'Email delivery is not configured yet. Add SMTP_USER, SMTP_PASSWORD and EMAIL_FROM in Railway.' }, 503);
 
   const parsed = clientEmailSchema.safeParse(await c.req.json().catch(() => ({})));
   if (!parsed.success) return c.json({ error: 'Invalid email message', details: parsed.error.format() }, 400);

@@ -275,7 +275,7 @@ export default function Settings() {
           <div><strong>{emailStatus?.monthlyClientLimit == null ? '∞' : (emailStatus?.monthlyClientLimit ?? 0)}</strong><span>included on your plan</span></div>
           <div><strong>{emailStatus?.monthlyClientLimit == null ? '∞' : Math.max(0, (emailStatus?.monthlyClientLimit ?? 0) - (emailStatus?.usedThisMonth ?? 0))}</strong><span>remaining</span></div>
         </div>
-        {!emailStatus?.configured && <div className="info-banner" style={{ marginTop: 12 }}>Set RESEND_API_KEY and EMAIL_FROM in Railway, then verify your sending domain with Resend. Authentication email delivery works without adding email credentials to each customer account.</div>}
+        {!emailStatus?.configured && <div className="info-banner" style={{ marginTop: 12 }}>Set the Gmail SMTP variables in Railway: SMTP_USER, SMTP_PASSWORD and EMAIL_FROM. Authentication emails use the same secure mail connection and do not use your client-email allowance.</div>}
 
         <div className="reminder-settings" style={{ marginTop: 18 }}>
           <div className="field-group">
