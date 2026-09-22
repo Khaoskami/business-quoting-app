@@ -38,11 +38,11 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: process.env.NODE_ENV === 'production',
+    requireEmailVerification: process.env.REQUIRE_EMAIL_VERIFICATION !== 'false',
     minPasswordLength: 8,
     maxPasswordLength: 128,
     sendResetPassword: async ({ user, url }) => {
-      void sendEmail({
+      await sendEmail({
         to: user.email,
         subject: 'Reset your Business Quotes password',
         html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1e2430;line-height:1.5;max-width:680px;margin:0 auto;padding:24px">
@@ -51,7 +51,7 @@ export const auth = betterAuth({
           <p><a href="${url}" style="display:inline-block;padding:10px 16px;background:#3b6b8a;color:#fff;text-decoration:none">Choose a new password</a></p>
           <p>This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
         </body></html>`,
-      }).catch((error) => console.error('[email] password reset send failed', error));
+      });
     },
     resetPasswordTokenExpiresIn: 60 * 60,
     revokeSessionsOnPasswordReset: true,
@@ -59,11 +59,11 @@ export const auth = betterAuth({
 
   emailVerification: {
     sendOnSignUp: true,
-    sendOnSignIn: process.env.NODE_ENV === 'production',
+    sendOnSignIn: true,
     autoSignInAfterVerification: true,
     expiresIn: 60 * 60,
     sendVerificationEmail: async ({ user, url }) => {
-      void sendEmail({
+      await sendEmail({
         to: user.email,
         subject: 'Verify your Business Quotes email',
         html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#1e2430;line-height:1.5;max-width:680px;margin:0 auto;padding:24px">
@@ -72,7 +72,7 @@ export const auth = betterAuth({
           <p><a href="${url}" style="display:inline-block;padding:10px 16px;background:#3b6b8a;color:#fff;text-decoration:none">Verify email address</a></p>
           <p>This link expires in 1 hour.</p>
         </body></html>`,
-      }).catch((error) => console.error('[email] verification send failed', error));
+      });
     },
   },
 

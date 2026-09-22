@@ -112,3 +112,13 @@ If authentication works but client/quote emails do not, check Railway logs for `
 ## 6. Important production note
 
 Gmail SMTP is suitable for the initial version and low-volume testing. A multi-tenant SaaS with many customers can eventually outgrow a single Gmail mailbox's sending limits. The email service is kept behind `sendEmail()` so a transactional provider can be introduced later without rebuilding Better Auth or the quote/invoice workflows.
+
+## 7. Existing accounts
+
+Existing accounts are not lost or recreated by enabling verification. Accounts remain in the same database.
+
+If an existing account has not been verified, open `/verify-email`, enter the account email, and request a fresh verification link. The login screen also links to this page.
+
+The production configuration now requires email verification independently of `NODE_ENV`, so Railway and local production-style testing use the same authentication rules. Do not set `REQUIRE_EMAIL_VERIFICATION=false` in the production Railway service.
+
+Verification and password-reset handlers now await the email send. If Gmail SMTP is misconfigured, the authentication request will fail visibly and Railway will log the underlying `[email]`/SMTP error instead of pretending that the message was sent.
