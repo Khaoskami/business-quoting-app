@@ -122,3 +122,32 @@ If an existing account has not been verified, open `/verify-email`, enter the ac
 The production configuration now requires email verification independently of `NODE_ENV`, so Railway and local production-style testing use the same authentication rules. Do not set `REQUIRE_EMAIL_VERIFICATION=false` in the production Railway service.
 
 Verification and password-reset handlers now await the email send. If Gmail SMTP is misconfigured, the authentication request will fail visibly and Railway will log the underlying `[email]`/SMTP error instead of pretending that the message was sent.
+
+## Railway automatic environment defaults
+
+The application now bootstraps these safe defaults at runtime:
+
+```text
+REQUIRE_EMAIL_VERIFICATION=true
+EMAIL_PROVIDER=gmail
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+```
+
+Railway's `RAILWAY_PUBLIC_DOMAIN` is used automatically when `BETTER_AUTH_URL`
+and `CLIENT_URL` are not explicitly supplied. If you use a custom domain, set
+both URL variables explicitly to that HTTPS domain.
+
+The following values must still be supplied as Railway secrets/variables:
+
+```text
+BETTER_AUTH_SECRET
+SMTP_USER
+SMTP_PASSWORD
+```
+
+`EMAIL_FROM` defaults to `SMTP_USER` when omitted. `RESET_FROM_EMAIL` also
+defaults to `SMTP_USER`.
+
+Do not commit a real Gmail App Password or authentication secret to GitHub.

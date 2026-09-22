@@ -1,3 +1,5 @@
+import '../bootstrap';
+
 export function validateEnvironment() {
   const production = process.env.NODE_ENV === 'production';
   const required = ['DATABASE_URL', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL', 'CLIENT_URL'];

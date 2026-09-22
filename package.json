@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "site:vet": "node scripts/site-vet.mjs"
+    "site:vet": "node scripts/site-vet.mjs",
+    "railway:email": "bash scripts/configure-railway-email.sh"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",

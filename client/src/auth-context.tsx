@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await authClient.signUp.email({ name, email, password });
     if (error) throw new Error(error.message ?? 'Sign-up failed');
     await refresh();
-    return { requiresVerification: import.meta.env.PROD };
+    return { requiresVerification: true };
   };
 
   const resendVerification = async (email: string) => {

@@ -23,6 +23,11 @@ COPY --from=builder /app/package.json ./
 
 EXPOSE 3000
 ENV NODE_ENV=production
+ENV REQUIRE_EMAIL_VERIFICATION=true
+ENV EMAIL_PROVIDER=gmail
+ENV SMTP_HOST=smtp.gmail.com
+ENV SMTP_PORT=465
+ENV SMTP_SECURE=true
 ENV CHROMIUM_PATH=/usr/bin/chromium
 
 CMD ["bun", "start"]

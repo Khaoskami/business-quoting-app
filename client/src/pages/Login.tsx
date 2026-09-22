@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 
 export default function Login() {
-  const { signIn } = useAuth();
+  const { signIn, resendVerification } = useAuth();
   const nav = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,6 +44,10 @@ export default function Login() {
         </div>
 
         {err && <div role="alert" className="field-error" style={{ marginBottom: 12 }}>{err}</div>}
+
+        <div style={{ marginBottom: 12, textAlign: 'right' }}>
+          <Link to="/verify-email" className="field-hint">Need a new verification email?</Link>
+        </div>
 
         <button type="submit" disabled={loading} className={`btn btn--primary btn--full btn--lg ${loading ? 'btn--loading' : ''}`}>
           Sign in
